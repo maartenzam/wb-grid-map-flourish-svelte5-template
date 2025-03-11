@@ -1,0 +1,48 @@
+body {
+	--font-family: 'Open Sans', sans-serif;
+	--font-weight-regular: 400;
+	--font-weight-semibold: 600;
+	--font-weight-bold: 700;
+
+	--line-height-150: 150%;
+	--line-height-120: 120%;
+
+	--font-style-italic: italic;
+	--font-style-uppercase: uppercase;
+
+	/* font sizes and spacing for small charts width < 400px */
+	--font-size-s-s: 12px;
+	--font-size-s-m: 14px;
+	--font-size-s-l: 16px;
+
+	--space-s-xxs: 2px;
+	--space-s-xs: 4px;
+	--space-s-s: 6px;
+	--space-s-m: 12px;
+	--space-s-l: 14px;
+	--space-s-xl: 16px;
+
+	/* font sizes and spacing for medium charts: width 400-700px */
+	--font-size-m-s: 13px;
+	--font-size-m-m: 15px;
+	--font-size-m-l: 18px;
+
+	--space-m-xxs: 3px;
+	--space-m-xs: 6px;
+	--space-m-s: 9px;
+	--space-m-m: 15px;
+	--space-m-l: 18px;
+	--space-m-xl: 21px;
+
+	/* font sizes and spacing for large charts: width >700px */
+	--font-size-l-s: 14px;
+	--font-size-l-m: 16px;
+	--font-size-l-l: 20px;
+
+	--space-l-xxs: 4px;
+	--space-l-xs: 8px;
+	--space-l-s: 12px;
+	--space-l-m: 16px;
+	--space-l-l: 20px;
+	--space-l-xl: 24px;
+}

@@ -1,0 +1,103 @@
+# The 'id' should be a string that uniquely identifies your template
+id: 'svelte-5-template'
+name: Svelte 5 Template
+description: A Flourish template built with Svelte 5
+author: Maarten Lambrechts
+
+# This template is compatible with SDK version 3
+sdk_version: 3
+
+build:
+  # Defines the build processes used to build your template from source.
+  # You can have any number of build processes, and changes to the relevant
+  # files will trigger the appropriate build. Here we define build scripts
+  # for JavaScript and CSS.
+
+  src:
+    script: npm run build
+    # You can specify a whole directory, or individual files, or both.
+    # A change inside the directory or to any of the listed files will
+    # trigger a rebuild and reload.
+    directory: src
+    files:
+      - vite.config.js
+
+settings:
+  # Creates a settings panel that enables the end user to set the default state for
+  # individual visualisations made with this template.
+  #
+  # Available types:
+  # • "number" >> gives a number input. Optionally add "min::  "max::  and "step:" properties.
+  # • "string" >> gives an text input
+  # • "text" >> gives a textarea
+  # • "boolean" >> gives a checkbox
+  # • "color" >> gives a color picker
+
+  - Header
+  - property: title
+    name: Title
+    type: string
+  - property: subtitle
+    name: Subtitle
+    type: string
+
+  - Circle properties # Headings can be used to break up the settings into collapsible sections
+  - property: radius
+    name: Radius
+    type: number
+    description: The radius of the circle
+  - property: stroke
+    name: Stroke
+    description: 'The thickness of the circle’s border'
+    type: number
+  - property: color
+    name: Color
+    description: The color of the circle
+    type: color
+
+  - Footer
+  - property: notesTitle
+    name: Notes title
+    type: string
+  - property: notes
+    name: Notes and/or source
+    type: string
+  - property: includeLogo
+    name: Include logo
+    type: boolean
+
+data:
+  # The data section determines how data is made available to your template,
+  # and the sample data that is used. See the documentation.
+  # The data section determines how data is made available to your template,
+  # and the sample data that is used. See the documentation.
+  - key: iso3c # Property name in the dataset
+    name: Country Code # Name to be displayed in the editor
+    description: The ISO3C 3 letter country code of each country, as used by the World Bank
+    dataset: plotdata # Name of dataset
+    type: column # Are we selecting a single or multiple columns
+    column: "country_data::A" # Which column should be selected
+    data_type: string
+  - key: label
+    name: Country name
+    description: The country names, for tooltips for example
+    dataset: plotdata
+    type: column
+    column: "country_data::B"
+    data_type: string
+  - key: numericValue
+    name: Numeric value
+    description: A numeric values column
+    dataset: plotdata
+    type: column
+    column: "country_data::G"
+    data_type:
+      - number
+  - key: categoricalValue
+    name: Categorical value
+    description: A categorical values column
+    dataset: plotdata
+    type: column
+    column: "country_data::C"
+    data_type:
+      - string

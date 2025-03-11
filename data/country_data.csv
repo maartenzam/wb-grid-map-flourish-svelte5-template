@@ -1,0 +1,218 @@
+"iso3c","country","region_iso3c","region","income_level_iso3c","income_level","lifexp","gdp_ppp_pc"
+"ABW","Aruba","LCN","Latin America & Caribbean","HIC","High income",74.99,44967
+"AFG","Afghanistan","SAS","South Asia","LIC","Low income",62.88,2211
+"AGO","Angola","SSF","Sub-Saharan Africa","LMC","Lower middle income",61.93,8041
+"ALB","Albania","ECS","Europe & Central Asia","UMC","Upper middle income",76.83,21208
+"AND","Andorra","ECS","Europe & Central Asia","HIC","High income",NA,71731
+"ARE","United Arab Emirates","MEA","Middle East & North Africa","HIC","High income",79.2,76110
+"ARG","Argentina","LCN","Latin America & Caribbean","UMC","Upper middle income",76.06,30082
+"ARM","Armenia","ECS","Europe & Central Asia","UMC","Upper middle income",73.37,21343
+"ASM","American Samoa","EAS","East Asia & Pacific","HIC","High income",NA,NA
+"ATG","Antigua and Barbuda","LCN","Latin America & Caribbean","HIC","High income",79.24,32149
+"AUS","Australia","EAS","East Asia & Pacific","HIC","High income",83.2,70340
+"AUT","Austria","ECS","Europe & Central Asia","HIC","High income",81.09,70297
+"AZE","Azerbaijan","ECS","Europe & Central Asia","UMC","Upper middle income",73.49,23598
+"BDI","Burundi","SSF","Sub-Saharan Africa","LIC","Low income",61.98,920
+"BEL","Belgium","ECS","Europe & Central Asia","HIC","High income",81.7,68894
+"BEN","Benin","SSF","Sub-Saharan Africa","LMC","Lower middle income",59.95,4130
+"BFA","Burkina Faso","SSF","Sub-Saharan Africa","LIC","Low income",59.77,2755
+"BGD","Bangladesh","SAS","South Asia","LMC","Lower middle income",73.7,9148
+"BGR","Bulgaria","ECS","Europe & Central Asia","HIC","High income",74.36,37411
+"BHR","Bahrain","MEA","Middle East & North Africa","HIC","High income",79.25,63498
+"BHS","Bahamas, The","LCN","Latin America & Caribbean","HIC","High income",74.36,36742
+"BIH","Bosnia and Herzegovina","ECS","Europe & Central Asia","UMC","Upper middle income",75.29,22391
+"BLR","Belarus","ECS","Europe & Central Asia","UMC","Upper middle income",73.11,30763
+"BLZ","Belize","LCN","Latin America & Caribbean","UMC","Upper middle income",70.96,13823
+"BMU","Bermuda","NAC","North America","HIC","High income",81.57,108811
+"BOL","Bolivia","LCN","Latin America & Caribbean","LMC","Lower middle income",64.93,10925
+"BRA","Brazil","LCN","Latin America & Caribbean","UMC","Upper middle income",73.42,21107
+"BRB","Barbados","LCN","Latin America & Caribbean","HIC","High income",77.71,21336
+"BRN","Brunei Darussalam","EAS","East Asia & Pacific","HIC","High income",74.55,85268
+"BTN","Bhutan","SAS","South Asia","LMC","Lower middle income",72.23,NA
+"BWA","Botswana","SSF","Sub-Saharan Africa","UMC","Upper middle income",65.91,20916
+"CAF","Central African Republic","SSF","Sub-Saharan Africa","LIC","Low income",54.48,1260
+"CAN","Canada","NAC","North America","HIC","High income",81.3,63419
+"CHE","Switzerland","ECS","Europe & Central Asia","HIC","High income",83.45,89315
+"CHI","Channel Islands","ECS","Europe & Central Asia","HIC","High income",81.58,NA
+"CHL","Chile","LCN","Latin America & Caribbean","HIC","High income",79.52,32893
+"CHN","China","EAS","East Asia & Pacific","UMC","Upper middle income",78.59,24569
+"CIV","Cote d'Ivoire","SSF","Sub-Saharan Africa","LMC","Lower middle income",58.92,7198
+"CMR","Cameroon","SSF","Sub-Saharan Africa","LMC","Lower middle income",60.96,5406
+"COD","Congo, Dem. Rep.","SSF","Sub-Saharan Africa","LIC","Low income",59.74,1616
+"COG","Congo, Rep.","SSF","Sub-Saharan Africa","LMC","Lower middle income",63.05,6850
+"COL","Colombia","LCN","Latin America & Caribbean","UMC","Upper middle income",73.66,20676
+"COM","Comoros","SSF","Sub-Saharan Africa","LMC","Lower middle income",63.68,3883
+"CPV","Cabo Verde","SSF","Sub-Saharan Africa","LMC","Lower middle income",74.72,10309
+"CRI","Costa Rica","LCN","Latin America & Caribbean","UMC","Upper middle income",77.32,28112
+"CUB","Cuba","LCN","Latin America & Caribbean","UMC","Upper middle income",78.16,NA
+"CUW","Curacao","LCN","Latin America & Caribbean","HIC","High income",NA,32060
+"CYM","Cayman Islands","LCN","Latin America & Caribbean","HIC","High income",NA,86689
+"CYP","Cyprus","ECS","Europe & Central Asia","HIC","High income",81.89,57066
+"CZE","Czechia","ECS","Europe & Central Asia","HIC","High income",79.03,53080
+"DEU","Germany","ECS","Europe & Central Asia","HIC","High income",80.71,69027
+"DJI","Djibouti","MEA","Middle East & North Africa","LMC","Lower middle income",62.86,7104
+"DMA","Dominica","LCN","Latin America & Caribbean","UMC","Upper middle income",72.98,19334
+"DNK","Denmark","ECS","Europe & Central Asia","HIC","High income",81.3,73547
+"DOM","Dominican Republic","LCN","Latin America & Caribbean","UMC","Upper middle income",74.17,25624
+"DZA","Algeria","MEA","Middle East & North Africa","UMC","Upper middle income",77.13,16824
+"ECU","Ecuador","LCN","Latin America & Caribbean","UMC","Upper middle income",77.89,16062
+"EGY","Egypt, Arab Rep.","MEA","Middle East & North Africa","LMC","Lower middle income",70.16,18525
+"ERI","Eritrea","SSF","Sub-Saharan Africa","LIC","Low income",66.6,NA
+"ESP","Spain","ECS","Europe & Central Asia","HIC","High income",83.08,53092
+"EST","Estonia","ECS","Europe & Central Asia","HIC","High income",77.94,46669
+"ETH","Ethiopia","SSF","Sub-Saharan Africa","LIC","Low income",65.64,3058
+"FIN","Finland","ECS","Europe & Central Asia","HIC","High income",81.19,61575
+"FJI","Fiji","EAS","East Asia & Pacific","UMC","Upper middle income",68.31,15152
+"FRA","France","ECS","Europe & Central Asia","HIC","High income",82.23,58167
+"FRO","Faroe Islands","ECS","Europe & Central Asia","HIC","High income",83.3,78103
+"FSM","Micronesia, Fed. Sts.","EAS","East Asia & Pacific","LMC","Lower middle income",70.92,4314
+"GAB","Gabon","SSF","Sub-Saharan Africa","UMC","Upper middle income",65.69,20757
+"GBR","United Kingdom","ECS","Europe & Central Asia","HIC","High income",82.06,58273
+"GEO","Georgia","ECS","Europe & Central Asia","UMC","Upper middle income",71.59,25072
+"GHA","Ghana","SSF","Sub-Saharan Africa","LMC","Lower middle income",63.94,7543
+"GIB","Gibraltar","ECS","Europe & Central Asia","HIC","High income",82.83,NA
+"GIN","Guinea","SSF","Sub-Saharan Africa","LMC","Lower middle income",58.98,4383
+"GMB","Gambia, The","SSF","Sub-Saharan Africa","LIC","Low income",62.91,3254
+"GNB","Guinea-Bissau","SSF","Sub-Saharan Africa","LIC","Low income",59.86,2862
+"GNQ","Equatorial Guinea","SSF","Sub-Saharan Africa","UMC","Upper middle income",61.19,17412
+"GRC","Greece","ECS","Europe & Central Asia","HIC","High income",80.64,41076
+"GRD","Grenada","LCN","Latin America & Caribbean","UMC","Upper middle income",75.33,18808
+"GRL","Greenland","ECS","Europe & Central Asia","HIC","High income",71.54,NA
+"GTM","Guatemala","LCN","Latin America & Caribbean","UMC","Upper middle income",68.67,13750
+"GUM","Guam","EAS","East Asia & Pacific","HIC","High income",78.33,NA
+"GUY","Guyana","LCN","Latin America & Caribbean","HIC","High income",65.99,54732
+"HKG","Hong Kong SAR, China","EAS","East Asia & Pacific","HIC","High income",83.66,71549
+"HND","Honduras","LCN","Latin America & Caribbean","LMC","Lower middle income",70.73,7179
+"HRV","Croatia","ECS","Europe & Central Asia","HIC","High income",77.58,45485
+"HTI","Haiti","LCN","Latin America & Caribbean","LMC","Lower middle income",63.73,3281
+"HUN","Hungary","ECS","Europe & Central Asia","HIC","High income",76.02,44905
+"IDN","Indonesia","EAS","East Asia & Pacific","UMC","Upper middle income",68.25,15416
+"IMN","Isle of Man","ECS","Europe & Central Asia","HIC","High income",80.76,NA
+"IND","India","SAS","South Asia","LMC","Lower middle income",67.74,10166
+"IRL","Ireland","ECS","Europe & Central Asia","HIC","High income",83.06,124578
+"IRN","Iran, Islamic Rep.","MEA","Middle East & North Africa","UMC","Upper middle income",74.56,17660
+"IRQ","Iraq","MEA","Middle East & North Africa","UMC","Upper middle income",71.34,14107
+"ISL","Iceland","ECS","Europe & Central Asia","HIC","High income",82.17,76159
+"ISR","Israel","MEA","Middle East & North Africa","HIC","High income",82.7,54128
+"ITA","Italy","ECS","Europe & Central Asia","HIC","High income",82.9,57652
+"JAM","Jamaica","LCN","Latin America & Caribbean","UMC","Upper middle income",70.63,11422
+"JOR","Jordan","MEA","Middle East & North Africa","LMC","Lower middle income",74.22,10391
+"JPN","Japan","EAS","East Asia & Pacific","HIC","High income",84,49885
+"KAZ","Kazakhstan","ECS","Europe & Central Asia","UMC","Upper middle income",74.44,38515
+"KEN","Kenya","SSF","Sub-Saharan Africa","LMC","Lower middle income",62.06,6307
+"KGZ","Kyrgyz Republic","ECS","Europe & Central Asia","LMC","Lower middle income",72.05,7106
+"KHM","Cambodia","EAS","East Asia & Pacific","LMC","Lower middle income",69.9,7426
+"KIR","Kiribati","EAS","East Asia & Pacific","LMC","Lower middle income",67.66,3547
+"KNA","St. Kitts and Nevis","LCN","Latin America & Caribbean","HIC","High income",72.03,33750
+"KOR","Korea, Rep.","EAS","East Asia & Pacific","HIC","High income",82.68,51713
+"KWT","Kuwait","MEA","Middle East & North Africa","HIC","High income",80.26,51561
+"LAO","Lao PDR","EAS","East Asia & Pacific","LMC","Lower middle income",69,9292
+"LBN","Lebanon","MEA","Middle East & North Africa","LMC","Lower middle income",74.42,NA
+"LBR","Liberia","SSF","Sub-Saharan Africa","LIC","Low income",61.1,1795
+"LBY","Libya","MEA","Middle East & North Africa","UMC","Upper middle income",72.15,13849
+"LCA","St. Lucia","LCN","Latin America & Caribbean","UMC","Upper middle income",71.29,25974
+"LIE","Liechtenstein","ECS","Europe & Central Asia","HIC","High income",84.32,NA
+"LKA","Sri Lanka","SAS","South Asia","LMC","Lower middle income",76.61,14461
+"LSO","Lesotho","SSF","Sub-Saharan Africa","LMC","Lower middle income",53.04,2881
+"LTU","Lithuania","ECS","Europe & Central Asia","HIC","High income",75.79,50783
+"LUX","Luxembourg","ECS","Europe & Central Asia","HIC","High income",83.05,139106
+"LVA","Latvia","ECS","Europe & Central Asia","HIC","High income",74.58,41384
+"MAC","Macao SAR, China","EAS","East Asia & Pacific","HIC","High income",85.38,116491
+"MAF","St. Martin (French part)","LCN","Latin America & Caribbean","HIC","High income",80.55,NA
+"MAR","Morocco","MEA","Middle East & North Africa","LMC","Lower middle income",74.97,9843
+"MCO","Monaco","ECS","Europe & Central Asia","HIC","High income",NA,NA
+"MDA","Moldova","ECS","Europe & Central Asia","UMC","Upper middle income",68.62,17597
+"MDG","Madagascar","SSF","Sub-Saharan Africa","LIC","Low income",65.23,1824
+"MDV","Maldives","SAS","South Asia","UMC","Upper middle income",80.84,24735
+"MEX","Mexico","LCN","Latin America & Caribbean","UMC","Upper middle income",74.83,24767
+"MHL","Marshall Islands","EAS","East Asia & Pacific","UMC","Upper middle income",65.15,7532
+"MKD","North Macedonia","ECS","Europe & Central Asia","UMC","Upper middle income",74.42,24327
+"MLI","Mali","SSF","Sub-Saharan Africa","LIC","Low income",59.42,2658
+"MLT","Malta","MEA","Middle East & North Africa","HIC","High income",82.7,63256
+"MMR","Myanmar","EAS","East Asia & Pacific","LMC","Lower middle income",67.26,5953
+"MNE","Montenegro","ECS","Europe & Central Asia","UMC","Upper middle income",76.19,30887
+"MNG","Mongolia","EAS","East Asia & Pacific","UMC","Upper middle income",72.67,18005
+"MNP","Northern Mariana Islands","EAS","East Asia & Pacific","HIC","High income",NA,NA
+"MOZ","Mozambique","SSF","Sub-Saharan Africa","LIC","Low income",59.62,1678
+"MRT","Mauritania","SSF","Sub-Saharan Africa","LMC","Lower middle income",64.69,6946
+"MUS","Mauritius","SSF","Sub-Saharan Africa","UMC","Upper middle income",73.51,29511
+"MWI","Malawi","SSF","Sub-Saharan Africa","LIC","Low income",62.9,1830
+"MYS","Malaysia","EAS","East Asia & Pacific","UMC","Upper middle income",76.26,36417
+"NAM","Namibia","SSF","Sub-Saharan Africa","UMC","Upper middle income",58.06,11216
+"NCL","New Caledonia","EAS","East Asia & Pacific","HIC","High income",80.98,NA
+"NER","Niger","SSF","Sub-Saharan Africa","LIC","Low income",62.08,1891
+"NGA","Nigeria","SSF","Sub-Saharan Africa","LMC","Lower middle income",53.63,6207
+"NIC","Nicaragua","LCN","Latin America & Caribbean","LMC","Lower middle income",74.61,8309
+"NLD","Netherlands","ECS","Europe & Central Asia","HIC","High income",81.71,78103
+"NOR","Norway","ECS","Europe & Central Asia","HIC","High income",82.56,100668
+"NPL","Nepal","SAS","South Asia","LMC","Lower middle income",70.48,5394
+"NRU","Nauru","EAS","East Asia & Pacific","HIC","High income",64.01,13832
+"NZL","New Zealand","EAS","East Asia & Pacific","HIC","High income",82.76,53481
+"OMN","Oman","MEA","Middle East & North Africa","HIC","High income",73.94,42520
+"PAK","Pakistan","SAS","South Asia","LMC","Lower middle income",66.43,6037
+"PAN","Panama","LCN","Latin America & Caribbean","HIC","High income",76.83,39803
+"PER","Peru","LCN","Latin America & Caribbean","UMC","Upper middle income",73.39,16974
+"PHL","Philippines","EAS","East Asia & Pacific","LMC","Lower middle income",72.19,10989
+"PLW","Palau","EAS","East Asia & Pacific","HIC","High income",NA,17532
+"PNG","Papua New Guinea","EAS","East Asia & Pacific","LMC","Lower middle income",65.96,4633
+"POL","Poland","ECS","Europe & Central Asia","HIC","High income",77.3,46450
+"PRI","Puerto Rico","LCN","Latin America & Caribbean","HIC","High income",79.72,47718
+"PRK","Korea, Dem. People's Rep.","EAS","East Asia & Pacific","LIC","Low income",73.58,NA
+"PRT","Portugal","ECS","Europe & Central Asia","HIC","High income",81.58,47209
+"PRY","Paraguay","LCN","Latin America & Caribbean","UMC","Upper middle income",70.47,17517
+"PSE","West Bank and Gaza","MEA","Middle East & North Africa","LMC","Lower middle income",73.44,5897
+"PYF","French Polynesia","EAS","East Asia & Pacific","HIC","High income",83.55,NA
+"QAT","Qatar","MEA","Middle East & North Africa","HIC","High income",81.56,128919
+"ROU","Romania","ECS","Europe & Central Asia","HIC","High income",75.3,45659
+"RUS","Russian Federation","ECS","Europe & Central Asia","HIC","High income",72.55,44120
+"RWA","Rwanda","SSF","Sub-Saharan Africa","LIC","Low income",67.13,3396
+"SAU","Saudi Arabia","MEA","Middle East & North Africa","HIC","High income",77.9,61103
+"SDN","Sudan","SSF","Sub-Saharan Africa","LIC","Low income",65.58,2740
+"SEN","Senegal","SSF","Sub-Saharan Africa","LMC","Lower middle income",67.91,4791
+"SGP","Singapore","EAS","East Asia & Pacific","HIC","High income",82.9,141553
+"SLB","Solomon Islands","EAS","East Asia & Pacific","LMC","Lower middle income",70.74,2812
+"SLE","Sierra Leone","SSF","Sub-Saharan Africa","LIC","Low income",60.41,3368
+"SLV","El Salvador","LCN","Latin America & Caribbean","UMC","Upper middle income",71.47,12657
+"SMR","San Marino","ECS","Europe & Central Asia","HIC","High income",NA,NA
+"SOM","Somalia","SSF","Sub-Saharan Africa","LIC","Low income",56.11,1557
+"SRB","Serbia","ECS","Europe & Central Asia","UMC","Upper middle income",75.48,28674
+"SSD","South Sudan","SSF","Sub-Saharan Africa","LIC","Low income",55.57,NA
+"STP","Sao Tome and Principe","SSF","Sub-Saharan Africa","LMC","Lower middle income",68.79,6150
+"SUR","Suriname","LCN","Latin America & Caribbean","UMC","Upper middle income",70.29,21136
+"SVK","Slovak Republic","ECS","Europe & Central Asia","HIC","High income",77.07,43513
+"SVN","Slovenia","ECS","Europe & Central Asia","HIC","High income",81.28,53813
+"SWE","Sweden","ECS","Europe & Central Asia","HIC","High income",83.11,67024
+"SWZ","Eswatini","SSF","Sub-Saharan Africa","LMC","Lower middle income",56.36,11245
+"SXM","Sint Maarten (Dutch part)","LCN","Latin America & Caribbean","HIC","High income",74.41,49826
+"SYC","Seychelles","SSF","Sub-Saharan Africa","HIC","High income",73.85,32706
+"SYR","Syrian Arab Republic","MEA","Middle East & North Africa","LIC","Low income",72.3,NA
+"TCA","Turks and Caicos Islands","LCN","Latin America & Caribbean","HIC","High income",74.92,24756
+"TCD","Chad","SSF","Sub-Saharan Africa","LIC","Low income",53,1864
+"TGO","Togo","SSF","Sub-Saharan Africa","LIC","Low income",61.59,3072
+"THA","Thailand","EAS","East Asia & Pacific","UMC","Upper middle income",79.68,23465
+"TJK","Tajikistan","ECS","Europe & Central Asia","LMC","Lower middle income",71.29,4964
+"TKM","Turkmenistan","ECS","Europe & Central Asia","UMC","Upper middle income",69.41,19829
+"TLS","Timor-Leste","EAS","East Asia & Pacific","LMC","Lower middle income",69.06,4804
+"TON","Tonga","EAS","East Asia & Pacific","UMC","Upper middle income",71.27,NA
+"TTO","Trinidad and Tobago","LCN","Latin America & Caribbean","HIC","High income",74.71,35189
+"TUN","Tunisia","MEA","Middle East & North Africa","LMC","Lower middle income",74.26,13932
+"TUR","Turkiye","ECS","Europe & Central Asia","UMC","Upper middle income",78.47,42217
+"TUV","Tuvalu","EAS","East Asia & Pacific","UMC","Upper middle income",64.85,6151
+"TZA","Tanzania","SSF","Sub-Saharan Africa","LMC","Lower middle income",66.78,4019
+"UGA","Uganda","SSF","Sub-Saharan Africa","LIC","Low income",63.64,3098
+"UKR","Ukraine","ECS","Europe & Central Asia","UMC","Upper middle income",68.59,17630
+"URY","Uruguay","LCN","Latin America & Caribbean","HIC","High income",78,34427
+"USA","United States","NAC","North America","HIC","High income",77.43,82769
+"UZB","Uzbekistan","ECS","Europe & Central Asia","LMC","Lower middle income",71.67,11107
+"VCT","St. Vincent and the Grenadines","LCN","Latin America & Caribbean","UMC","Upper middle income",68.97,20349
+"VEN","Venezuela, RB","LCN","Latin America & Caribbean","INX","Not classified",71.11,NA
+"VGB","British Virgin Islands","LCN","Latin America & Caribbean","HIC","High income",76.37,NA
+"VIR","Virgin Islands (U.S.)","LCN","Latin America & Caribbean","HIC","High income",80.32,NA
+"VNM","Viet Nam","EAS","East Asia & Pacific","LMC","Lower middle income",74.58,14974
+"VUT","Vanuatu","EAS","East Asia & Pacific","LMC","Lower middle income",70.49,3461
+"WSM","Samoa","EAS","East Asia & Pacific","LMC","Lower middle income",72.6,6997
+"XKX","Kosovo","ECS","Europe & Central Asia","UMC","Upper middle income",79.52,15141
+"YEM","Yemen, Rep.","MEA","Middle East & North Africa","LIC","Low income",63.72,NA
+"ZAF","South Africa","SSF","Sub-Saharan Africa","UMC","Upper middle income",61.48,15194
+"ZMB","Zambia","SSF","Sub-Saharan Africa","LMC","Lower middle income",61.8,4077
+"ZWE","Zimbabwe","SSF","Sub-Saharan Africa","LMC","Lower middle income",59.39,3820
