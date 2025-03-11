@@ -1,8 +1,9 @@
 # The 'id' should be a string that uniquely identifies your template
-id: 'svelte-5-template'
-name: Svelte 5 Template
-description: A Flourish template built with Svelte 5
+id: 'wb-grid-map-flourish-template'
+name: World Bank grid map
+description: Square and hexagonal world tile grid maps for World Bank economies
 author: Maarten Lambrechts
+version: 1.3.1
 
 # This template is compatible with SDK version 3
 sdk_version: 3
@@ -24,7 +25,7 @@ build:
 
 settings:
   # Creates a settings panel that enables the end user to set the default state for
-  # individual visualisations made with this template.
+  # individual viualisations made with this template.
   #
   # Available types:
   # • "number" >> gives a number input. Optionally add "min::  "max::  and "step:" properties.
@@ -33,71 +34,194 @@ settings:
   # • "boolean" >> gives a checkbox
   # • "color" >> gives a color picker
 
-  - Header
+  - Text
   - property: title
     name: Title
     type: string
   - property: subtitle
     name: Subtitle
     type: string
-
-  - Circle properties # Headings can be used to break up the settings into collapsible sections
-  - property: radius
-    name: Radius
-    type: number
-    description: The radius of the circle
-  - property: stroke
-    name: Stroke
-    description: 'The thickness of the circle’s border'
-    type: number
-  - property: color
-    name: Color
-    description: The color of the circle
-    type: color
-
-  - Footer
   - property: notesTitle
     name: Notes title
     type: string
   - property: notes
     name: Notes and/or source
     type: string
-  - property: includeLogo
-    name: Include logo
+
+  - Cells # Headings can be used to break up the settings into collapsible sections
+  - property: gridType
+    name: Type of grid
+    type: string
+    description: Display countries as squares or hexagons
+    choices:
+      - [Squares, squares]
+      - [Hexagons, hexagons]
+    style: buttons
+  - property: countryCodes
+    name: Display country codes
+    type: boolean
+    description: Display the country code on each cell
+  - property: strokeWidth
+    name: Stroke width
+    type: number
+    description: 'The thickness of the cell border'
+  - property: stroke
+    name: Stroke
+    type: color
+    description: The stroke color of the cells
+
+  - Colours
+  - property: scaleType
+    name: Scale type
+    type: string
+    choices:
+      - [Sequential, sequential]
+      - [Diverging, diverging]
+    style: buttons
+    width: half
+    hide_if:
+      data.data.value.type: string
+  - property: linearOrBinned
+    type: string
+    choices:
+      - [Linear, linear]
+      - [Binned, binned]
+    style: buttons
+    width: half
+    hide_if:
+      data.data.value.type: string
+  - property: binningMode
+    name: Binning mode
+    type: string
+    choices:
+      - [Fixed width, fixedWidth]
+      - [Quantile, quantile]
+    width: half
+    hide_if:
+      - linearOrBinned: linear
+      - data.data.value.type: string
+  - property: numberOfBins
+    name: Number of bins
+    type: number
+    min: 2
+    max: 9
+    width: half
+    hide_if:
+      - linearOrBinned: linear
+      - data.data.value.type: string
+  - property: colorScale
+    name: Color scale
+    type: string
+    choices:
+      - [Bad to Good, seq]
+      - [Good to Bad, seqRev]
+      - [Monochrome Blue, seqB]
+      - [Monochrome Yellow, seqY]
+      - [Monochrome Purple, seqP]
+    show_if:
+      scaleType: sequential
+      data.data.value.type: number
+      
+  - property: colorScaleDiverging
+    name: Color scale
+    type: string
+    choices:
+      - [Diverging Bad to Good, div]
+      - [Diverging Good to Bad, div2]
+    show_if:
+      scaleType: diverging
+      data.data.value.type: number
+  - property: domainAutoCustom
+    name: Domain
+    type: string
+    choices:
+      - [Auto, auto]
+      - [Custom, custom]
+    width: half
+    style: buttons
+    hide_if:
+      data.data.value.type: string
+  - property: domainMin
+    name: Min
+    type: number
+    show_if:
+      - domainAutoCustom: custom
+      - data.data.value.type: number
+    width: quarter
+      
+  - property: domainMax
+    name: Max
+    type: number
+    show_if:
+      - domainAutoCustom: custom
+      - data.data.value.type: number
+    width: quarter
+      
+  - property: categoricalColorPalette
+    name: Color palette
+    type: string
+    choices:
+      - [Default, default]
+      - [Default Text, defaultText]
+      - [Region, region]
+      - [Income, income]
+      - [Gender, gender]
+      - [Urbanization, urbanization]
+      - [Age, age]
+      - [Binary, binary]
+    hide_if:
+      data.data.value.type: number
+
+  - Legend
+  - property: showLegend
+    name: Show legend
+    description: Display the color legend
+    type: boolean
+  - property: legendTitle
+    name: Legend title
+    type: string
+    show_if: showLegend
+  - property: unitLabel
+    name: Units
+    type: string
+    show_if: showLegend
+  - property: includeNoData
+    name: Include 'No data'
+    type: boolean
+    show_if: showLegend
+  - property: noDataLabel
+    name: No data label
+    type: string
+    show_if: showLegend
+
+  - Search Box
+  - property: showSearchBox
+    name: Show Search Box
     type: boolean
 
 data:
   # The data section determines how data is made available to your template,
   # and the sample data that is used. See the documentation.
-  # The data section determines how data is made available to your template,
-  # and the sample data that is used. See the documentation.
   - key: iso3c # Property name in the dataset
     name: Country Code # Name to be displayed in the editor
     description: The ISO3C 3 letter country code of each country, as used by the World Bank
-    dataset: plotdata # Name of dataset
+    dataset: data # Name of dataset
     type: column # Are we selecting a single or multiple columns
     column: "country_data::A" # Which column should be selected
     data_type: string
   - key: label
     name: Country name
-    description: The country names, for tooltips for example
-    dataset: plotdata
+    description: The country names, to be displayed in the tooltips
+    dataset: data
     type: column
     column: "country_data::B"
     data_type: string
-  - key: numericValue
-    name: Numeric value
-    description: A numeric values column
-    dataset: plotdata
-    type: column
-    column: "country_data::G"
-    data_type:
-      - number
-  - key: categoricalValue
-    name: Categorical value
-    description: A categorical values column
-    dataset: plotdata
+  - key: value
+    name: Value
+    description: The values to use to color the tiles
+    dataset: data
     type: column
     column: "country_data::C"
     data_type:
+      - number
       - string
