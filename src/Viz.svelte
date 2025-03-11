@@ -3,10 +3,10 @@
   import Footer from "./template/Footer.svelte";
   import WorldHexGrid from "./WorldHexGrid.svelte";
   import WorldSquareGrid from "./WorldSquareGrid.svelte";
-  import ContinuousColorLegend from "./ContinuousColorLegend.svelte";
-  import CategoricalColorLegend from "./CategoricalColorLegend.svelte";
-  import Tooltip from "./Tooltip.svelte";
-  import TooltipContent from "./TooltipContent.svelte";
+  import ContinuousColorLegend from "./template/ContinuousColorLegend.svelte";
+  import CategoricalColorLegend from "./template/CategoricalColorLegend.svelte";
+  import Tooltip from "./template/Tooltip.svelte";
+  import TooltipContent from "./template/TooltipContent.svelte";
   import SearchBox from "./SearchBox.svelte";
   import {
     scaleSequential,
@@ -17,35 +17,11 @@
   import { min, max } from "d3-array";
   import { colorRamps, getDiscreteColors, catColors } from "./utils/colorramps";
   import { wbColors } from "./utils/colors";
+  
+  let {title, subtitle, gridType, countryCodes, strokeWidth, stroke, scaleType, colorScale, colorScaleDiverging, linearOrBinned, binningMode, numberOfBins, categoricalColorPalette, data, showLegend, legendTitle, includeNoData, noDataLabel, unitLabel, domainAutoCustom, domainMin, domainMax, notesTitle, notes, includeLogo, showSearchBox } = $props()
 
-  export let title;
-  export let subtitle;
-  export let gridType;
-  export let countryCodes;
-  export let strokeWidth;
-  export let stroke;
-  export let scaleType;
-  export let colorScale;
-  export let colorScaleDiverging;
-  export let linearOrBinned;
-  export let binningMode;
-  export let numberOfBins;
-  export let categoricalColorPalette;
-  export let data;
-  export let showLegend;
-  export let legendTitle;
-  export let includeNoData;
-  export let noDataLabel;
-  export let unitLabel;
-  export let domainAutoCustom;
-  export let domainMin;
-  export let domainMax;
-  export let notesTitle;
-  export let notes;
-  export let showSearchBox;
-
-  let width = 500;
-  let height = 500;
+  let width = $state(500);
+  let height = $state(500);
 
   let margins = {
     top: 0,
@@ -54,25 +30,22 @@
     left: 0,
   };
 
-  $: valueType = data.data.metadata.value.type
+  let valueType = $derived(data.data.metadata.value.type)
 
   const noDataColor = wbColors.noData;
 
   // When value is numeric
-  $: if (!domainMin) {
-    domainMin = Math.floor(min(data.data.map((d) => d.value)));
-  }
-  $: if (!domainMax) {
-    domainMax = Math.ceil(max(data.data.map((d) => d.value)));
-  }
-  $: dataDomain = [
+  let domainMinimum = $derived(!domainMin ? Math.floor(min(data.data.map((d) => d.value))) : domainMin)
+  let domainMaximum = $derived(!domainMax ? Math.ceil(max(data.data.map((d) => d.value))) : domainMax)
+  let dataDomain = $derived([
     Math.floor(min(data.data.map((d) => d.value))),
     Math.ceil(max(data.data.map((d) => d.value))),
-  ];
-  $: customDomain = [domainMin, domainMax];
-  $: domain = domainAutoCustom == "auto" ? dataDomain : customDomain;
-  $: contColorScale =
-    linearOrBinned == "linear"
+  ])
+  let customDomain = $derived([domainMinimum, domainMaximum])
+  let domain = $derived(domainAutoCustom == "auto" ? dataDomain : customDomain)
+
+  let contColorScale =
+    $derived(linearOrBinned == "linear"
       ? scaleSequential(
           colorRamps[
             scaleType == "sequential" ? colorScale : colorScaleDiverging
@@ -94,35 +67,35 @@
               ],
               numberOfBins
             )
-          ).domain(data.data.map((d) => d.value));
+          ).domain(data.data.map((d) => d.value)));
 
   // When value is string
-  $: colorDomain = [...new Set(data.data.map((d) => d.value))].filter(d => d != "");
-  $: catColorScale = catColors[categoricalColorPalette] && categoricalColorPalette != "default"
+  let colorDomain = $derived([...new Set(data.data.map((d) => d.value))].filter(d => d != ""));
+  let catColorScale = $derived(catColors[categoricalColorPalette] && categoricalColorPalette != "default"
     ? scaleOrdinal(Object.keys(catColors[categoricalColorPalette]), Object.values(catColors[categoricalColorPalette])).unknown(noDataColor)
-    : scaleOrdinal(colorDomain, Object.values(catColors["default"])).unknown(noDataColor)
-  $: usedCats = catColorScale.domain().filter(d => colorDomain.includes(d))
+    : scaleOrdinal(colorDomain, Object.values(catColors["default"])).unknown(noDataColor))
+  let usedCats = $derived(catColorScale.domain().filter(d => colorDomain.includes(d)))
 
   // Tooltip
-  let currentCountry;
-  $: currentCountryData = data.data.find((d) => d.iso3c == currentCountry);
+  let currentCountry = $state();
+  let currentCountryData = $derived(data.data.find((d) => d.iso3c == currentCountry));
 
-  let mousePos;
+  let mousePos = $state();
   function updateMouse(evt) {
     mousePos = { x: evt.clientX, y: evt.clientY };
   }
-  let tooltipVisible = false;
+  let tooltipVisible = $state(false);
 
   // Layout
-  let headerHeight;
-  let legendHeight;
-  let footerHeight;
-  $: vizHeight = showLegend ? height - headerHeight - legendHeight - footerHeight : height - headerHeight - footerHeight;
-  let vizWidth;
+  let headerHeight = $state();
+  let legendHeight = $state();
+  let footerHeight = $state();
+  let vizHeight = $derived(showLegend ? height - headerHeight - legendHeight - footerHeight : height - headerHeight - footerHeight);
+  let vizWidth = $state();
 
   // Search
-  let searched = false;
-  let currentTilePos;
+  let searched = $state(false);
+  let currentTilePos = $state();
 
 </script>
 
@@ -144,8 +117,8 @@
         bind:tooltipVisible
       ></SearchBox>
     {/if}
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
-    <svg width={vizWidth} height={vizHeight} on:mousemove={updateMouse}>
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <svg width={vizWidth} height={vizHeight} onmousemove={updateMouse}>
       <g transform={`translate(${margins.left},${margins.top})`}>
         {#if gridType == "squares"}
           <WorldSquareGrid
@@ -229,7 +202,7 @@
   {/if}
   <div class="footer-container" bind:clientHeight={footerHeight}>
     {#if notesTitle || notes}
-      <Footer {notesTitle} {notes}></Footer>
+      <Footer {notesTitle} {notes} {includeLogo}></Footer>
     {/if}
   </div>
 </div>

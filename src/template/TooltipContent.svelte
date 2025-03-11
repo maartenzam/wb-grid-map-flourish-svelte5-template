@@ -1,11 +1,10 @@
 <script>
-    export let tooltipHeader
-    export let tooltipBody
+  let { tooltipHeader, tooltipBody } = $props()
 </script>
 
 <div class="tooltip-container">
-<h3 class={"tooltip-header"}>{tooltipHeader}</h3>
-<div class={"tooltip-content"}>{tooltipBody}</div>
+  <h3 class={"tooltip-header"}>{tooltipHeader}</h3>
+  <div class={"tooltip-content"}>{tooltipBody}</div>
 </div>
 
 <style>
@@ -15,14 +14,14 @@
 h3.tooltip-header {
     font-weight: var(--font-weight-semibold);
     line-height: var(--line-height-120);
-    color: var(--darkText);
-    border-bottom: 1px solid var(--lighter);
+    color: var(--text);
+    border-bottom: 1px solid var(--grey200);
     margin-top: 0px;
   }
   div.tooltip-content {
-    font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-bold);
     line-height: var(--line-height-120);
-    color: var(--darkText);
+    color: var(--text);
   }
 
   @media only screen and (max-width: 400px) {

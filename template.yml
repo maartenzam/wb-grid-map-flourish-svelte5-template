@@ -34,18 +34,12 @@ settings:
   # • "boolean" >> gives a checkbox
   # • "color" >> gives a color picker
 
-  - Text
+  - Header
   - property: title
     name: Title
     type: string
   - property: subtitle
     name: Subtitle
-    type: string
-  - property: notesTitle
-    name: Notes title
-    type: string
-  - property: notes
-    name: Notes and/or source
     type: string
 
   - Cells # Headings can be used to break up the settings into collapsible sections
@@ -197,6 +191,17 @@ settings:
   - Search Box
   - property: showSearchBox
     name: Show Search Box
+    type: boolean
+
+  - Footer
+  - property: notesTitle
+    name: Notes title
+    type: string
+  - property: notes
+    name: Notes and/or source
+    type: string
+  - property: includeLogo
+    name: Include logo
     type: boolean
 
 data:

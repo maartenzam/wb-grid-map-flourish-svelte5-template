@@ -48,6 +48,7 @@ export var state = {
   domainMax: undefined,
   notesTitle: "",
   notes: "",
+  includeLogo: false,
   showSearchBox: false
 };
 

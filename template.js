@@ -14,6 +14,8 @@ var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "acce
   var _listeners, _observer, _options, _ResizeObserverSingleton_instances, getObserver_fn;
   const EACH_ITEM_REACTIVE = 1;
   const EACH_INDEX_REACTIVE = 1 << 1;
+  const EACH_IS_CONTROLLED = 1 << 2;
+  const EACH_IS_ANIMATED = 1 << 3;
   const EACH_ITEM_IMMUTABLE = 1 << 4;
   const PROPS_IS_IMMUTABLE = 1;
   const PROPS_IS_RUNES = 1 << 1;
@@ -58,6 +60,8 @@ var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "acce
   var object_prototype = Object.prototype;
   var array_prototype = Array.prototype;
   var get_prototype_of = Object.getPrototypeOf;
+  const noop = () => {
+  };
   function run(fn) {
     return fn();
   }
@@ -155,6 +159,15 @@ https://svelte.dev/e/effect_orphan`);
       const error = new Error(`effect_update_depth_exceeded
 Maximum update depth exceeded. This can happen when a reactive block or effect repeatedly sets a new value. Svelte limits the number of nested updates to prevent infinite loops
 https://svelte.dev/e/effect_update_depth_exceeded`);
+      error.name = "Svelte error";
+      throw error;
+    }
+  }
+  function invalid_snippet() {
+    {
+      const error = new Error(`invalid_snippet
+Could not \`{@render}\` snippet due to the expression being \`null\` or \`undefined\`. Consider using optional chaining \`{@render snippet?.()}\`
+https://svelte.dev/e/invalid_snippet`);
       error.name = "Svelte error";
       throw error;
     }
@@ -262,13 +275,6 @@ https://svelte.dev/e/state_unsafe_mutation`);
       }
     }
     return source2;
-  }
-  function mutate(source2, value) {
-    set(
-      source2,
-      untrack(() => get(source2))
-    );
-    return value;
   }
   function set(source2, value) {
     if (active_reaction !== null && !untracking && is_runes() && (active_reaction.f & (DERIVED | BLOCK_EFFECT)) !== 0 && // If the source was created locally within the current derived, then
@@ -2088,6 +2094,14 @@ ${indent}in ${name}`).join("")}
       });
     }
   }
+  function delegate(events) {
+    for (var i = 0; i < events.length; i++) {
+      all_registered_events.add(events[i]);
+    }
+    for (var fn of root_event_handles) {
+      fn(events);
+    }
+  }
   function handle_event_propagation(event2) {
     var _a;
     var handler_element = this;
@@ -2468,6 +2482,14 @@ ${indent}in ${name}`).join("")}
   function each(node, flags, get_collection, get_key, render_fn, fallback_fn = null) {
     var anchor = node;
     var state2 = { flags, items: /* @__PURE__ */ new Map(), first: null };
+    var is_controlled = (flags & EACH_IS_CONTROLLED) !== 0;
+    if (is_controlled) {
+      var parent_node = (
+        /** @type {Element} */
+        node
+      );
+      anchor = parent_node.appendChild(create_text());
+    }
     var fallback = null;
     var was_empty = false;
     var each_array = /* @__PURE__ */ derived_safe_equal(() => {
@@ -2501,18 +2523,33 @@ ${indent}in ${name}`).join("")}
     });
   }
   function reconcile(array, state2, anchor, render_fn, flags, get_key, get_collection) {
+    var _a, _b, _c, _d;
+    var is_animated = (flags & EACH_IS_ANIMATED) !== 0;
+    var should_update = (flags & (EACH_ITEM_REACTIVE | EACH_INDEX_REACTIVE)) !== 0;
     var length = array.length;
     var items = state2.items;
     var first = state2.first;
     var current = first;
     var seen;
     var prev = null;
+    var to_animate;
     var matched = [];
     var stashed = [];
     var value;
     var key;
     var item;
     var i;
+    if (is_animated) {
+      for (i = 0; i < length; i += 1) {
+        value = array[i];
+        key = get_key(value, i);
+        item = items.get(key);
+        if (item !== void 0) {
+          (_a = item.a) == null ? void 0 : _a.measure();
+          (to_animate ?? (to_animate = /* @__PURE__ */ new Set())).add(item);
+        }
+      }
+    }
     for (i = 0; i < length; i += 1) {
       value = array[i];
       key = get_key(value, i);
@@ -2540,11 +2577,15 @@ ${indent}in ${name}`).join("")}
         current = prev.next;
         continue;
       }
-      {
-        update_item(item, value, i);
+      if (should_update) {
+        update_item(item, value, i, flags);
       }
       if ((item.e.f & INERT) !== 0) {
         resume_effect(item.e);
+        if (is_animated) {
+          (_b = item.a) == null ? void 0 : _b.unfix();
+          (to_animate ?? (to_animate = /* @__PURE__ */ new Set())).delete(item);
+        }
       }
       if (item !== current) {
         if (seen !== void 0 && seen.has(item)) {
@@ -2606,18 +2647,41 @@ ${indent}in ${name}`).join("")}
       }
       var destroy_length = to_destroy.length;
       if (destroy_length > 0) {
-        var controlled_anchor = null;
+        var controlled_anchor = (flags & EACH_IS_CONTROLLED) !== 0 && length === 0 ? anchor : null;
+        if (is_animated) {
+          for (i = 0; i < destroy_length; i += 1) {
+            (_c = to_destroy[i].a) == null ? void 0 : _c.measure();
+          }
+          for (i = 0; i < destroy_length; i += 1) {
+            (_d = to_destroy[i].a) == null ? void 0 : _d.fix();
+          }
+        }
         pause_effects(state2, to_destroy, controlled_anchor, items);
       }
+    }
+    if (is_animated) {
+      queue_micro_task(() => {
+        var _a2;
+        if (to_animate === void 0) return;
+        for (item of to_animate) {
+          (_a2 = item.a) == null ? void 0 : _a2.apply();
+        }
+      });
     }
     active_effect.first = state2.first && state2.first.e;
     active_effect.last = prev && prev.e;
   }
   function update_item(item, value, index2, type) {
-    {
+    if ((type & EACH_ITEM_REACTIVE) !== 0) {
       internal_set(item.v, value);
     }
-    {
+    if ((type & EACH_INDEX_REACTIVE) !== 0) {
+      internal_set(
+        /** @type {Value<number>} */
+        item.i,
+        index2
+      );
+    } else {
       item.i = index2;
     }
   }
@@ -2626,7 +2690,7 @@ ${indent}in ${name}`).join("")}
     var mutable = (flags & EACH_ITEM_IMMUTABLE) === 0;
     var v = reactive ? mutable ? /* @__PURE__ */ mutable_source(value) : source(value) : value;
     var i = (flags & EACH_INDEX_REACTIVE) === 0 ? index2 : source(index2);
-    {
+    if (reactive) {
       v.debug = () => {
         var collection_index = typeof i === "number" ? index2 : i.v;
         get_collection()[collection_index];
@@ -2694,18 +2758,24 @@ ${indent}in ${name}`).join("")}
       next.e.prev = prev && prev.e;
     }
   }
-  function slot(anchor, $$props, name, slot_props, fallback_fn) {
-    var _a;
-    var slot_fn = (_a = $$props.$$slots) == null ? void 0 : _a[name];
-    var is_interop = false;
-    if (slot_fn === true) {
-      slot_fn = $$props["children"];
-      is_interop = true;
-    }
-    if (slot_fn === void 0) ;
-    else {
-      slot_fn(anchor, is_interop ? () => slot_props : slot_props);
-    }
+  function snippet(node, get_snippet, ...args) {
+    var anchor = node;
+    var snippet2 = noop;
+    var snippet_effect;
+    block(() => {
+      if (snippet2 === (snippet2 = get_snippet())) return;
+      if (snippet_effect) {
+        destroy_effect(snippet_effect);
+        snippet_effect = null;
+      }
+      if (snippet2 == null) {
+        invalid_snippet();
+      }
+      snippet_effect = branch(() => (
+        /** @type {SnippetFn} */
+        snippet2(anchor, ...args)
+      ));
+    }, EFFECT_TRANSPARENT);
   }
   function wrap_snippet(component, fn) {
     return (node, ...args) => {
@@ -3189,7 +3259,6 @@ ${indent}in ${name}`).join("")}
   const PUBLIC_VERSION = "5";
   if (typeof window !== "undefined")
     (window.__svelte || (window.__svelte = { v: /* @__PURE__ */ new Set() })).v.add(PUBLIC_VERSION);
-  enable_legacy_mode_flag();
   mark_module_start();
   Header[FILENAME] = "src/template/Header.svelte";
   var root$a = add_locations(/* @__PURE__ */ template2(`<div class="header svelte-1cps9pi"><h2 class="title svelte-1cps9pi"> </h2> <h3 class="subtitle svelte-1cps9pi"> </h3></div>`), Header[FILENAME], [[5, 0, [[6, 2], [7, 2]]]]);
@@ -3244,6 +3313,7 @@ ${indent}in ${name}`).join("")}
     return pop({ ...legacy_api() });
   }
   mark_module_end(Footer);
+  enable_legacy_mode_flag();
   const hexGrid = [
     {
       "q": 0,
@@ -6628,16 +6698,9 @@ ${indent}in ${name}`).join("")}
   }
   function min$1(values, valueof) {
     let min2;
-    if (valueof === void 0) {
+    {
       for (const value of values) {
         if (value != null && (min2 > value || min2 === void 0 && value >= value)) {
-          min2 = value;
-        }
-      }
-    } else {
-      let index2 = -1;
-      for (let value of values) {
-        if ((value = valueof(value, ++index2, values)) != null && (min2 > value || min2 === void 0 && value >= value)) {
           min2 = value;
         }
       }
@@ -7571,61 +7634,45 @@ ${indent}in ${name}`).join("")}
     return samples;
   }
   mark_module_start();
-  ContinuousColorLegend[FILENAME] = "src/ContinuousColorLegend.svelte";
-  var root_1$1 = add_locations(/* @__PURE__ */ template2(`<div class="no-data-label svelte-1af89zx"> </div>`), ContinuousColorLegend[FILENAME], [[95, 6]]);
+  ContinuousColorLegend[FILENAME] = "src/template/ContinuousColorLegend.svelte";
+  var root_1$1 = add_locations(/* @__PURE__ */ template2(`<div class="no-data-label svelte-1af89zx"> </div>`), ContinuousColorLegend[FILENAME], [[81, 6]]);
   var root_2$1 = add_locations(/* @__PURE__ */ template2(`<div class="no-data"><div class="no-data-symbol svelte-1af89zx"><svg class="no-data-symbol svelte-1af89zx"><rect class="no-data-rect"></rect></svg></div></div>`), ContinuousColorLegend[FILENAME], [
     [
-      105,
+      91,
       4,
       [
-        [
-          106,
-          6,
-          [[107, 8, [[108, 10]]]]
-        ]
+        [92, 6, [[93, 8, [[94, 10]]]]]
       ]
     ]
   ]);
-  var root_4 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), ContinuousColorLegend[FILENAME], [[135, 14]]);
-  var root_6 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), ContinuousColorLegend[FILENAME], [[141, 16]]);
-  var root_3$1 = add_locations(/* @__PURE__ */ ns_template(`<image class="gradient svelte-1af89zx" preserveAspectRatio="none"></image><rect class="gradient-border svelte-1af89zx"></rect><g class="ticks"><!><!></g>`, 1), ContinuousColorLegend[FILENAME], [[117, 10], [126, 10], [133, 10]]);
-  var root_8 = add_locations(/* @__PURE__ */ ns_template(`<rect></rect>`), ContinuousColorLegend[FILENAME], [[150, 12]]);
-  var root_9 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), ContinuousColorLegend[FILENAME], [[160, 16]]);
+  var root_4 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), ContinuousColorLegend[FILENAME], [[121, 14]]);
+  var root_6 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), ContinuousColorLegend[FILENAME], [[127, 16]]);
+  var root_3$1 = add_locations(/* @__PURE__ */ ns_template(`<image class="gradient svelte-1af89zx" preserveAspectRatio="none"></image><rect class="gradient-border svelte-1af89zx"></rect><g class="ticks"><!><!></g>`, 1), ContinuousColorLegend[FILENAME], [[103, 10], [112, 10], [119, 10]]);
+  var root_8 = add_locations(/* @__PURE__ */ ns_template(`<rect></rect>`), ContinuousColorLegend[FILENAME], [[136, 12]]);
+  var root_9 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), ContinuousColorLegend[FILENAME], [[146, 16]]);
   var root_7$1 = add_locations(/* @__PURE__ */ ns_template(`<!><!>`, 1), ContinuousColorLegend[FILENAME], []);
   var root$6 = add_locations(/* @__PURE__ */ template2(`<div><div class="legend-text-container svelte-1af89zx"><!> <div class="legend-title svelte-1af89zx"><span> </span>&nbsp;<span class="label-unit svelte-1af89zx"> </span></div></div> <div class="gradient-container svelte-1af89zx"><!> <div class="gradient svelte-1af89zx"><svg class="svelte-1af89zx"><!><!></svg></div></div></div>`), ContinuousColorLegend[FILENAME], [
     [
-      92,
+      78,
       0,
       [
         [
-          93,
+          79,
           2,
-          [[97, 4, [[98, 6], [98, 32]]]]
+          [[83, 4, [[84, 6], [84, 32]]]]
         ],
         [
-          103,
+          89,
           2,
-          [[114, 4, [[115, 6]]]]
+          [[100, 4, [[101, 6]]]]
         ]
       ]
     ]
   ]);
   function ContinuousColorLegend($$anchor, $$props) {
     check_target(new.target);
-    push($$props, false, ContinuousColorLegend);
-    const noDataWidth = mutable_state();
-    const discreteTicks = mutable_state();
-    let width = prop($$props, "width", 8);
-    let units = prop($$props, "units", 8, "");
-    let title = prop($$props, "title", 8);
-    let unitLabel = prop($$props, "unitLabel", 8);
-    let contColorScale = prop($$props, "contColorScale", 8);
-    let tickLabels = prop($$props, "tickLabels", 24, () => []);
-    let linearOrBinned = prop($$props, "linearOrBinned", 8);
-    let binningMode = prop($$props, "binningMode", 8);
-    let includeNoData = prop($$props, "includeNoData", 8);
-    let noDataLabel = prop($$props, "noDataLabel", 8);
-    let domain = mutable_state([0, 1]);
+    push($$props, true, ContinuousColorLegend);
+    let units = prop($$props, "units", 3, ""), tickLabels = prop($$props, "tickLabels", 19, () => []);
     let tickSize = 12;
     let height = 12 + tickSize;
     const margin = {
@@ -7633,6 +7680,14 @@ ${indent}in ${name}`).join("")}
       right: 14,
       left: 0
     };
+    let domain = /* @__PURE__ */ derived(() => {
+      const d = $$props.contColorScale.domain();
+      if (equals(d.length, 2)) {
+        return [d[0], d[0] + (d[1] - d[0]) / 2, d[1]];
+      } else {
+        return d;
+      }
+    });
     function ramp(color2, n2 = 256) {
       const canvas = document.createElement("canvas");
       canvas.width = n2;
@@ -7644,45 +7699,37 @@ ${indent}in ${name}`).join("")}
       }
       return canvas;
     }
-    let x = mutable_state(), n = mutable_state(), href = mutable_state();
-    let gradientWidth = mutable_state();
-    legacy_pre_effect(() => deep_read_state(contColorScale()), () => {
-      const d = contColorScale().domain();
-      set(domain, []);
-      if (equals(d.length, 2)) {
-        set(domain, [d[0], d[0] + (d[1] - d[0]) / 2, d[1]]);
-      } else {
-        set(domain, d);
+    let n = /* @__PURE__ */ derived(() => {
+      if ($$props.contColorScale.interpolate) {
+        return Math.min($$props.contColorScale.domain().length, $$props.contColorScale.range().length);
+      }
+      if ($$props.contColorScale.interpolator) {
+        return;
       }
     });
-    legacy_pre_effect(
-      () => (deep_read_state(contColorScale()), get(n), get(gradientWidth), deep_read_state(width())),
-      () => {
-        if (contColorScale().interpolate) {
-          set(n, Math.min(contColorScale().domain().length, contColorScale().range().length));
-          set(x, contColorScale().copy().rangeRound(quantize$1(interpolate(margin.left, get(gradientWidth) - margin.right), get(n))));
-          set(href, ramp(contColorScale().copy().domain(quantize$1(interpolate(0, 1), get(n)))).toDataURL());
-        } else if (contColorScale().interpolator) {
-          set(x, Object.assign(contColorScale().copy().interpolator(interpolateRound(margin.left, get(gradientWidth) - margin.right)), {
-            range() {
-              return [margin.left, width() - margin.right];
-            }
-          }));
-          set(href, ramp(contColorScale().interpolator()).toDataURL());
-        }
+    let x = /* @__PURE__ */ derived(() => {
+      if ($$props.contColorScale.interpolate) {
+        return $$props.contColorScale.copy().rangeRound(quantize$1(interpolate(margin.left, $$props.width - margin.right), get(n)));
       }
-    );
-    legacy_pre_effect(() => deep_read_state(includeNoData()), () => {
-      set(noDataWidth, includeNoData() ? 70 : 0);
+      if ($$props.contColorScale.interpolator) {
+        return Object.assign($$props.contColorScale.copy().interpolator(interpolateRound(margin.left, $$props.width - margin.right)), {
+          range() {
+            return [margin.left, $$props.width - margin.right];
+          }
+        });
+      }
     });
-    legacy_pre_effect(
-      () => (deep_read_state(linearOrBinned()), deep_read_state(binningMode()), deep_read_state(contColorScale())),
-      () => {
-        set(discreteTicks, equals(linearOrBinned(), "linear") ? [] : equals(binningMode(), "fixedWidth") ? contColorScale().thresholds() : contColorScale().quantiles());
+    let href = /* @__PURE__ */ derived(() => {
+      if ($$props.contColorScale.interpolate) {
+        return ramp($$props.contColorScale.copy().domain(quantize$1(interpolate(0, 1), get(n)))).toDataURL();
       }
-    );
-    legacy_pre_effect_reset();
-    init();
+      if ($$props.contColorScale.interpolator) {
+        return ramp($$props.contColorScale.interpolator()).toDataURL();
+      }
+    });
+    let noDataWidth = /* @__PURE__ */ derived(() => $$props.includeNoData ? 70 : 0);
+    let gradientWidth = state$1(0);
+    let discreteTicks = /* @__PURE__ */ derived(() => equals($$props.linearOrBinned, "linear") ? [] : equals($$props.binningMode, "fixedWidth") ? $$props.contColorScale.thresholds() : $$props.contColorScale.quantiles());
     var div = root$6();
     set_class(div, 1, "legend svelte-1af89zx");
     var div_1 = child(div);
@@ -7693,12 +7740,12 @@ ${indent}in ${name}`).join("")}
         var text = child(div_2);
         template_effect(() => {
           set_style(div_2, "width", get(noDataWidth) + "px");
-          set_text(text, noDataLabel());
+          set_text(text, $$props.noDataLabel);
         });
         append($$anchor2, div_2);
       };
       if_block(node, ($$render) => {
-        if (includeNoData()) $$render(consequent);
+        if ($$props.includeNoData) $$render(consequent);
       });
     }
     var div_3 = sibling(node, 2);
@@ -7727,7 +7774,7 @@ ${indent}in ${name}`).join("")}
         append($$anchor2, div_5);
       };
       if_block(node_1, ($$render) => {
-        if (includeNoData()) $$render(consequent_1);
+        if ($$props.includeNoData) $$render(consequent_1);
       });
     }
     var div_7 = sibling(node_1, 2);
@@ -7744,7 +7791,7 @@ ${indent}in ${name}`).join("")}
         set_attribute(rect_1, "height", 10);
         var g = sibling(rect_1);
         var node_3 = child(g);
-        each(node_3, 1, tickLabels, index, ($$anchor3, tick) => {
+        each(node_3, 17, tickLabels, index, ($$anchor3, tick) => {
           var text_3 = root_4();
           var text_4 = child(text_3);
           template_effect(
@@ -7753,8 +7800,7 @@ ${indent}in ${name}`).join("")}
               set_attribute(text_3, "y", margin.top + 24);
               set_text(text_4, get(tick).label + units());
             },
-            [() => get(x)(get(tick).value)],
-            derived_safe_equal
+            [() => get(x)(get(tick).value)]
           );
           append($$anchor3, text_3);
         });
@@ -7763,7 +7809,7 @@ ${indent}in ${name}`).join("")}
           var consequent_2 = ($$anchor3) => {
             var fragment_1 = comment();
             var node_5 = first_child(fragment_1);
-            each(node_5, 1, () => get(domain), index, ($$anchor4, tick) => {
+            each(node_5, 17, () => get(domain), index, ($$anchor4, tick) => {
               var text_5 = root_6();
               var text_6 = child(text_5);
               template_effect(
@@ -7772,8 +7818,7 @@ ${indent}in ${name}`).join("")}
                   set_attribute(text_5, "y", margin.top + 24);
                   set_text(text_6, get(tick) + units());
                 },
-                [() => get(x)(get(tick))],
-                derived_safe_equal
+                [() => get(x)(get(tick))]
               );
               append($$anchor4, text_5);
             });
@@ -7795,7 +7840,7 @@ ${indent}in ${name}`).join("")}
         append($$anchor2, fragment);
       };
       if_block(node_2, ($$render) => {
-        if (equals(linearOrBinned(), "linear")) $$render(consequent_3);
+        if (equals($$props.linearOrBinned, "linear") && get(gradientWidth)) $$render(consequent_3);
       });
     }
     var node_6 = sibling(node_2);
@@ -7803,7 +7848,7 @@ ${indent}in ${name}`).join("")}
       var consequent_4 = ($$anchor2) => {
         var fragment_2 = root_7$1();
         var node_7 = first_child(fragment_2);
-        each(node_7, 1, () => contColorScale().range(), index, ($$anchor3, bin, i) => {
+        each(node_7, 17, () => $$props.contColorScale.range(), index, ($$anchor3, bin, i) => {
           var rect_2 = root_8();
           set_class(rect_2, 0, "bin-color svelte-1af89zx");
           set_attribute(rect_2, "height", 10);
@@ -7815,15 +7860,14 @@ ${indent}in ${name}`).join("")}
               set_attribute(rect_2, "fill", get(bin));
             },
             [
-              () => margin.left + i * get(gradientWidth) / contColorScale().range().length,
-              () => get(gradientWidth) / contColorScale().range().length
-            ],
-            derived_safe_equal
+              () => margin.left + i * get(gradientWidth) / $$props.contColorScale.range().length,
+              () => get(gradientWidth) / $$props.contColorScale.range().length
+            ]
           );
           append($$anchor3, rect_2);
         });
         var node_8 = sibling(node_7);
-        each(node_8, 1, () => get(discreteTicks), index, ($$anchor3, tick, i) => {
+        each(node_8, 17, () => get(discreteTicks), index, ($$anchor3, tick, i) => {
           var text_7 = root_9();
           var text_8 = child(text_7);
           template_effect(
@@ -7833,22 +7877,21 @@ ${indent}in ${name}`).join("")}
               set_text(text_8, $1);
             },
             [
-              () => margin.left + (i + 1) * get(gradientWidth) / contColorScale().range().length,
+              () => margin.left + (i + 1) * get(gradientWidth) / $$props.contColorScale.range().length,
               () => Math.round(get(tick) * 10) / 10 + units()
-            ],
-            derived_safe_equal
+            ]
           );
           append($$anchor3, text_7);
         });
         append($$anchor2, fragment_2);
       };
       if_block(node_6, ($$render) => {
-        if (equals(linearOrBinned(), "binned")) $$render(consequent_4);
+        if (equals($$props.linearOrBinned, "binned")) $$render(consequent_4);
       });
     }
     template_effect(() => {
-      set_text(text_1, title());
-      set_text(text_2, unitLabel() ? "(" + unitLabel() + ")" : "");
+      set_text(text_1, $$props.title);
+      set_text(text_2, $$props.unitLabel ? "(" + $$props.unitLabel + ")" : "");
     });
     bind_element_size(div_7, "clientWidth", ($$value) => set(gradientWidth, $$value));
     append($$anchor, div);
@@ -7952,28 +7995,22 @@ ${indent}in ${name}`).join("")}
     "div2R3": "#754493"
   };
   mark_module_start();
-  CategoricalColorLegend[FILENAME] = "src/CategoricalColorLegend.svelte";
-  var root_2 = add_locations(/* @__PURE__ */ template2(`<div class="pill-container svelte-hjs62s"><div></div> <div> </div></div>`), CategoricalColorLegend[FILENAME], [[26, 6, [[27, 8], [31, 8]]]]);
-  var root_3 = add_locations(/* @__PURE__ */ template2(`<div class="pill-container svelte-hjs62s"><div></div> <div> </div></div>`), CategoricalColorLegend[FILENAME], [[36, 6, [[37, 8], [38, 8]]]]);
+  CategoricalColorLegend[FILENAME] = "src/template/CategoricalColorLegend.svelte";
+  var root_2 = add_locations(/* @__PURE__ */ template2(`<div class="pill-container svelte-hjs62s"><div></div> <div> </div></div>`), CategoricalColorLegend[FILENAME], [[15, 8, [[16, 10], [20, 10]]]]);
+  var root_3 = add_locations(/* @__PURE__ */ template2(`<div class="pill-container svelte-hjs62s"><div></div> <div> </div></div>`), CategoricalColorLegend[FILENAME], [[25, 6, [[26, 8], [27, 8]]]]);
   var root$5 = add_locations(/* @__PURE__ */ template2(`<div><div class="legend-text-container svelte-hjs62s"><div class="legend-title svelte-hjs62s"><span> </span></div></div> <div class="categorical-legend svelte-hjs62s" aria-hidden="true"><!> <!></div></div>`), CategoricalColorLegend[FILENAME], [
     [
-      17,
+      6,
       0,
       [
-        [18, 2, [[19, 4, [[20, 6]]]]],
-        [23, 2]
+        [7, 2, [[8, 4, [[9, 6]]]]],
+        [12, 2]
       ]
     ]
   ]);
   function CategoricalColorLegend($$anchor, $$props) {
     check_target(new.target);
-    push($$props, false, CategoricalColorLegend);
-    let title = prop($$props, "title", 8);
-    let catColorScale = prop($$props, "catColorScale", 8);
-    let includeNoData = prop($$props, "includeNoData", 8);
-    let noDataLabel = prop($$props, "noDataLabel", 8);
-    let usedCats = prop($$props, "usedCats", 8);
-    init();
+    push($$props, true, CategoricalColorLegend);
     var div = root$5();
     set_class(div, 1, "legend svelte-hjs62s");
     var div_1 = child(div);
@@ -7982,7 +8019,7 @@ ${indent}in ${name}`).join("")}
     var text = child(span);
     var div_3 = sibling(div_1, 2);
     var node = child(div_3);
-    each(node, 1, () => catColorScale().domain(), index, ($$anchor2, item) => {
+    each(node, 17, () => $$props.catColorScale.domain(), index, ($$anchor2, item) => {
       var fragment = comment();
       var node_1 = first_child(fragment);
       {
@@ -7998,13 +8035,14 @@ ${indent}in ${name}`).join("")}
               set_style(div_5, "background-color", $0);
               set_text(text_1, get(item));
             },
-            [() => catColorScale()(get(item))],
-            derived_safe_equal
+            [
+              () => $$props.catColorScale(get(item))
+            ]
           );
           append($$anchor3, div_4);
         };
         if_block(node_1, ($$render) => {
-          if (usedCats().includes(get(item))) $$render(consequent);
+          if ($$props.usedCats.includes(get(item))) $$render(consequent);
         });
       }
       append($$anchor2, fragment);
@@ -8020,15 +8058,15 @@ ${indent}in ${name}`).join("")}
         var text_2 = child(div_9);
         template_effect(() => {
           set_style(div_8, "background-color", wbColors.noData);
-          set_text(text_2, noDataLabel());
+          set_text(text_2, $$props.noDataLabel);
         });
         append($$anchor2, div_7);
       };
       if_block(node_2, ($$render) => {
-        if (includeNoData()) $$render(consequent_1);
+        if ($$props.includeNoData) $$render(consequent_1);
       });
     }
-    template_effect(() => set_text(text, title()));
+    template_effect(() => set_text(text, $$props.title));
     append($$anchor, div);
     return pop({ ...legacy_api() });
   }
@@ -9184,66 +9222,53 @@ ${indent}in ${name}`).join("")}
     });
   };
   mark_module_start();
-  Tooltip[FILENAME] = "src/Tooltip.svelte";
-  var root$4 = add_locations(/* @__PURE__ */ template2(`<div><!></div>`), Tooltip[FILENAME], [[49, 0]]);
+  Tooltip[FILENAME] = "src/template/Tooltip.svelte";
+  var root$4 = add_locations(/* @__PURE__ */ template2(`<div><!></div>`), Tooltip[FILENAME], [[46, 0]]);
   function Tooltip($$anchor, $$props) {
     check_target(new.target);
-    push($$props, false, Tooltip);
-    let visible = prop($$props, "visible", 8);
-    let targetPos = prop($$props, "targetPos", 8);
-    let placement = prop($$props, "placement", 8, "right");
-    let showBackground = prop($$props, "showBackground", 8, true);
-    let component = mutable_state();
-    let lastTargetPos = mutable_state({ x: 0, y: 0 });
-    let x = mutable_state(), y = mutable_state();
-    legacy_pre_effect(() => deep_read_state(targetPos()), () => {
-      set(x, targetPos().x);
-    });
-    legacy_pre_effect(() => deep_read_state(targetPos()), () => {
-      set(y, targetPos().y);
-    });
-    legacy_pre_effect(
-      () => (get(component), deep_read_state(targetPos()), get(lastTargetPos), get(x), get(y), deep_read_state(placement()), shift),
-      () => {
-        if (get(component) && targetPos() && (strict_equals(targetPos().x, get(lastTargetPos).x, false) || strict_equals(targetPos().y, get(lastTargetPos).y, false))) {
-          set(lastTargetPos, { ...targetPos() });
-          const virtualTarget = {
-            getBoundingClientRect() {
-              return {
-                width: 0,
-                height: 0,
-                x: get(x),
-                y: get(y),
-                top: get(y),
-                left: get(x),
-                right: get(x),
-                bottom: get(y)
-              };
-            }
-          };
-          computePosition(virtualTarget, get(component), {
-            placement: placement(),
-            middleware: [
-              offset(24),
-              flip(),
-              shift({ padding: 5 })
-            ]
-          }).then(({ x: x2, y: y2 }) => {
-            mutate(component, get(component).style.left = x2 + "px");
-            mutate(component, get(component).style.top = y2 + "px");
-          });
-        }
+    push($$props, true, Tooltip);
+    let placement = prop($$props, "placement", 3, "right"), showBackground = prop($$props, "showBackground", 3, true);
+    let component;
+    let lastTargetPos = { x: 0, y: 0 };
+    let x = /* @__PURE__ */ derived(() => $$props.targetPos.x);
+    let y = /* @__PURE__ */ derived(() => $$props.targetPos.y);
+    user_effect(() => {
+      if (component && $$props.targetPos && (strict_equals($$props.targetPos.x, lastTargetPos.x, false) || strict_equals($$props.targetPos.y, lastTargetPos.y, false))) {
+        lastTargetPos = { ...$$props.targetPos };
+        const virtualTarget = {
+          getBoundingClientRect() {
+            return {
+              width: 0,
+              height: 0,
+              x: get(x),
+              y: get(y),
+              top: get(y),
+              left: get(x),
+              right: get(x),
+              bottom: get(y)
+            };
+          }
+        };
+        computePosition(virtualTarget, component, {
+          placement: placement(),
+          middleware: [
+            offset(24),
+            flip(),
+            shift({ padding: 5 })
+          ]
+        }).then(({ x: x2, y: y2 }) => {
+          component.style.left = x2 + "px";
+          component.style.top = y2 + "px";
+        });
       }
-    );
-    legacy_pre_effect_reset();
-    init();
+    });
     var div = root$4();
     let classes;
     var node = child(div);
-    slot(node, $$props, "default", {});
-    bind_this(div, ($$value) => set(component, $$value), () => get(component));
-    template_effect(() => classes = set_class(div, 1, "tooltip svelte-18v7mgt", null, classes, {
-      visible: visible(),
+    snippet(node, () => $$props.children ?? noop);
+    bind_this(div, ($$value) => component = $$value, () => component);
+    template_effect(() => classes = set_class(div, 1, "tooltip svelte-1jlc8vz", null, classes, {
+      visible: $$props.visible,
       background: strict_equals(showBackground(), true)
     }));
     append($$anchor, div);
@@ -9251,23 +9276,21 @@ ${indent}in ${name}`).join("")}
   }
   mark_module_end(Tooltip);
   mark_module_start();
-  TooltipContent[FILENAME] = "src/TooltipContent.svelte";
-  var root$3 = add_locations(/* @__PURE__ */ template2(`<div class="tooltip-container svelte-upgbu9"><h3> </h3> <div> </div></div>`), TooltipContent[FILENAME], [[6, 0, [[7, 0], [8, 0]]]]);
+  TooltipContent[FILENAME] = "src/template/TooltipContent.svelte";
+  var root$3 = add_locations(/* @__PURE__ */ template2(`<div class="tooltip-container svelte-7erzzb"><h3> </h3> <div> </div></div>`), TooltipContent[FILENAME], [[5, 0, [[6, 2], [7, 2]]]]);
   function TooltipContent($$anchor, $$props) {
     check_target(new.target);
-    push($$props, false, TooltipContent);
-    let tooltipHeader = prop($$props, "tooltipHeader", 8);
-    let tooltipBody = prop($$props, "tooltipBody", 8);
+    push($$props, true, TooltipContent);
     var div = root$3();
     var h3 = child(div);
-    set_class(h3, 1, "tooltip-header svelte-upgbu9");
+    set_class(h3, 1, "tooltip-header svelte-7erzzb");
     var text = child(h3);
     var div_1 = sibling(h3, 2);
-    set_class(div_1, 1, "tooltip-content svelte-upgbu9");
+    set_class(div_1, 1, "tooltip-content svelte-7erzzb");
     var text_1 = child(div_1);
     template_effect(() => {
-      set_text(text, tooltipHeader());
-      set_text(text_1, tooltipBody());
+      set_text(text, $$props.tooltipHeader);
+      set_text(text_1, $$props.tooltipBody);
     });
     append($$anchor, div);
     return pop({ ...legacy_api() });
@@ -9990,150 +10013,61 @@ ${indent}in ${name}`).join("")}
   };
   mark_module_start();
   Viz[FILENAME] = "src/Viz.svelte";
-  var root_7 = add_locations(/* @__PURE__ */ template2(`<div class="legend-container svelte-vkqg7t"><!> <!></div>`), Viz[FILENAME], [[205, 2]]);
+  function updateMouse(evt, mousePos) {
+    set(mousePos, proxy({ x: evt.clientX, y: evt.clientY }, null, mousePos));
+  }
+  var root_7 = add_locations(/* @__PURE__ */ template2(`<div class="legend-container svelte-vkqg7t"><!> <!></div>`), Viz[FILENAME], [[178, 2]]);
   var root = add_locations(/* @__PURE__ */ template2(`<div class="chart-container svelte-vkqg7t"><div class="header-container"><!></div> <div class="viz-container svelte-vkqg7t"><!> <svg><g><!><!></g></svg> <!></div> <!> <div class="footer-container"><!></div></div>`), Viz[FILENAME], [
     [
-      131,
+      104,
       0,
       [
-        [132, 2],
+        [105, 2],
         [
-          138,
+          111,
           2,
-          [[148, 4, [[149, 6]]]]
+          [[121, 4, [[122, 6]]]]
         ],
-        [230, 2]
+        [203, 2]
       ]
     ]
   ]);
   function Viz($$anchor, $$props) {
     check_target(new.target);
-    push($$props, false, Viz);
-    const valueType = mutable_state();
-    const dataDomain = mutable_state();
-    const customDomain = mutable_state();
-    const domain = mutable_state();
-    const contColorScale = mutable_state();
-    const colorDomain = mutable_state();
-    const catColorScale = mutable_state();
-    const usedCats = mutable_state();
-    const currentCountryData = mutable_state();
-    const vizHeight = mutable_state();
-    let title = prop($$props, "title", 8);
-    let subtitle = prop($$props, "subtitle", 8);
-    let gridType = prop($$props, "gridType", 8);
-    let countryCodes = prop($$props, "countryCodes", 8);
-    let strokeWidth = prop($$props, "strokeWidth", 8);
-    let stroke = prop($$props, "stroke", 8);
-    let scaleType = prop($$props, "scaleType", 8);
-    let colorScale = prop($$props, "colorScale", 8);
-    let colorScaleDiverging = prop($$props, "colorScaleDiverging", 8);
-    let linearOrBinned = prop($$props, "linearOrBinned", 8);
-    let binningMode = prop($$props, "binningMode", 8);
-    let numberOfBins = prop($$props, "numberOfBins", 8);
-    let categoricalColorPalette = prop($$props, "categoricalColorPalette", 8);
-    let data2 = prop($$props, "data", 8);
-    let showLegend = prop($$props, "showLegend", 8);
-    let legendTitle = prop($$props, "legendTitle", 8);
-    let includeNoData = prop($$props, "includeNoData", 8);
-    let noDataLabel = prop($$props, "noDataLabel", 8);
-    let unitLabel = prop($$props, "unitLabel", 8);
-    let domainAutoCustom = prop($$props, "domainAutoCustom", 8);
-    let domainMin = prop($$props, "domainMin", 12);
-    let domainMax = prop($$props, "domainMax", 12);
-    let notesTitle = prop($$props, "notesTitle", 8);
-    let notes = prop($$props, "notes", 8);
-    let showSearchBox = prop($$props, "showSearchBox", 8);
-    let width = mutable_state(500);
-    let height = mutable_state(500);
+    push($$props, true, Viz);
+    let width = state$1(500);
+    let height = state$1(500);
     let margins = { top: 0, right: 0, bottom: 0, left: 0 };
+    let valueType = /* @__PURE__ */ derived(() => $$props.data.data.metadata.value.type);
     const noDataColor = wbColors.noData;
-    let currentCountry = mutable_state();
-    let mousePos = mutable_state();
-    function updateMouse(evt) {
-      set(mousePos, { x: evt.clientX, y: evt.clientY });
-    }
-    let tooltipVisible = mutable_state(false);
-    let headerHeight = mutable_state();
-    let legendHeight = mutable_state();
-    let footerHeight = mutable_state();
-    let vizWidth = mutable_state();
-    let searched = mutable_state(false);
-    let currentTilePos = mutable_state();
-    legacy_pre_effect(() => deep_read_state(data2()), () => {
-      set(valueType, data2().data.metadata.value.type);
-    });
-    legacy_pre_effect(
-      () => (deep_read_state(domainMin()), deep_read_state(data2())),
-      () => {
-        if (!domainMin()) {
-          domainMin(Math.floor(min$1(data2().data.map((d) => d.value))));
-        }
-      }
-    );
-    legacy_pre_effect(
-      () => (deep_read_state(domainMax()), deep_read_state(data2())),
-      () => {
-        if (!domainMax()) {
-          domainMax(Math.ceil(max$1(data2().data.map((d) => d.value))));
-        }
-      }
-    );
-    legacy_pre_effect(() => (deep_read_state(data2()), max$1), () => {
-      set(dataDomain, [
-        Math.floor(min$1(data2().data.map((d) => d.value))),
-        Math.ceil(max$1(data2().data.map((d) => d.value)))
-      ]);
-    });
-    legacy_pre_effect(
-      () => (deep_read_state(domainMin()), deep_read_state(domainMax())),
-      () => {
-        set(customDomain, [domainMin(), domainMax()]);
-      }
-    );
-    legacy_pre_effect(
-      () => (deep_read_state(domainAutoCustom()), get(dataDomain), get(customDomain)),
-      () => {
-        set(domain, equals(domainAutoCustom(), "auto") ? get(dataDomain) : get(customDomain));
-      }
-    );
-    legacy_pre_effect(
-      () => (deep_read_state(linearOrBinned()), deep_read_state(scaleType()), deep_read_state(colorScale()), deep_read_state(colorScaleDiverging()), get(domain), deep_read_state(binningMode()), deep_read_state(numberOfBins()), deep_read_state(data2())),
-      () => {
-        set(contColorScale, equals(linearOrBinned(), "linear") ? sequential(colorRamps[equals(scaleType(), "sequential") ? colorScale() : colorScaleDiverging()]).domain(get(domain)) : equals(binningMode(), "fixedWidth") ? quantize(getDiscreteColors(colorRamps[equals(scaleType(), "sequential") ? colorScale() : colorScaleDiverging()], numberOfBins())).domain(get(domain)) : quantile(getDiscreteColors(colorRamps[equals(scaleType(), "sequential") ? colorScale() : colorScaleDiverging()], numberOfBins())).domain(data2().data.map((d) => d.value)));
-      }
-    );
-    legacy_pre_effect(() => deep_read_state(data2()), () => {
-      set(colorDomain, [
-        ...new Set(data2().data.map((d) => d.value))
-      ].filter((d) => equals(d, "", false)));
-    });
-    legacy_pre_effect(
-      () => (deep_read_state(categoricalColorPalette()), get(colorDomain)),
-      () => {
-        set(catColorScale, catColors[categoricalColorPalette()] && equals(categoricalColorPalette(), "default", false) ? ordinal(Object.keys(catColors[categoricalColorPalette()]), Object.values(catColors[categoricalColorPalette()])).unknown(noDataColor) : ordinal(get(colorDomain), Object.values(catColors["default"])).unknown(noDataColor));
-      }
-    );
-    legacy_pre_effect(
-      () => (get(catColorScale), get(colorDomain)),
-      () => {
-        set(usedCats, get(catColorScale).domain().filter((d) => get(colorDomain).includes(d)));
-      }
-    );
-    legacy_pre_effect(
-      () => (deep_read_state(data2()), get(currentCountry)),
-      () => {
-        set(currentCountryData, data2().data.find((d) => equals(d.iso3c, get(currentCountry))));
-      }
-    );
-    legacy_pre_effect(
-      () => (deep_read_state(showLegend()), get(height), get(headerHeight), get(legendHeight), get(footerHeight)),
-      () => {
-        set(vizHeight, showLegend() ? get(height) - get(headerHeight) - get(legendHeight) - get(footerHeight) : get(height) - get(headerHeight) - get(footerHeight));
-      }
-    );
-    legacy_pre_effect_reset();
-    init();
+    let domainMinimum = /* @__PURE__ */ derived(() => !$$props.domainMin ? Math.floor(min$1($$props.data.data.map((d) => d.value))) : $$props.domainMin);
+    let domainMaximum = /* @__PURE__ */ derived(() => !$$props.domainMax ? Math.ceil(max$1($$props.data.data.map((d) => d.value))) : $$props.domainMax);
+    let dataDomain = /* @__PURE__ */ derived(() => [
+      Math.floor(min$1($$props.data.data.map((d) => d.value))),
+      Math.ceil(max$1($$props.data.data.map((d) => d.value)))
+    ]);
+    let customDomain = /* @__PURE__ */ derived(() => [
+      get(domainMinimum),
+      get(domainMaximum)
+    ]);
+    let domain = /* @__PURE__ */ derived(() => equals($$props.domainAutoCustom, "auto") ? get(dataDomain) : get(customDomain));
+    let contColorScale = /* @__PURE__ */ derived(() => equals($$props.linearOrBinned, "linear") ? sequential(colorRamps[equals($$props.scaleType, "sequential") ? $$props.colorScale : $$props.colorScaleDiverging]).domain(get(domain)) : equals($$props.binningMode, "fixedWidth") ? quantize(getDiscreteColors(colorRamps[equals($$props.scaleType, "sequential") ? $$props.colorScale : $$props.colorScaleDiverging], $$props.numberOfBins)).domain(get(domain)) : quantile(getDiscreteColors(colorRamps[equals($$props.scaleType, "sequential") ? $$props.colorScale : $$props.colorScaleDiverging], $$props.numberOfBins)).domain($$props.data.data.map((d) => d.value)));
+    let colorDomain = /* @__PURE__ */ derived(() => [
+      ...new Set($$props.data.data.map((d) => d.value))
+    ].filter((d) => equals(d, "", false)));
+    let catColorScale = /* @__PURE__ */ derived(() => catColors[$$props.categoricalColorPalette] && equals($$props.categoricalColorPalette, "default", false) ? ordinal(Object.keys(catColors[$$props.categoricalColorPalette]), Object.values(catColors[$$props.categoricalColorPalette])).unknown(noDataColor) : ordinal(get(colorDomain), Object.values(catColors["default"])).unknown(noDataColor));
+    let usedCats = /* @__PURE__ */ derived(() => get(catColorScale).domain().filter((d) => get(colorDomain).includes(d)));
+    let currentCountry = state$1(void 0);
+    let currentCountryData = /* @__PURE__ */ derived(() => $$props.data.data.find((d) => equals(d.iso3c, get(currentCountry))));
+    let mousePos = state$1(void 0);
+    let tooltipVisible = state$1(false);
+    let headerHeight = state$1(void 0);
+    let legendHeight = state$1(void 0);
+    let footerHeight = state$1(void 0);
+    let vizHeight = /* @__PURE__ */ derived(() => $$props.showLegend ? get(height) - get(headerHeight) - get(legendHeight) - get(footerHeight) : get(height) - get(headerHeight) - get(footerHeight));
+    let vizWidth = state$1(void 0);
+    let searched = state$1(false);
+    let currentTilePos = state$1(void 0);
     var div = root();
     var div_1 = child(div);
     var node = child(div_1);
@@ -10141,15 +10075,15 @@ ${indent}in ${name}`).join("")}
       var consequent = ($$anchor2) => {
         Header($$anchor2, {
           get title() {
-            return title();
+            return $$props.title;
           },
           get subtitle() {
-            return subtitle();
+            return $$props.subtitle;
           }
         });
       };
       if_block(node, ($$render) => {
-        if (title() || subtitle()) $$render(consequent);
+        if ($$props.title || $$props.subtitle) $$render(consequent);
       });
     }
     var div_2 = sibling(div_1, 2);
@@ -10162,35 +10096,35 @@ ${indent}in ${name}`).join("")}
           add_owner_effect(() => get(tooltipVisible), SearchBox);
           SearchBox($$anchor2, {
             get data() {
-              return data2().data;
+              return $$props.data.data;
             },
             get currentCountry() {
               return get(currentCountry);
             },
             set currentCountry($$value) {
-              set(currentCountry, $$value);
+              set(currentCountry, proxy($$value, null, currentCountry));
             },
             get searched() {
               return get(searched);
             },
             set searched($$value) {
-              set(searched, $$value);
+              set(searched, proxy($$value, null, searched));
             },
             get tooltipVisible() {
               return get(tooltipVisible);
             },
             set tooltipVisible($$value) {
-              set(tooltipVisible, $$value);
-            },
-            $$legacy: true
+              set(tooltipVisible, proxy($$value, null, tooltipVisible));
+            }
           });
         }
       };
       if_block(node_1, ($$render) => {
-        if (showSearchBox()) $$render(consequent_1);
+        if ($$props.showSearchBox) $$render(consequent_1);
       });
     }
     var svg = sibling(node_1, 2);
+    svg.__mousemove = [updateMouse, mousePos];
     var g = child(svg);
     var node_2 = child(g);
     {
@@ -10208,18 +10142,18 @@ ${indent}in ${name}`).join("")}
               return get(vizHeight);
             },
             get strokeWidth() {
-              return strokeWidth();
+              return $$props.strokeWidth;
             },
             get stroke() {
-              return stroke();
+              return $$props.stroke;
             },
             get countryCodes() {
-              return countryCodes();
+              return $$props.countryCodes;
             },
             margins,
             noDataColor,
             get data() {
-              return data2();
+              return $$props.data;
             },
             get contColorScale() {
               return get(contColorScale);
@@ -10231,32 +10165,31 @@ ${indent}in ${name}`).join("")}
               return get(currentCountry);
             },
             set currentCountry($$value) {
-              set(currentCountry, $$value);
+              set(currentCountry, proxy($$value, null, currentCountry));
             },
             get searched() {
               return get(searched);
             },
             set searched($$value) {
-              set(searched, $$value);
+              set(searched, proxy($$value, null, searched));
             },
             get currentTilePos() {
               return get(currentTilePos);
             },
             set currentTilePos($$value) {
-              set(currentTilePos, $$value);
+              set(currentTilePos, proxy($$value, null, currentTilePos));
             },
             get tooltipVisible() {
               return get(tooltipVisible);
             },
             set tooltipVisible($$value) {
-              set(tooltipVisible, $$value);
-            },
-            $$legacy: true
+              set(tooltipVisible, proxy($$value, null, tooltipVisible));
+            }
           });
         }
       };
       if_block(node_2, ($$render) => {
-        if (equals(gridType(), "squares")) $$render(consequent_2);
+        if (equals($$props.gridType, "squares")) $$render(consequent_2);
       });
     }
     var node_3 = sibling(node_2);
@@ -10275,17 +10208,17 @@ ${indent}in ${name}`).join("")}
               return get(vizHeight);
             },
             get strokeWidth() {
-              return strokeWidth();
+              return $$props.strokeWidth;
             },
             get stroke() {
-              return stroke();
+              return $$props.stroke;
             },
             get countryCodes() {
-              return countryCodes();
+              return $$props.countryCodes;
             },
             noDataColor,
             get data() {
-              return data2();
+              return $$props.data;
             },
             get contColorScale() {
               return get(contColorScale);
@@ -10297,38 +10230,37 @@ ${indent}in ${name}`).join("")}
               return get(currentCountry);
             },
             set currentCountry($$value) {
-              set(currentCountry, $$value);
+              set(currentCountry, proxy($$value, null, currentCountry));
             },
             get searched() {
               return get(searched);
             },
             set searched($$value) {
-              set(searched, $$value);
+              set(searched, proxy($$value, null, searched));
             },
             get currentTilePos() {
               return get(currentTilePos);
             },
             set currentTilePos($$value) {
-              set(currentTilePos, $$value);
+              set(currentTilePos, proxy($$value, null, currentTilePos));
             },
             get tooltipVisible() {
               return get(tooltipVisible);
             },
             set tooltipVisible($$value) {
-              set(tooltipVisible, $$value);
-            },
-            $$legacy: true
+              set(tooltipVisible, proxy($$value, null, tooltipVisible));
+            }
           });
         }
       };
       if_block(node_3, ($$render) => {
-        if (equals(gridType(), "hexagons")) $$render(consequent_3);
+        if (equals($$props.gridType, "hexagons")) $$render(consequent_3);
       });
     }
     var node_4 = sibling(svg, 2);
     {
       var consequent_4 = ($$anchor2) => {
-        const expression = /* @__PURE__ */ derived_safe_equal(() => get(searched) && get(currentTilePos) ? get(currentTilePos) : get(mousePos));
+        const expression = /* @__PURE__ */ derived(() => get(searched) && get(currentTilePos) ? get(currentTilePos) : get(mousePos));
         Tooltip($$anchor2, {
           get visible() {
             return get(tooltipVisible);
@@ -10337,7 +10269,7 @@ ${indent}in ${name}`).join("")}
             return get(expression);
           },
           children: wrap_snippet(Viz, ($$anchor3, $$slotProps) => {
-            const expression_1 = /* @__PURE__ */ derived_safe_equal(() => equals(get(currentCountryData).value, null, false) && equals(get(currentCountryData).value, "", false) ? equals(get(valueType), "number") ? Math.round(get(currentCountryData).value * 10) / 10 + "%" : get(currentCountryData).value : "No data");
+            const expression_1 = /* @__PURE__ */ derived(() => equals(get(currentCountryData).value, null, false) && equals(get(currentCountryData).value, "", false) ? equals(get(valueType), "number") ? Math.round(get(currentCountryData).value * 10) / 10 + "%" : get(currentCountryData).value : "No data");
             TooltipContent($$anchor3, {
               get tooltipHeader() {
                 return get(currentCountryData).label;
@@ -10366,26 +10298,26 @@ ${indent}in ${name}`).join("")}
                 return get(vizWidth);
               },
               get title() {
-                return legendTitle();
+                return $$props.legendTitle;
               },
               get unitLabel() {
-                return unitLabel();
+                return $$props.unitLabel;
               },
               get contColorScale() {
                 return get(contColorScale);
               },
               get linearOrBinned() {
-                return linearOrBinned();
+                return $$props.linearOrBinned;
               },
               get binningMode() {
-                return binningMode();
+                return $$props.binningMode;
               },
               units: "%",
               get includeNoData() {
-                return includeNoData();
+                return $$props.includeNoData;
               },
               get noDataLabel() {
-                return noDataLabel();
+                return $$props.noDataLabel;
               }
             });
           };
@@ -10398,7 +10330,7 @@ ${indent}in ${name}`).join("")}
           var consequent_6 = ($$anchor3) => {
             CategoricalColorLegend($$anchor3, {
               get title() {
-                return legendTitle();
+                return $$props.legendTitle;
               },
               get catColorScale() {
                 return get(catColorScale);
@@ -10407,10 +10339,10 @@ ${indent}in ${name}`).join("")}
                 return get(usedCats);
               },
               get includeNoData() {
-                return includeNoData();
+                return $$props.includeNoData;
               },
               get noDataLabel() {
-                return noDataLabel();
+                return $$props.noDataLabel;
               }
             });
           };
@@ -10422,7 +10354,7 @@ ${indent}in ${name}`).join("")}
         append($$anchor2, div_3);
       };
       if_block(node_5, ($$render) => {
-        if (showLegend()) $$render(consequent_7);
+        if ($$props.showLegend) $$render(consequent_7);
       });
     }
     var div_4 = sibling(node_5, 2);
@@ -10431,15 +10363,18 @@ ${indent}in ${name}`).join("")}
       var consequent_8 = ($$anchor2) => {
         Footer($$anchor2, {
           get notesTitle() {
-            return notesTitle();
+            return $$props.notesTitle;
           },
           get notes() {
-            return notes();
+            return $$props.notes;
+          },
+          get includeLogo() {
+            return $$props.includeLogo;
           }
         });
       };
       if_block(node_8, ($$render) => {
-        if (notesTitle() || notes()) $$render(consequent_8);
+        if ($$props.notesTitle || $$props.notes) $$render(consequent_8);
       });
     }
     template_effect(() => {
@@ -10447,16 +10382,16 @@ ${indent}in ${name}`).join("")}
       set_attribute(svg, "height", get(vizHeight));
       set_attribute(g, "transform", `translate(${margins.left},${margins.top})`);
     });
-    bind_window_size("innerWidth", ($$value) => set(width, $$value));
-    bind_window_size("innerHeight", ($$value) => set(height, $$value));
+    bind_window_size("innerWidth", ($$value) => set(width, proxy($$value, null, width)));
+    bind_window_size("innerHeight", ($$value) => set(height, proxy($$value, null, height)));
     bind_element_size(div_1, "clientHeight", ($$value) => set(headerHeight, $$value));
-    event("mousemove", svg, updateMouse);
     bind_element_size(div_2, "clientWidth", ($$value) => set(vizWidth, $$value));
     bind_element_size(div_4, "clientHeight", ($$value) => set(footerHeight, $$value));
     append($$anchor, div);
     return pop({ ...legacy_api() });
   }
   mark_module_end(Viz);
+  delegate(["mousemove"]);
   var font_link = document.createElement("link");
   font_link.setAttribute("rel", "stylesheet");
   document.body.appendChild(font_link);
@@ -10494,6 +10429,7 @@ ${indent}in ${name}`).join("")}
     domainMax: void 0,
     notesTitle: "",
     notes: "",
+    includeLogo: false,
     showSearchBox: false
   };
   let reactiveState = state$1(proxy({}));

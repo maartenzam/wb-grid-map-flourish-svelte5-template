@@ -1,19 +1,7 @@
 <script>
   import { interpolate, quantize, interpolateRound } from "d3-interpolate";
 
-  export let width;
-  export let units = "";
-  //export let digits = 0;
-  export let title;
-  export let unitLabel;
-  export let contColorScale;
-  export let tickLabels = [];
-  export let linearOrBinned;
-  export let binningMode;
-  export let includeNoData;
-  export let noDataLabel;
-
-  let domain = [0, 1];
+  let { width, units = '', title, unitLabel, contColorScale, tickLabels = [], linearOrBinned, binningMode, includeNoData, noDataLabel } = $props()
 
   let tickSize = 12;
   let height = 12 + tickSize;
@@ -24,15 +12,14 @@
     left: 0,
   };
 
-  $: {
-    const d = contColorScale.domain();
-    domain = [];
-    if (d.length == 2) {
-      domain = [d[0], d[0] + (d[1] - d[0]) / 2, d[1]];
-    } else {
-      domain = d;
-    }
-  }
+	let domain = $derived.by(() => {
+		const d = contColorScale.domain();
+		if (d.length == 2) {
+			return [d[0], d[0] + (d[1] - d[0]) / 2, d[1]];
+		} else {
+			return d;
+		}
+	})
 
   function ramp(color, n = 256) {
     const canvas = document.createElement("canvas");
@@ -46,47 +33,46 @@
     return canvas;
   }
 
-  let x, n, href;
+  let n = $derived.by(() => {
+			if(contColorScale.interpolate){
+				return Math.min(contColorScale.domain().length, contColorScale.range().length);
+			}
+			if(contColorScale.interpolator){
+				return
+			}
+	})
+  let x = $derived.by(() => {
+			if(contColorScale.interpolate){
+				return contColorScale.copy().rangeRound(quantize(interpolate(margin.left, width - margin.right), n));
+			}
+			if(contColorScale.interpolator){
+				return Object.assign(
+          contColorScale.copy().interpolator(interpolateRound(margin.left, width - margin.right)),
+				{
+					range() {
+						return [margin.left, width - margin.right];
+					}
+				}
+			)
+			}
+	})
+	let href = $derived.by(() => {
+			if(contColorScale.interpolate){
+				return ramp(contColorScale.copy().domain(quantize(interpolate(0, 1), n))).toDataURL();
+			}
+			if(contColorScale.interpolator){
+				return ramp(contColorScale.interpolator()).toDataURL();
+      }
+	})
 
-  $: {
-    // Continuous
-    if (contColorScale.interpolate) {
-      n = Math.min(contColorScale.domain().length, contColorScale.range().length);
-      x = contColorScale
-        .copy()
-        .rangeRound(
-          quantize(interpolate(margin.left, gradientWidth - margin.right), n)
-        );
-      href = ramp(
-        contColorScale.copy().domain(quantize(interpolate(0, 1), n))
-      ).toDataURL();
-    }
-    // Sequential
-    else if (contColorScale.interpolator) {
-      x = Object.assign(
-        contColorScale
-          .copy()
-          .interpolator(
-            interpolateRound(margin.left, gradientWidth - margin.right)
-          ),
-        {
-          range() {
-            return [margin.left, width - margin.right];
-          },
-        }
-      );
-      href = ramp(contColorScale.interpolator()).toDataURL();
-    }
-  }
+  let noDataWidth = $derived(includeNoData ? 70 : 0);
+  let gradientWidth = $state(0);
 
-  $: noDataWidth = includeNoData ? 70 : 0;
-  let gradientWidth;
-
-  $: discreteTicks = linearOrBinned == "linear"
+  let discreteTicks = $derived(linearOrBinned == "linear"
     ? []
     : binningMode == "fixedWidth"
       ? contColorScale.thresholds()
-      : contColorScale.quantiles()
+      : contColorScale.quantiles())
 </script>
 
 <div class={"legend"}>
@@ -113,7 +99,7 @@
     {/if}
     <div class="gradient" bind:clientWidth={gradientWidth}>
       <svg width={"100%"} {height}>
-        {#if linearOrBinned == "linear"}
+        {#if linearOrBinned == "linear" && gradientWidth}
           <image
             class="gradient"
             x={margin.left}

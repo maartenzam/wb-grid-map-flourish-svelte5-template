@@ -1,20 +1,16 @@
 <script>
   import { computePosition, flip, shift, offset } from "@floating-ui/dom";
 
-  export let visible;
-  export let targetPos;
-  export let placement = "right";
-  export let showBackground = true;
+  let { visible, targetPos, placement = 'right', showBackground = true, children } = $props();
 
   let component;
   let lastTargetPos = { x: 0, y: 0 };
+  
+  let x = $derived(targetPos.x);
+  let y = $derived(targetPos.y);
 
-  let x, y;
-
-  $: x = targetPos.x;
-  $: y = targetPos.y;
-
-  $: if (
+  $effect(() => {
+    if (
     component &&
     targetPos &&
     (targetPos.x !== lastTargetPos.x || targetPos.y !== lastTargetPos.y)
@@ -44,6 +40,7 @@
       component.style.top = y + "px";
     });
   }
+  })
 </script>
 
 <div
@@ -52,7 +49,7 @@
   class:background={showBackground === true}
   bind:this={component}
 >
-  <slot />
+  {@render children?.()}
 </div>
 
 <style type="text/scss">
@@ -64,8 +61,8 @@
     max-width: 400px;
     pointer-events: none;
     background-color: #ffffff;
-    box-shadow: 4px 4px 4px rgb(from var(--darkest) R G B / 0.15);
-    border: 0.5px solid var(--lighter);
+    box-shadow: 4px 4px 4px rgb(from var(--grey500) R G B / 0.15);
+    border: 0.5px solid var(--grey200);
 
     &.visible {
       display: block;
