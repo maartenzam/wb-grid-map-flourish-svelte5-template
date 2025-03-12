@@ -1,6 +1,6 @@
 <script>
   import { hexGrid } from './layouts/worldhexgrid';
-  import { getFill, generateHexLayout } from './utils/utils';
+  import { generateHexLayout } from './utils/colorscales';
   import { max } from 'd3-array';
 
   let {
@@ -11,13 +11,15 @@
     countryCodes,
     noDataColor,
     data,
-    contColorScale,
-    catColorScale,
+    numericalColorScale,
+    categoricalColorScale,
     currentCountry = $bindable(),
     currentTilePos = $bindable(),
     searched = $bindable(),
-    tooltipVisible = $bindable()
+    tooltipVisible = $bindable(),
   } = $props();
+
+  let valueType = $derived(data.plotdata.metadata.color.type);
 
   const shift = Math.cos((Math.PI / 180) * 30);
 
@@ -46,13 +48,13 @@
     <polygon
       class={`hex q-${hex.q} r-${hex.r}`}
       points={hex.vertices}
-      fill={getFill(
-        data,
-        hex.iso3c,
-        contColorScale,
-        catColorScale,
-        noDataColor
-      )}
+      fill={data.plotdata.find((d) => (d.iso3c == hex.iso3c))
+        ? valueType == 'string'
+          ? categoricalColorScale(data.plotdata.find((d) => d.iso3c == hex.iso3c).color)
+          : numericalColorScale(
+              data.plotdata.find((d) => d.iso3c == hex.iso3c).color
+            )
+        : noDataColor}
       style:stroke-width={strokeWidth}
       style:stroke
       onmouseover={() => {

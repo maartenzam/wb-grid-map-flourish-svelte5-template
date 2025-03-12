@@ -74,7 +74,7 @@ settings:
     style: buttons
     width: half
     hide_if:
-      data.data.value.type: string
+      data.plotdata.color.type: string
   - property: linearOrBinned
     type: string
     choices:
@@ -83,7 +83,7 @@ settings:
     style: buttons
     width: half
     hide_if:
-      data.data.value.type: string
+      data.plotdata.color.type: string
   - property: binningMode
     name: Binning mode
     type: string
@@ -93,7 +93,7 @@ settings:
     width: half
     hide_if:
       - linearOrBinned: linear
-      - data.data.value.type: string
+      - data.plotdata.color.type: string
   - property: numberOfBins
     name: Number of bins
     type: number
@@ -102,7 +102,7 @@ settings:
     width: half
     hide_if:
       - linearOrBinned: linear
-      - data.data.value.type: string
+      - data.plotdata.color.type: string
   - property: colorScale
     name: Color scale
     type: string
@@ -114,7 +114,7 @@ settings:
       - [Monochrome Purple, seqP]
     show_if:
       scaleType: sequential
-      data.data.value.type: number
+      data.plotdata.color.type: number
       
   - property: colorScaleDiverging
     name: Color scale
@@ -124,7 +124,7 @@ settings:
       - [Diverging Good to Bad, div2]
     show_if:
       scaleType: diverging
-      data.data.value.type: number
+      data.plotdata.color.type: number
   - property: domainAutoCustom
     name: Domain
     type: string
@@ -134,13 +134,13 @@ settings:
     width: half
     style: buttons
     hide_if:
-      data.data.value.type: string
+      data.plotdata.color.type: string
   - property: domainMin
     name: Min
     type: number
     show_if:
       - domainAutoCustom: custom
-      - data.data.value.type: number
+      - data.plotdata.color.type: number
     width: quarter
       
   - property: domainMax
@@ -148,23 +148,23 @@ settings:
     type: number
     show_if:
       - domainAutoCustom: custom
-      - data.data.value.type: number
+      - data.plotdata.color.type: number
     width: quarter
       
-  - property: categoricalColorPalette
-    name: Color palette
-    type: string
-    choices:
-      - [Default, default]
-      - [Default Text, defaultText]
-      - [Region, region]
-      - [Income, income]
-      - [Gender, gender]
-      - [Urbanization, urbanization]
-      - [Age, age]
-      - [Binary, binary]
-    hide_if:
-      data.data.value.type: number
+  # - property: categoricalColorPalette
+  #   name: Color palette
+  #   type: string
+  #   choices:
+  #     - [Default, default]
+  #     - [Default Text, defaultText]
+  #     - [Region, region]
+  #     - [Income, income]
+  #     - [Gender, gender]
+  #     - [Urbanization, urbanization]
+  #     - [Age, age]
+  #     - [Binary, binary]
+  #   hide_if:
+  #     data.plotdata.color.type: number
 
   - Legend
   - property: showLegend
@@ -210,21 +210,21 @@ data:
   - key: iso3c # Property name in the dataset
     name: Country Code # Name to be displayed in the editor
     description: The ISO3C 3 letter country code of each country, as used by the World Bank
-    dataset: data # Name of dataset
+    dataset: plotdata # Name of dataset
     type: column # Are we selecting a single or multiple columns
     column: "country_data::A" # Which column should be selected
     data_type: string
   - key: label
     name: Country name
     description: The country names, to be displayed in the tooltips
-    dataset: data
+    dataset: plotdata
     type: column
     column: "country_data::B"
     data_type: string
-  - key: value
-    name: Value
-    description: The values to use to color the tiles
-    dataset: data
+  - key: color
+    name: Color
+    description: The values to use to color the country tiles
+    dataset: plotdata
     type: column
     column: "country_data::C"
     data_type:

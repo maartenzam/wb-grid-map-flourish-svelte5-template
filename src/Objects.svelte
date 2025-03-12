@@ -1,5 +1,5 @@
 <script>
-  export let object;
+  export let object
 </script>
 
 <li class="typeahead-result" on:mousedown>{object.label}</li>

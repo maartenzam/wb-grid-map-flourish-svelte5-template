@@ -14,8 +14,6 @@ var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "acce
   var _listeners, _observer, _options, _ResizeObserverSingleton_instances, getObserver_fn;
   const EACH_ITEM_REACTIVE = 1;
   const EACH_INDEX_REACTIVE = 1 << 1;
-  const EACH_IS_CONTROLLED = 1 << 2;
-  const EACH_IS_ANIMATED = 1 << 3;
   const EACH_ITEM_IMMUTABLE = 1 << 4;
   const PROPS_IS_IMMUTABLE = 1;
   const PROPS_IS_RUNES = 1 << 1;
@@ -231,6 +229,116 @@ https://svelte.dev/e/state_unsafe_mutation`);
   function enable_legacy_mode_flag() {
     legacy_mode_flag = true;
   }
+  var bold$1 = "font-weight: bold";
+  var normal$1 = "font-weight: normal";
+  function state_snapshot_uncloneable(properties) {
+    {
+      console.warn(`%c[svelte] state_snapshot_uncloneable
+%c${properties ? `The following properties cannot be cloned with \`$state.snapshot\` — the return value contains the originals:
+
+${properties}` : "Value cannot be cloned with `$state.snapshot` — the original value was returned"}
+https://svelte.dev/e/state_snapshot_uncloneable`, bold$1, normal$1);
+    }
+  }
+  const empty = [];
+  function snapshot(value, skip_warning = false) {
+    if (!skip_warning) {
+      const paths = [];
+      const copy2 = clone(value, /* @__PURE__ */ new Map(), "", paths);
+      if (paths.length === 1 && paths[0] === "") {
+        state_snapshot_uncloneable();
+      } else if (paths.length > 0) {
+        const slice = paths.length > 10 ? paths.slice(0, 7) : paths.slice(0, 10);
+        const excess = paths.length - slice.length;
+        let uncloned = slice.map((path) => `- <value>${path}`).join("\n");
+        if (excess > 0) uncloned += `
+- ...and ${excess} more`;
+        state_snapshot_uncloneable(uncloned);
+      }
+      return copy2;
+    }
+    return clone(value, /* @__PURE__ */ new Map(), "", empty);
+  }
+  function clone(value, cloned, path, paths, original = null) {
+    if (typeof value === "object" && value !== null) {
+      var unwrapped = cloned.get(value);
+      if (unwrapped !== void 0) return unwrapped;
+      if (value instanceof Map) return (
+        /** @type {Snapshot<T>} */
+        new Map(value)
+      );
+      if (value instanceof Set) return (
+        /** @type {Snapshot<T>} */
+        new Set(value)
+      );
+      if (is_array(value)) {
+        var copy2 = (
+          /** @type {Snapshot<any>} */
+          Array(value.length)
+        );
+        cloned.set(value, copy2);
+        if (original !== null) {
+          cloned.set(original, copy2);
+        }
+        for (var i = 0; i < value.length; i += 1) {
+          var element = value[i];
+          if (i in value) {
+            copy2[i] = clone(element, cloned, `${path}[${i}]`, paths);
+          }
+        }
+        return copy2;
+      }
+      if (get_prototype_of(value) === object_prototype) {
+        copy2 = {};
+        cloned.set(value, copy2);
+        if (original !== null) {
+          cloned.set(original, copy2);
+        }
+        for (var key in value) {
+          copy2[key] = clone(value[key], cloned, `${path}.${key}`, paths);
+        }
+        return copy2;
+      }
+      if (value instanceof Date) {
+        return (
+          /** @type {Snapshot<T>} */
+          structuredClone(value)
+        );
+      }
+      if (typeof /** @type {T & { toJSON?: any } } */
+      value.toJSON === "function") {
+        return clone(
+          /** @type {T & { toJSON(): any } } */
+          value.toJSON(),
+          cloned,
+          `${path}.toJSON()`,
+          paths,
+          // Associate the instance with the toJSON clone
+          value
+        );
+      }
+    }
+    if (value instanceof EventTarget) {
+      return (
+        /** @type {Snapshot<T>} */
+        value
+      );
+    }
+    try {
+      return (
+        /** @type {Snapshot<T>} */
+        structuredClone(value)
+      );
+    } catch (e) {
+      {
+        paths.push(path);
+      }
+      return (
+        /** @type {Snapshot<T>} */
+        value
+      );
+    }
+  }
   let inspect_effects = /* @__PURE__ */ new Set();
   function set_inspect_effects(v) {
     inspect_effects = v;
@@ -261,9 +369,6 @@ https://svelte.dev/e/state_unsafe_mutation`);
       ((_a = component_context.l).s ?? (_a.s = [])).push(s);
     }
     return s;
-  }
-  function mutable_state(v, immutable = false) {
-    return /* @__PURE__ */ push_derived_source(/* @__PURE__ */ mutable_source(v, immutable));
   }
   // @__NO_SIDE_EFFECTS__
   function push_derived_source(source2) {
@@ -438,6 +543,13 @@ https://svelte.dev/e/state_unsafe_mutation`);
   }
   var bold = "font-weight: bold";
   var normal = "font-weight: normal";
+  function console_log_state(method) {
+    {
+      console.warn(`%c[svelte] console_log_state
+%cYour \`console.${method}\` contained \`$state\` proxies. Consider using \`$inspect(...)\` or \`$state.snapshot(...)\` instead
+https://svelte.dev/e/console_log_state`, bold, normal);
+    }
+  }
   function ownership_invalid_binding(parent, child2, owner) {
     {
       console.warn(`%c[svelte] ownership_invalid_binding
@@ -2183,24 +2295,24 @@ ${indent}in ${name}`).join("")}
         if (!is_fragment) node = /** @type {Node} */
         /* @__PURE__ */ get_first_child(node);
       }
-      var clone = (
+      var clone2 = (
         /** @type {TemplateNode} */
         use_import_node || is_firefox ? document.importNode(node, true) : node.cloneNode(true)
       );
       if (is_fragment) {
         var start = (
           /** @type {TemplateNode} */
-          /* @__PURE__ */ get_first_child(clone)
+          /* @__PURE__ */ get_first_child(clone2)
         );
         var end = (
           /** @type {TemplateNode} */
-          clone.lastChild
+          clone2.lastChild
         );
         assign_nodes(start, end);
       } else {
-        assign_nodes(clone, clone);
+        assign_nodes(clone2, clone2);
       }
-      return clone;
+      return clone2;
     };
   }
   // @__NO_SIDE_EFFECTS__
@@ -2232,24 +2344,24 @@ ${indent}in ${name}`).join("")}
           /* @__PURE__ */ get_first_child(root2);
         }
       }
-      var clone = (
+      var clone2 = (
         /** @type {TemplateNode} */
         node.cloneNode(true)
       );
       if (is_fragment) {
         var start = (
           /** @type {TemplateNode} */
-          /* @__PURE__ */ get_first_child(clone)
+          /* @__PURE__ */ get_first_child(clone2)
         );
         var end = (
           /** @type {TemplateNode} */
-          clone.lastChild
+          clone2.lastChild
         );
         assign_nodes(start, end);
       } else {
-        assign_nodes(clone, clone);
+        assign_nodes(clone2, clone2);
       }
-      return clone;
+      return clone2;
     };
   }
   function comment() {
@@ -2447,14 +2559,6 @@ ${indent}in ${name}`).join("")}
   function each(node, flags, get_collection, get_key, render_fn, fallback_fn = null) {
     var anchor = node;
     var state2 = { flags, items: /* @__PURE__ */ new Map(), first: null };
-    var is_controlled = (flags & EACH_IS_CONTROLLED) !== 0;
-    if (is_controlled) {
-      var parent_node = (
-        /** @type {Element} */
-        node
-      );
-      anchor = parent_node.appendChild(create_text());
-    }
     var fallback = null;
     var was_empty = false;
     var each_array = /* @__PURE__ */ derived_safe_equal(() => {
@@ -2488,33 +2592,18 @@ ${indent}in ${name}`).join("")}
     });
   }
   function reconcile(array, state2, anchor, render_fn, flags, get_key, get_collection) {
-    var _a, _b, _c, _d;
-    var is_animated = (flags & EACH_IS_ANIMATED) !== 0;
-    var should_update = (flags & (EACH_ITEM_REACTIVE | EACH_INDEX_REACTIVE)) !== 0;
     var length = array.length;
     var items = state2.items;
     var first = state2.first;
     var current = first;
     var seen;
     var prev = null;
-    var to_animate;
     var matched = [];
     var stashed = [];
     var value;
     var key;
     var item;
     var i;
-    if (is_animated) {
-      for (i = 0; i < length; i += 1) {
-        value = array[i];
-        key = get_key(value, i);
-        item = items.get(key);
-        if (item !== void 0) {
-          (_a = item.a) == null ? void 0 : _a.measure();
-          (to_animate ?? (to_animate = /* @__PURE__ */ new Set())).add(item);
-        }
-      }
-    }
     for (i = 0; i < length; i += 1) {
       value = array[i];
       key = get_key(value, i);
@@ -2542,15 +2631,11 @@ ${indent}in ${name}`).join("")}
         current = prev.next;
         continue;
       }
-      if (should_update) {
-        update_item(item, value, i, flags);
+      {
+        update_item(item, value, i);
       }
       if ((item.e.f & INERT) !== 0) {
         resume_effect(item.e);
-        if (is_animated) {
-          (_b = item.a) == null ? void 0 : _b.unfix();
-          (to_animate ?? (to_animate = /* @__PURE__ */ new Set())).delete(item);
-        }
       }
       if (item !== current) {
         if (seen !== void 0 && seen.has(item)) {
@@ -2612,41 +2697,18 @@ ${indent}in ${name}`).join("")}
       }
       var destroy_length = to_destroy.length;
       if (destroy_length > 0) {
-        var controlled_anchor = (flags & EACH_IS_CONTROLLED) !== 0 && length === 0 ? anchor : null;
-        if (is_animated) {
-          for (i = 0; i < destroy_length; i += 1) {
-            (_c = to_destroy[i].a) == null ? void 0 : _c.measure();
-          }
-          for (i = 0; i < destroy_length; i += 1) {
-            (_d = to_destroy[i].a) == null ? void 0 : _d.fix();
-          }
-        }
+        var controlled_anchor = null;
         pause_effects(state2, to_destroy, controlled_anchor, items);
       }
-    }
-    if (is_animated) {
-      queue_micro_task(() => {
-        var _a2;
-        if (to_animate === void 0) return;
-        for (item of to_animate) {
-          (_a2 = item.a) == null ? void 0 : _a2.apply();
-        }
-      });
     }
     active_effect.first = state2.first && state2.first.e;
     active_effect.last = prev && prev.e;
   }
   function update_item(item, value, index2, type) {
-    if ((type & EACH_ITEM_REACTIVE) !== 0) {
+    {
       internal_set(item.v, value);
     }
-    if ((type & EACH_INDEX_REACTIVE) !== 0) {
-      internal_set(
-        /** @type {Value<number>} */
-        item.i,
-        index2
-      );
-    } else {
+    {
       item.i = index2;
     }
   }
@@ -2655,7 +2717,7 @@ ${indent}in ${name}`).join("")}
     var mutable = (flags & EACH_ITEM_IMMUTABLE) === 0;
     var v = reactive ? mutable ? /* @__PURE__ */ mutable_source(value) : source(value) : value;
     var i = (flags & EACH_INDEX_REACTIVE) === 0 ? index2 : source(index2);
-    if (reactive) {
+    {
       v.debug = () => {
         var collection_index = typeof i === "number" ? index2 : i.v;
         get_collection()[collection_index];
@@ -3221,6 +3283,28 @@ ${indent}in ${name}`).join("")}
       return get(current_value);
     };
   }
+  function log_if_contains_state(method, ...objects) {
+    untrack(() => {
+      try {
+        let has_state = false;
+        const transformed = [];
+        for (const obj of objects) {
+          if (obj && typeof obj === "object" && STATE_SYMBOL in obj) {
+            transformed.push(snapshot(obj, true));
+            has_state = true;
+          } else {
+            transformed.push(obj);
+          }
+        }
+        if (has_state) {
+          console_log_state(method);
+          console.log("%c[snapshot]", "color: grey", ...transformed);
+        }
+      } catch {
+      }
+    });
+    return objects;
+  }
   const PUBLIC_VERSION = "5";
   if (typeof window !== "undefined")
     (window.__svelte || (window.__svelte = { v: /* @__PURE__ */ new Set() })).v.add(PUBLIC_VERSION);
@@ -3246,7 +3330,7 @@ ${indent}in ${name}`).join("")}
   const logo = "data:image/png;base64,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";
   mark_module_start();
   Footer[FILENAME] = "src/template/Footer.svelte";
-  var root_1$3 = add_locations(/* @__PURE__ */ template2(`<div class="logo svelte-g4y3d9"><img alt="World Bank logo" class="svelte-g4y3d9"></div>`), Footer[FILENAME], [[9, 4, [[9, 22]]]]);
+  var root_1$4 = add_locations(/* @__PURE__ */ template2(`<div class="logo svelte-g4y3d9"><img alt="World Bank logo" class="svelte-g4y3d9"></div>`), Footer[FILENAME], [[9, 4, [[9, 22]]]]);
   var root$9 = add_locations(/* @__PURE__ */ template2(`<div class="footer svelte-g4y3d9"><div class="notes svelte-g4y3d9"><span class="notes-title svelte-g4y3d9"> </span> </div> <!></div>`), Footer[FILENAME], [
     [6, 0, [[7, 4, [[7, 23]]]]]
   ]);
@@ -3261,7 +3345,7 @@ ${indent}in ${name}`).join("")}
     var node = sibling(div_1, 2);
     {
       var consequent = ($$anchor2) => {
-        var div_2 = root_1$3();
+        var div_2 = root_1$4();
         var img = child(div_2);
         set_attribute(img, "src", logo);
         append($$anchor2, div_2);
@@ -4370,53 +4454,6 @@ ${indent}in ${name}`).join("")}
       "iso3c": "FJI"
     }
   ];
-  let getValue = function(countryCode, data2) {
-    if (data2.find((d) => d.iso3c == countryCode)) {
-      return data2.find((d) => d.iso3c == countryCode).value;
-    } else return void 0;
-  };
-  let getFill = function(data2, iso3c, sColorScale, cColorScale, noDataColor) {
-    let valueType = data2.data.metadata.value.type;
-    if (valueType == "number") {
-      if (getValue(iso3c, data2.data)) {
-        return sColorScale(getValue(iso3c, data2.data));
-      } else {
-        return noDataColor;
-      }
-    }
-    if (valueType == "string") {
-      if (getValue(iso3c, data2.data)) {
-        return cColorScale(getValue(iso3c, data2.data));
-      } else {
-        return noDataColor;
-      }
-    }
-  };
-  let generateHexLayout = function(grid, size, shift2) {
-    let hexGrid2 = grid.map((d) => {
-      let hex2 = {};
-      let x = size + d.q * 3 / 2 * size;
-      let y = d.q % 2 == 0 ? 2 * size + d.r * size * 2 * shift2 : 2 * size + d.r * size * 2 * shift2 - Math.sqrt(3) * size / 2;
-      hex2.q = d.q;
-      hex2.r = d.r;
-      hex2.iso3c = d.iso3c;
-      hex2.x = x;
-      hex2.y = y;
-      hex2.size = size;
-      let vertices = [];
-      for (let i = 0; i < 6; i++) {
-        var angle_deg = 60 * i;
-        var angle_rad = Math.PI / 180 * angle_deg;
-        vertices.push([
-          x + size * Math.cos(angle_rad),
-          y + size * Math.sin(angle_rad)
-        ]);
-      }
-      hex2.vertices = vertices;
-      return hex2;
-    });
-    return hexGrid2;
-  };
   function ascending(a, b) {
     return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
   }
@@ -4471,6 +4508,35 @@ ${indent}in ${name}`).join("")}
   const ascendingBisect = bisector(ascending);
   const bisectRight = ascendingBisect.right;
   bisector(number).center;
+  function extent(values, valueof) {
+    let min2;
+    let max2;
+    if (valueof === void 0) {
+      for (const value of values) {
+        if (value != null) {
+          if (min2 === void 0) {
+            if (value >= value) min2 = max2 = value;
+          } else {
+            if (min2 > value) min2 = value;
+            if (max2 < value) max2 = value;
+          }
+        }
+      }
+    } else {
+      let index2 = -1;
+      for (let value of values) {
+        if ((value = valueof(value, ++index2, values)) != null) {
+          if (min2 === void 0) {
+            if (value >= value) min2 = max2 = value;
+          } else {
+            if (min2 > value) min2 = value;
+            if (max2 < value) max2 = value;
+          }
+        }
+      }
+    }
+    return [min2, max2];
+  }
   class InternMap extends Map {
     constructor(entries, key = keyof) {
       super();
@@ -4586,259 +4652,69 @@ ${indent}in ${name}`).join("")}
     var n, i = (n - 1) * p, i0 = Math.floor(i), value0 = +valueof(values[i0], i0, values), value1 = +valueof(values[i0 + 1], i0 + 1, values);
     return value0 + (value1 - value0) * (i - i0);
   }
-  mark_module_start();
-  WorldHexGrid[FILENAME] = "src/WorldHexGrid.svelte";
-  var on_mouseover$1 = (_, currentCountry, hex2, searched, tooltipVisible) => {
-    currentCountry(get(hex2).iso3c);
-    searched(false);
-    tooltipVisible(true);
-  };
-  var on_mouseout$1 = (__1, currentCountry, tooltipVisible) => {
-    currentCountry(null);
-    tooltipVisible(false);
-  };
-  var root_2$3 = add_locations(/* @__PURE__ */ ns_template(`<text class="country-label svelte-166i5y3" paint-order="stroke" stroke-linejoin="round"> </text>`), WorldHexGrid[FILENAME], [[78, 6]]);
-  var root_1$2 = add_locations(/* @__PURE__ */ ns_template(`<polygon></polygon><!>`, 1), WorldHexGrid[FILENAME], [[46, 4]]);
-  var root_3$4 = add_locations(/* @__PURE__ */ ns_template(`<polygon></polygon><polygon></polygon>`, 1), WorldHexGrid[FILENAME], [[93, 4], [100, 4]]);
-  var root$8 = add_locations(/* @__PURE__ */ ns_template(`<g><!><!></g>`), WorldHexGrid[FILENAME], [[43, 0]]);
-  function WorldHexGrid($$anchor, $$props) {
-    check_target(new.target);
-    push($$props, true, WorldHexGrid);
-    let currentCountry = prop($$props, "currentCountry", 15), currentTilePos = prop($$props, "currentTilePos", 15), searched = prop($$props, "searched", 15), tooltipVisible = prop($$props, "tooltipVisible", 15);
-    const shift2 = Math.cos(Math.PI / 180 * 30);
-    let size = /* @__PURE__ */ derived(() => Math.min($$props.width / (33 * 3 / 2), $$props.height / (22 * 2 * shift2)));
-    let hexLayout = /* @__PURE__ */ derived(() => generateHexLayout(hexGrid, get(size), shift2));
-    let currentTile = /* @__PURE__ */ derived(() => get(hexLayout).find((d) => equals(d.iso3c, currentCountry())));
-    let gridWidth = /* @__PURE__ */ derived(() => Math.round(max$1(get(hexLayout).map((d) => d.x))));
-    let gridShift = /* @__PURE__ */ derived(() => ($$props.width - get(gridWidth)) / 2);
-    user_effect(() => {
-      if (currentCountry()) {
-        currentTilePos({
-          x: get(currentTile).x,
-          y: get(currentTile).y + 2.5 * get(currentTile).size
-        });
-      }
-    });
-    var g = root$8();
-    var node = child(g);
-    each(node, 17, () => get(hexLayout), index, ($$anchor2, hex2) => {
-      var fragment = root_1$2();
-      var polygon = first_child(fragment);
-      polygon.__mouseover = [
-        on_mouseover$1,
-        currentCountry,
-        hex2,
-        searched,
-        tooltipVisible
-      ];
-      polygon.__mouseout = [on_mouseout$1, currentCountry, tooltipVisible];
-      var node_1 = sibling(polygon);
-      {
-        var consequent = ($$anchor3) => {
-          var text = root_2$3();
-          set_attribute(text, "text-anchor", "middle");
-          set_attribute(text, "font-size", "0.6rem");
-          set_attribute(text, "stroke", "#ffffff");
-          set_attribute(text, "stroke-width", 2);
-          var text_1 = child(text);
-          template_effect(() => {
-            set_attribute(text, "x", get(hex2).x);
-            set_attribute(text, "y", get(hex2).y + 4);
-            set_text(text_1, get(hex2).iso3c);
-          });
-          append($$anchor3, text);
-        };
-        if_block(node_1, ($$render) => {
-          if ($$props.countryCodes) $$render(consequent);
-        });
-      }
-      template_effect(
-        ($0) => {
-          set_class(polygon, 0, `hex q-${get(hex2).q} r-${get(hex2).r}`, "svelte-166i5y3");
-          set_attribute(polygon, "points", get(hex2).vertices);
-          set_attribute(polygon, "fill", $0);
-          set_style(polygon, "stroke-width", $$props.strokeWidth);
-          set_style(polygon, "stroke", $$props.stroke);
-        },
-        [
-          () => getFill($$props.data, get(hex2).iso3c, $$props.contColorScale, $$props.catColorScale, $$props.noDataColor)
-        ]
-      );
-      event("focus", polygon, () => {
-        currentCountry(get(hex2).iso3c);
-        searched(false);
-        tooltipVisible(true);
-      });
-      event("blur", polygon, () => {
-        currentCountry(null);
-        tooltipVisible(false);
-      });
-      append($$anchor2, fragment);
-    });
-    var node_2 = sibling(node);
-    {
-      var consequent_1 = ($$anchor2) => {
-        var fragment_1 = root_3$4();
-        var polygon_1 = first_child(fragment_1);
-        set_class(polygon_1, 0, "highlight-outline svelte-166i5y3");
-        set_attribute(polygon_1, "fill", "none");
-        set_attribute(polygon_1, "stroke", "#FFFFFF");
-        var polygon_2 = sibling(polygon_1);
-        set_class(polygon_2, 0, "highlight-outline svelte-166i5y3");
-        set_attribute(polygon_2, "fill", "none");
-        set_attribute(polygon_2, "stroke", "#000000");
-        template_effect(() => {
-          set_attribute(polygon_1, "points", get(currentTile).vertices);
-          set_attribute(polygon_1, "stroke-width", $$props.strokeWidth + 2);
-          set_attribute(polygon_2, "points", get(currentTile).vertices);
-          set_attribute(polygon_2, "stroke-width", $$props.strokeWidth);
-        });
-        append($$anchor2, fragment_1);
-      };
-      if_block(node_2, ($$render) => {
-        if (currentCountry()) $$render(consequent_1);
-      });
+  function initRange(domain, range) {
+    switch (arguments.length) {
+      case 0:
+        break;
+      case 1:
+        this.range(domain);
+        break;
+      default:
+        this.range(range).domain(domain);
+        break;
     }
-    template_effect(() => set_attribute(g, "transform", `translate(${get(gridShift)},0)`));
-    append($$anchor, g);
-    return pop({ ...legacy_api() });
+    return this;
   }
-  mark_module_end(WorldHexGrid);
-  delegate(["mouseover", "mouseout"]);
-  const squareGrid = [{ "iso3c": "FIN", "x": 16, "y": 1, "country": "Finland", "region_iso3c": "ECS" }, { "iso3c": "GRL", "x": 8, "y": 1, "country": "Greenland", "region_iso3c": "ECS" }, { "iso3c": "ISL", "x": 10, "y": 1, "country": "Iceland", "region_iso3c": "ECS" }, { "iso3c": "NOR", "x": 14, "y": 1, "country": "Norway", "region_iso3c": "ECS" }, { "iso3c": "SWE", "x": 15, "y": 1, "country": "Sweden", "region_iso3c": "ECS" }, { "iso3c": "EST", "x": 16, "y": 2, "country": "Estonia", "region_iso3c": "ECS" }, { "iso3c": "LVA", "x": 16, "y": 3, "country": "Latvia", "region_iso3c": "ECS" }, { "iso3c": "FRO", "x": 11, "y": 3, "country": "Faroe Islands", "region_iso3c": "ECS" }, { "iso3c": "LTU", "x": 15, "y": 3, "country": "Lithuania", "region_iso3c": "ECS" }, { "iso3c": "IMN", "x": 10, "y": 4, "country": "Isle of Man", "region_iso3c": "ECS" }, { "iso3c": "MAF", "x": 8, "y": 4, "country": "Saint Martin", "region_iso3c": "LCN" }, { "iso3c": "BLR", "x": 16, "y": 4, "country": "Belarus", "region_iso3c": "ECS" }, { "iso3c": "POL", "x": 15, "y": 4, "country": "Poland", "region_iso3c": "ECS" }, { "iso3c": "GBR", "x": 11, "y": 4, "country": "Great Britain and Northern Ireland", "region_iso3c": "ECS" }, { "iso3c": "CAN", "x": 1, "y": 4, "country": "Canada", "region_iso3c": "NAC" }, { "iso3c": "DNK", "x": 13, "y": 4, "country": "Denmark", "region_iso3c": "ECS" }, { "iso3c": "BMU", "x": 4, "y": 5, "country": "Bermuda", "region_iso3c": "NAC" }, { "iso3c": "NLD", "x": 12, "y": 5, "country": "Netherlands", "region_iso3c": "ECS" }, { "iso3c": "IRL", "x": 10, "y": 5, "country": "Ireland", "region_iso3c": "ECS" }, { "iso3c": "VGB", "x": 7, "y": 5, "country": "Virgin Islands British", "region_iso3c": "LCN" }, { "iso3c": "SXM", "x": 8, "y": 5, "country": "St Maarten", "region_iso3c": "LCN" }, { "iso3c": "CZE", "x": 14, "y": 5, "country": "Czech Republic", "region_iso3c": "ECS" }, { "iso3c": "SVK", "x": 15, "y": 5, "country": "Slovakia", "region_iso3c": "ECS" }, { "iso3c": "UKR", "x": 16, "y": 5, "country": "Ukraine", "region_iso3c": "ECS" }, { "iso3c": "USA", "x": 1, "y": 5, "country": "United States of America", "region_iso3c": "NAC" }, { "iso3c": "DEU", "x": 13, "y": 5, "country": "Germany", "region_iso3c": "ECS" }, { "iso3c": "MDA", "x": 17, "y": 5, "country": "Moldova (Republic of)", "region_iso3c": "ECS" }, { "iso3c": "KAZ", "x": 21, "y": 5, "country": "Kazakhstan", "region_iso3c": "ECS" }, { "iso3c": "RUS", "x": 22, "y": 5, "country": "Russian Federation", "region_iso3c": "ECS" }, { "iso3c": "BHS", "x": 4, "y": 6, "country": "Bahamas", "region_iso3c": "LCN" }, { "iso3c": "LIE", "x": 14, "y": 6, "country": "Liechtenstein", "region_iso3c": "ECS" }, { "iso3c": "BEL", "x": 12, "y": 6, "country": "Belgium", "region_iso3c": "ECS" }, { "iso3c": "VIR", "x": 7, "y": 6, "country": "Virgin Islands US", "region_iso3c": "LCN" }, { "iso3c": "TCA", "x": 5, "y": 6, "country": "Turks and Caicos Islands", "region_iso3c": "LCN" }, { "iso3c": "ATG", "x": 8, "y": 6, "country": "Antigua & Barbuda", "region_iso3c": "LCN" }, { "iso3c": "AUT", "x": 15, "y": 6, "country": "Austria", "region_iso3c": "ECS" }, { "iso3c": "HUN", "x": 16, "y": 6, "country": "Hungary", "region_iso3c": "ECS" }, { "iso3c": "KGZ", "x": 21, "y": 6, "country": "Kyrgyzstan", "region_iso3c": "ECS" }, { "iso3c": "ROU", "x": 17, "y": 6, "country": "Romania", "region_iso3c": "ECS" }, { "iso3c": "UZB", "x": 20, "y": 6, "country": "Uzbekistan", "region_iso3c": "ECS" }, { "iso3c": "MEX", "x": 1, "y": 6, "country": "Mexico", "region_iso3c": "LCN" }, { "iso3c": "LUX", "x": 13, "y": 6, "country": "Luxembourg", "region_iso3c": "ECS" }, { "iso3c": "ARM", "x": 19, "y": 6, "country": "Armenia", "region_iso3c": "ECS" }, { "iso3c": "MNG", "x": 22, "y": 6, "country": "Mongolia", "region_iso3c": "EAS" }, { "iso3c": "PRK", "x": 23, "y": 6, "country": "North Korea", "region_iso3c": "EAS" }, { "iso3c": "KOR", "x": 24, "y": 6, "country": "South Korea", "region_iso3c": "EAS" }, { "iso3c": "JPN", "x": 27, "y": 6, "country": "Japan", "region_iso3c": "EAS" }, { "iso3c": "TWN", "x": 25, "y": 7, "country": "Taiwan", "region_iso3c": "EAS" }, { "iso3c": "HKG", "x": 24, "y": 7, "country": "Hong Kong", "region_iso3c": "EAS" }, { "iso3c": "CUB", "x": 4, "y": 7, "country": "Cuba", "region_iso3c": "LCN" }, { "iso3c": "FRA", "x": 12, "y": 7, "country": "France", "region_iso3c": "ECS" }, { "iso3c": "CHE", "x": 13, "y": 7, "country": "Switzerland", "region_iso3c": "ECS" }, { "iso3c": "AND", "x": 11, "y": 7, "country": "Andorra", "region_iso3c": "ECS" }, { "iso3c": "AZE", "x": 19, "y": 7, "country": "Azerbaijan", "region_iso3c": "ECS" }, { "iso3c": "GEO", "x": 18, "y": 7, "country": "Georgia", "region_iso3c": "ECS" }, { "iso3c": "PRI", "x": 7, "y": 7, "country": "Puerto Rico", "region_iso3c": "LCN" }, { "iso3c": "DOM", "x": 6, "y": 7, "country": "Dominican Republic", "region_iso3c": "LCN" }, { "iso3c": "BLZ", "x": 2, "y": 7, "country": "Belize", "region_iso3c": "LCN" }, { "iso3c": "CYM", "x": 3, "y": 7, "country": "Cayman Islands", "region_iso3c": "LCN" }, { "iso3c": "HTI", "x": 5, "y": 7, "country": "Haiti", "region_iso3c": "LCN" }, { "iso3c": "DMA", "x": 8, "y": 7, "country": "Dominica", "region_iso3c": "LCN" }, { "iso3c": "SVN", "x": 14, "y": 7, "country": "Slovenia", "region_iso3c": "ECS" }, { "iso3c": "BIH", "x": 15, "y": 7, "country": "Bosnia & Herzegovina", "region_iso3c": "ECS" }, { "iso3c": "BGR", "x": 17, "y": 7, "country": "Bulgaria", "region_iso3c": "ECS" }, { "iso3c": "SRB", "x": 16, "y": 7, "country": "Serbia", "region_iso3c": "ECS" }, { "iso3c": "TJK", "x": 21, "y": 7, "country": "Tajikistan", "region_iso3c": "ECS" }, { "iso3c": "TKM", "x": 20, "y": 7, "country": "Turkmenistan", "region_iso3c": "ECS" }, { "iso3c": "GTM", "x": 1, "y": 7, "country": "Guatemala", "region_iso3c": "LCN" }, { "iso3c": "NPL", "x": 22, "y": 7, "country": "Nepal", "region_iso3c": "SAS" }, { "iso3c": "CHN", "x": 23, "y": 7, "country": "China", "region_iso3c": "EAS" }, { "iso3c": "MAC", "x": 25, "y": 8, "country": "Macao SAR", "region_iso3c": "EAS" }, { "iso3c": "JAM", "x": 4, "y": 8, "country": "Jamaica", "region_iso3c": "LCN" }, { "iso3c": "PRT", "x": 10, "y": 8, "country": "Portugal", "region_iso3c": "ECS" }, { "iso3c": "ESP", "x": 11, "y": 8, "country": "Spain", "region_iso3c": "ECS" }, { "iso3c": "MCO", "x": 12, "y": 8, "country": "Monaco", "region_iso3c": "ECS" }, { "iso3c": "ITA", "x": 13, "y": 8, "country": "Italy", "region_iso3c": "ECS" }, { "iso3c": "TUR", "x": 18, "y": 8, "country": "Turkey", "region_iso3c": "ECS" }, { "iso3c": "KNA", "x": 7, "y": 8, "country": "St. Kitts & Nevis", "region_iso3c": "LCN" }, { "iso3c": "HND", "x": 2, "y": 8, "country": "Honduras", "region_iso3c": "LCN" }, { "iso3c": "LCA", "x": 8, "y": 8, "country": "St. Lucia", "region_iso3c": "LCN" }, { "iso3c": "HRV", "x": 14, "y": 8, "country": "Croatia", "region_iso3c": "ECS" }, { "iso3c": "AFG", "x": 20, "y": 8, "country": "Afghanistan", "region_iso3c": "SAS" }, { "iso3c": "IRN", "x": 19, "y": 8, "country": "Iran (Islamic Republic of)", "region_iso3c": "MEA" }, { "iso3c": "XKX", "x": 16, "y": 8, "country": "Kosovo", "region_iso3c": "ECS" }, { "iso3c": "MKD", "x": 17, "y": 8, "country": "Macedonia", "region_iso3c": "ECS" }, { "iso3c": "MNE", "x": 15, "y": 8, "country": "Montenegro", "region_iso3c": "ECS" }, { "iso3c": "PAK", "x": 21, "y": 8, "country": "Pakistan", "region_iso3c": "SAS" }, { "iso3c": "IND", "x": 22, "y": 8, "country": "India", "region_iso3c": "SAS" }, { "iso3c": "SLV", "x": 1, "y": 8, "country": "El Salvador", "region_iso3c": "LCN" }, { "iso3c": "BTN", "x": 23, "y": 8, "country": "Bhutan", "region_iso3c": "SAS" }, { "iso3c": "LAO", "x": 24, "y": 8, "country": "Lao People's Democratic Republic", "region_iso3c": "EAS" }, { "iso3c": "VNM", "x": 25, "y": 9, "country": "Viet Nam", "region_iso3c": "EAS" }, { "iso3c": "MMR", "x": 24, "y": 9, "country": "Myanmar", "region_iso3c": "EAS" }, { "iso3c": "SMR", "x": 13, "y": 9, "country": "San Marino", "region_iso3c": "ECS" }, { "iso3c": "IRQ", "x": 19, "y": 9, "country": "Iraq", "region_iso3c": "MEA" }, { "iso3c": "SYR", "x": 18, "y": 9, "country": "Syria", "region_iso3c": "MEA" }, { "iso3c": "NIC", "x": 2, "y": 9, "country": "Nicaragua", "region_iso3c": "LCN" }, { "iso3c": "VCT", "x": 7, "y": 9, "country": "St. Vincent & the Grenadines", "region_iso3c": "LCN" }, { "iso3c": "BRB", "x": 8, "y": 9, "country": "Barbados", "region_iso3c": "LCN" }, { "iso3c": "ALB", "x": 15, "y": 9, "country": "Albania", "region_iso3c": "ECS" }, { "iso3c": "GRC", "x": 16, "y": 9, "country": "Greece", "region_iso3c": "ECS" }, { "iso3c": "LKA", "x": 22, "y": 9, "country": "Sri Lanka", "region_iso3c": "SAS" }, { "iso3c": "GIB", "x": 11, "y": 9, "country": "Gibraltar", "region_iso3c": "ECS" }, { "iso3c": "MDV", "x": 21, "y": 9, "country": "Maldives", "region_iso3c": "SAS" }, { "iso3c": "BGD", "x": 23, "y": 9, "country": "Bangladesh", "region_iso3c": "SAS" }, { "iso3c": "MNP", "x": 29, "y": 10, "country": "Northern Mariana Islands", "region_iso3c": "EAS" }, { "iso3c": "KHM", "x": 25, "y": 10, "country": "Cambodia", "region_iso3c": "EAS" }, { "iso3c": "THA", "x": 24, "y": 10, "country": "Thailand", "region_iso3c": "EAS" }, { "iso3c": "PHL", "x": 27, "y": 10, "country": "Philippines", "region_iso3c": "EAS" }, { "iso3c": "MLT", "x": 14, "y": 10, "country": "Malta", "region_iso3c": "MEA" }, { "iso3c": "KWT", "x": 20, "y": 10, "country": "Kuwait", "region_iso3c": "MEA" }, { "iso3c": "LBN", "x": 18, "y": 10, "country": "Lebanon", "region_iso3c": "MEA" }, { "iso3c": "CUW", "x": 6, "y": 10, "country": "Curacao", "region_iso3c": "LCN" }, { "iso3c": "GRD", "x": 8, "y": 10, "country": "Grenada", "region_iso3c": "LCN" }, { "iso3c": "ABW", "x": 5, "y": 10, "country": "Aruba", "region_iso3c": "LCN" }, { "iso3c": "CRI", "x": 2, "y": 10, "country": "Costa Rica", "region_iso3c": "LCN" }, { "iso3c": "CYP", "x": 16, "y": 10, "country": "Cyprus", "region_iso3c": "ECS" }, { "iso3c": "JOR", "x": 19, "y": 10, "country": "Jordan", "region_iso3c": "MEA" }, { "iso3c": "GUM", "x": 29, "y": 11, "country": "Guam", "region_iso3c": "EAS" }, { "iso3c": "MYS", "x": 24, "y": 11, "country": "Malaysia", "region_iso3c": "EAS" }, { "iso3c": "BHR", "x": 20, "y": 11, "country": "Bahrain", "region_iso3c": "MEA" }, { "iso3c": "SAU", "x": 19, "y": 11, "country": "Saudi Arabia", "region_iso3c": "MEA" }, { "iso3c": "PSE", "x": 17, "y": 11, "country": "West Bank and Gaza", "region_iso3c": "MEA" }, { "iso3c": "ISR", "x": 18, "y": 11, "country": "Israel", "region_iso3c": "MEA" }, { "iso3c": "TTO", "x": 8, "y": 11, "country": "Trinidad & Tobago", "region_iso3c": "LCN" }, { "iso3c": "PAN", "x": 3, "y": 11, "country": "Panama", "region_iso3c": "LCN" }, { "iso3c": "DZA", "x": 13, "y": 11, "country": "Algeria", "region_iso3c": "MEA" }, { "iso3c": "MAR", "x": 12, "y": 11, "country": "Morocco", "region_iso3c": "MEA" }, { "iso3c": "TUN", "x": 14, "y": 11, "country": "Tunisia", "region_iso3c": "MEA" }, { "iso3c": "QAT", "x": 21, "y": 11, "country": "Qatar", "region_iso3c": "MEA" }, { "iso3c": "MHL", "x": 29, "y": 12, "country": "Marshall Islands", "region_iso3c": "EAS" }, { "iso3c": "SGP", "x": 24, "y": 12, "country": "Singapore", "region_iso3c": "EAS" }, { "iso3c": "EGY", "x": 16, "y": 12, "country": "Egypt", "region_iso3c": "MEA" }, { "iso3c": "LBY", "x": 15, "y": 12, "country": "Libya", "region_iso3c": "MEA" }, { "iso3c": "ARE", "x": 21, "y": 12, "country": "United Arab Emirates", "region_iso3c": "MEA" }, { "iso3c": "OMN", "x": 20, "y": 12, "country": "Oman", "region_iso3c": "MEA" }, { "iso3c": "YEM", "x": 19, "y": 12, "country": "Yemen", "region_iso3c": "MEA" }, { "iso3c": "VEN", "x": 5, "y": 12, "country": "Venezuela", "region_iso3c": "LCN" }, { "iso3c": "GUY", "x": 6, "y": 12, "country": "Guyana", "region_iso3c": "LCN" }, { "iso3c": "SUR", "x": 7, "y": 12, "country": "Suriname", "region_iso3c": "LCN" }, { "iso3c": "MLI", "x": 13, "y": 12, "country": "Mali", "region_iso3c": "SSF" }, { "iso3c": "MRT", "x": 12, "y": 12, "country": "Mauritania", "region_iso3c": "SSF" }, { "iso3c": "NER", "x": 14, "y": 12, "country": "Niger", "region_iso3c": "SSF" }, { "iso3c": "SEN", "x": 11, "y": 12, "country": "Senegal", "region_iso3c": "SSF" }, { "iso3c": "COL", "x": 4, "y": 12, "country": "Colombia", "region_iso3c": "LCN" }, { "iso3c": "PLW", "x": 28, "y": 13, "country": "Palau", "region_iso3c": "EAS" }, { "iso3c": "FSM", "x": 29, "y": 13, "country": "Micronesia (Federated States of)", "region_iso3c": "EAS" }, { "iso3c": "BRN", "x": 25, "y": 13, "country": "Brunei Darussalam", "region_iso3c": "EAS" }, { "iso3c": "CPV", "x": 10, "y": 13, "country": "Cabo Verde", "region_iso3c": "SSF" }, { "iso3c": "SDN", "x": 16, "y": 13, "country": "Sudan", "region_iso3c": "SSF" }, { "iso3c": "TCD", "x": 15, "y": 13, "country": "Chad", "region_iso3c": "SSF" }, { "iso3c": "GMB", "x": 12, "y": 13, "country": "Gambia", "region_iso3c": "SSF" }, { "iso3c": "ECU", "x": 4, "y": 13, "country": "Ecuador", "region_iso3c": "LCN" }, { "iso3c": "BFA", "x": 13, "y": 13, "country": "Burkina Faso", "region_iso3c": "SSF" }, { "iso3c": "DJI", "x": 18, "y": 13, "country": "Djibouti", "region_iso3c": "MEA" }, { "iso3c": "ERI", "x": 17, "y": 13, "country": "Eritrea", "region_iso3c": "SSF" }, { "iso3c": "GNB", "x": 11, "y": 13, "country": "Guinea-Bissau", "region_iso3c": "SSF" }, { "iso3c": "TGO", "x": 14, "y": 13, "country": "Togo", "region_iso3c": "SSF" }, { "iso3c": "BRA", "x": 5, "y": 13, "country": "Brazil", "region_iso3c": "LCN" }, { "iso3c": "KIR", "x": 29, "y": 14, "country": "Kiribati", "region_iso3c": "EAS" }, { "iso3c": "NRU", "x": 28, "y": 14, "country": "Nauru", "region_iso3c": "EAS" }, { "iso3c": "SLB", "x": 27, "y": 14, "country": "Solomon Islands", "region_iso3c": "EAS" }, { "iso3c": "PNG", "x": 26, "y": 14, "country": "Papua New Guinea", "region_iso3c": "EAS" }, { "iso3c": "IDN", "x": 25, "y": 14, "country": "Indonesia", "region_iso3c": "EAS" }, { "iso3c": "PER", "x": 4, "y": 14, "country": "Peru", "region_iso3c": "LCN" }, { "iso3c": "SSD", "x": 16, "y": 14, "country": "South Sudan", "region_iso3c": "SSF" }, { "iso3c": "CAF", "x": 15, "y": 14, "country": "Central African Republic", "region_iso3c": "SSF" }, { "iso3c": "WSM", "x": 1, "y": 14, "country": "Samoa", "region_iso3c": "EAS" }, { "iso3c": "BOL", "x": 5, "y": 14, "country": "Bolivia", "region_iso3c": "LCN" }, { "iso3c": "BEN", "x": 14, "y": 14, "country": "Benin", "region_iso3c": "SSF" }, { "iso3c": "ETH", "x": 17, "y": 14, "country": "Ethiopia", "region_iso3c": "SSF" }, { "iso3c": "GHA", "x": 13, "y": 14, "country": "Ghana", "region_iso3c": "SSF" }, { "iso3c": "LBR", "x": 12, "y": 14, "country": "Liberia", "region_iso3c": "SSF" }, { "iso3c": "SOM", "x": 18, "y": 14, "country": "Somalia", "region_iso3c": "SSF" }, { "iso3c": "GIN", "x": 11, "y": 14, "country": "Guinea", "region_iso3c": "SSF" }, { "iso3c": "URY", "x": 6, "y": 15, "country": "Uruguay", "region_iso3c": "LCN" }, { "iso3c": "PRY", "x": 5, "y": 15, "country": "Paraguay", "region_iso3c": "LCN" }, { "iso3c": "VUT", "x": 28, "y": 15, "country": "Vanuatu", "region_iso3c": "EAS" }, { "iso3c": "TUV", "x": 29, "y": 15, "country": "Tuvalu", "region_iso3c": "EAS" }, { "iso3c": "TLS", "x": 25, "y": 15, "country": "Timor-Leste", "region_iso3c": "EAS" }, { "iso3c": "CHL", "x": 4, "y": 15, "country": "Chile", "region_iso3c": "LCN" }, { "iso3c": "UGA", "x": 16, "y": 15, "country": "Uganda", "region_iso3c": "SSF" }, { "iso3c": "SLE", "x": 11, "y": 15, "country": "Sierra Leone", "region_iso3c": "SSF" }, { "iso3c": "ASM", "x": 1, "y": 15, "country": "American Samoa", "region_iso3c": "EAS" }, { "iso3c": "CMR", "x": 14, "y": 15, "country": "Cameroon", "region_iso3c": "SSF" }, { "iso3c": "CIV", "x": 12, "y": 15, "country": "Côte d'Ivoire", "region_iso3c": "SSF" }, { "iso3c": "NGA", "x": 13, "y": 15, "country": "Nigeria", "region_iso3c": "SSF" }, { "iso3c": "RWA", "x": 15, "y": 15, "country": "Rwanda", "region_iso3c": "SSF" }, { "iso3c": "KEN", "x": 17, "y": 15, "country": "Kenya", "region_iso3c": "SSF" }, { "iso3c": "ARG", "x": 5, "y": 16, "country": "Argentina", "region_iso3c": "LCN" }, { "iso3c": "FJI", "x": 29, "y": 16, "country": "Fiji", "region_iso3c": "EAS" }, { "iso3c": "NCL", "x": 28, "y": 16, "country": "New Caledonia", "region_iso3c": "EAS" }, { "iso3c": "AUS", "x": 26, "y": 16, "country": "Australia", "region_iso3c": "EAS" }, { "iso3c": "PYF", "x": 2, "y": 16, "country": "French Polynesia", "region_iso3c": "EAS" }, { "iso3c": "BDI", "x": 16, "y": 16, "country": "Burundi", "region_iso3c": "SSF" }, { "iso3c": "GNQ", "x": 14, "y": 16, "country": "Equatorial Guinea", "region_iso3c": "SSF" }, { "iso3c": "TZA", "x": 17, "y": 16, "country": "Tanzania", "region_iso3c": "SSF" }, { "iso3c": "SYC", "x": 19, "y": 16, "country": "Seychelles", "region_iso3c": "SSF" }, { "iso3c": "GAB", "x": 13, "y": 16, "country": "Gabon", "region_iso3c": "SSF" }, { "iso3c": "COD", "x": 15, "y": 16, "country": "Congo (Democratic Republic of the)", "region_iso3c": "SSF" }, { "iso3c": "COG", "x": 13, "y": 17, "country": "Congo", "region_iso3c": "SSF" }, { "iso3c": "NZL", "x": 27, "y": 17, "country": "New Zealand", "region_iso3c": "EAS" }, { "iso3c": "MOZ", "x": 16, "y": 17, "country": "Mozambique", "region_iso3c": "SSF" }, { "iso3c": "TON", "x": 1, "y": 17, "country": "Tonga", "region_iso3c": "EAS" }, { "iso3c": "MWI", "x": 15, "y": 17, "country": "Malawi", "region_iso3c": "SSF" }, { "iso3c": "COM", "x": 18, "y": 17, "country": "Comoros", "region_iso3c": "SSF" }, { "iso3c": "STP", "x": 11, "y": 17, "country": "Sao Tome and Principe", "region_iso3c": "SSF" }, { "iso3c": "ZMB", "x": 14, "y": 17, "country": "Zambia", "region_iso3c": "SSF" }, { "iso3c": "ZWE", "x": 15, "y": 18, "country": "Zimbabwe", "region_iso3c": "SSF" }, { "iso3c": "AGO", "x": 13, "y": 18, "country": "Angola", "region_iso3c": "SSF" }, { "iso3c": "MDG", "x": 19, "y": 18, "country": "Madagascar", "region_iso3c": "SSF" }, { "iso3c": "MUS", "x": 20, "y": 18, "country": "Mauritius", "region_iso3c": "SSF" }, { "iso3c": "BWA", "x": 14, "y": 18, "country": "Botswana", "region_iso3c": "SSF" }, { "iso3c": "NAM", "x": 13, "y": 19, "country": "Namibia", "region_iso3c": "SSF" }, { "iso3c": "SWZ", "x": 14, "y": 19, "country": "Swaziland", "region_iso3c": "SSF" }, { "iso3c": "LSO", "x": 15, "y": 19, "country": "Lesotho", "region_iso3c": "SSF" }, { "iso3c": "ZAF", "x": 14, "y": 20, "country": "South Africa", "region_iso3c": "SSF" }, { "iso3c": "ATA", "x": 14, "y": 22, "country": "Antarctica" }];
-  mark_module_start();
-  WorldSquareGrid[FILENAME] = "src/WorldSquareGrid.svelte";
-  var on_mouseover = (_, currentCountry, cell, searched, tooltipVisible) => {
-    currentCountry(get(cell).iso3c);
-    searched(false);
-    tooltipVisible(true);
-  };
-  var on_mouseout = (__1, currentCountry, tooltipVisible) => {
-    currentCountry(null);
-    tooltipVisible(false);
-  };
-  var root_3$3 = add_locations(/* @__PURE__ */ ns_template(`<text class="country-label svelte-buoy2n" paint-order="stroke" stroke-linejoin="round"> </text>`), WorldSquareGrid[FILENAME], [[85, 8]]);
-  var root_2$2 = add_locations(/* @__PURE__ */ ns_template(`<g><rect></rect><!></g>`), WorldSquareGrid[FILENAME], [[46, 4, [[51, 6]]]]);
-  var root_4$1 = add_locations(/* @__PURE__ */ ns_template(`<rect class="highlight-outline svelte-buoy2n"></rect><rect class="highlight-outline svelte-buoy2n"></rect>`, 1), WorldSquareGrid[FILENAME], [[102, 2], [112, 2]]);
-  var root$7 = add_locations(/* @__PURE__ */ ns_template(`<!><!>`, 1), WorldSquareGrid[FILENAME], []);
-  function WorldSquareGrid($$anchor, $$props) {
-    check_target(new.target);
-    push($$props, true, WorldSquareGrid);
-    let currentCountry = prop($$props, "currentCountry", 15), currentTilePos = prop($$props, "currentTilePos", 15), searched = prop($$props, "searched", 15), tooltipVisible = prop($$props, "tooltipVisible", 15);
-    let tileSize = /* @__PURE__ */ derived(() => Math.min(($$props.width - $$props.margins.left - $$props.margins.right) / 29, ($$props.height - $$props.margins.top - $$props.margins.bottom) / 22));
-    let currentTile = /* @__PURE__ */ derived(() => squareGrid.find((d) => equals(d.iso3c, currentCountry())));
-    let gridWidth = /* @__PURE__ */ derived(() => get(tileSize) * 29);
-    let shift2 = /* @__PURE__ */ derived(() => ($$props.width - get(gridWidth)) / 2);
-    user_effect(() => {
-      if (currentCountry()) {
-        currentTilePos({
-          x: get(currentTile).x * get(tileSize) - get(tileSize),
-          y: get(currentTile).y * get(tileSize) + get(tileSize)
-        });
+  function initInterpolator(domain, interpolator) {
+    switch (arguments.length) {
+      case 0:
+        break;
+      case 1: {
+        if (typeof domain === "function") this.interpolator(domain);
+        else this.range(domain);
+        break;
       }
-    });
-    var fragment = root$7();
-    var node = first_child(fragment);
-    {
-      var consequent_1 = ($$anchor2) => {
-        var fragment_1 = comment();
-        var node_1 = first_child(fragment_1);
-        each(node_1, 17, () => squareGrid, index, ($$anchor3, cell) => {
-          var g = root_2$2();
-          var rect = child(g);
-          set_attribute(rect, "x", 0);
-          set_attribute(rect, "y", 0);
-          rect.__mouseover = [
-            on_mouseover,
-            currentCountry,
-            cell,
-            searched,
-            tooltipVisible
-          ];
-          rect.__mouseout = [on_mouseout, currentCountry, tooltipVisible];
-          var node_2 = sibling(rect);
-          {
-            var consequent = ($$anchor4) => {
-              var text = root_3$3();
-              set_attribute(text, "text-anchor", "middle");
-              set_attribute(text, "font-size", "0.6rem");
-              set_attribute(text, "stroke", "#ffffff");
-              set_attribute(text, "stroke-width", 2);
-              var text_1 = child(text);
-              template_effect(() => {
-                set_attribute(text, "x", get(tileSize) / 2);
-                set_attribute(text, "y", get(tileSize) / 2 + 4);
-                set_text(text_1, get(cell).iso3c);
-              });
-              append($$anchor4, text);
-            };
-            if_block(node_2, ($$render) => {
-              if ($$props.countryCodes && get(tileSize)) $$render(consequent);
-            });
-          }
-          template_effect(
-            ($0) => {
-              set_attribute(g, "transform", `translate(${(get(cell).x - 1) * get(tileSize) + get(shift2)},${(get(cell).y - 1) * get(tileSize)})`);
-              set_attribute(rect, "width", get(tileSize));
-              set_attribute(rect, "height", get(tileSize));
-              set_attribute(rect, "fill", $0);
-              set_attribute(rect, "stroke", $$props.stroke);
-              set_attribute(rect, "stroke-width", $$props.strokeWidth);
-            },
-            [
-              () => getFill($$props.data, get(cell).iso3c, $$props.contColorScale, $$props.catColorScale, $$props.noDataColor)
-            ]
-          );
-          event("focus", rect, () => {
-            currentCountry(get(cell).iso3c);
-            searched(false);
-            tooltipVisible(true);
-          });
-          event("blur", rect, () => {
-            currentCountry(null);
-            tooltipVisible(false);
-          });
-          append($$anchor3, g);
-        });
-        append($$anchor2, fragment_1);
-      };
-      if_block(node, ($$render) => {
-        if (get(tileSize)) $$render(consequent_1);
-      });
+      default: {
+        this.domain(domain);
+        if (typeof interpolator === "function") this.interpolator(interpolator);
+        else this.range(interpolator);
+        break;
+      }
     }
-    var node_3 = sibling(node);
-    {
-      var consequent_2 = ($$anchor2) => {
-        var fragment_2 = root_4$1();
-        var rect_1 = first_child(fragment_2);
-        set_attribute(rect_1, "fill", "none");
-        set_attribute(rect_1, "stroke", "#FFFFFF");
-        var rect_2 = sibling(rect_1);
-        set_attribute(rect_2, "fill", "none");
-        set_attribute(rect_2, "stroke", "#000000");
-        template_effect(() => {
-          set_attribute(rect_1, "x", get(currentTile).x * get(tileSize) - get(tileSize) + get(shift2));
-          set_attribute(rect_1, "y", get(currentTile).y * get(tileSize) - get(tileSize));
-          set_attribute(rect_1, "width", get(tileSize));
-          set_attribute(rect_1, "height", get(tileSize));
-          set_attribute(rect_1, "stroke-width", $$props.strokeWidth + 2);
-          set_attribute(rect_2, "x", get(currentTile).x * get(tileSize) - get(tileSize) + get(shift2));
-          set_attribute(rect_2, "y", get(currentTile).y * get(tileSize) - get(tileSize));
-          set_attribute(rect_2, "width", get(tileSize));
-          set_attribute(rect_2, "height", get(tileSize));
-          set_attribute(rect_2, "stroke-width", $$props.strokeWidth);
-        });
-        append($$anchor2, fragment_2);
-      };
-      if_block(node_3, ($$render) => {
-        if (currentCountry()) $$render(consequent_2);
-      });
-    }
-    append($$anchor, fragment);
-    return pop({ ...legacy_api() });
+    return this;
   }
-  mark_module_end(WorldSquareGrid);
-  delegate(["mouseover", "mouseout"]);
+  const implicit = Symbol("implicit");
+  function ordinal() {
+    var index2 = new InternMap(), domain = [], range = [], unknown = implicit;
+    function scale(d) {
+      let i = index2.get(d);
+      if (i === void 0) {
+        if (unknown !== implicit) return unknown;
+        index2.set(d, i = domain.push(d) - 1);
+      }
+      return range[i % range.length];
+    }
+    scale.domain = function(_) {
+      if (!arguments.length) return domain.slice();
+      domain = [], index2 = new InternMap();
+      for (const value of _) {
+        if (index2.has(value)) continue;
+        index2.set(value, domain.push(value) - 1);
+      }
+      return scale;
+    };
+    scale.range = function(_) {
+      return arguments.length ? (range = Array.from(_), scale) : range.slice();
+    };
+    scale.unknown = function(_) {
+      return arguments.length ? (unknown = _, scale) : unknown;
+    };
+    scale.copy = function() {
+      return ordinal(domain, range).unknown(unknown);
+    };
+    initRange.apply(scale, arguments);
+    return scale;
+  }
   function define(constructor, factory, prototype) {
     constructor.prototype = factory.prototype = prototype;
     prototype.constructor = constructor;
@@ -5416,45 +5292,971 @@ ${indent}in ${name}`).join("")}
     for (var i = 0; i < n; ++i) samples[i] = interpolator(i / (n - 1));
     return samples;
   }
-  mark_module_start();
-  ContinuousColorLegend[FILENAME] = "src/template/ContinuousColorLegend.svelte";
-  var root_1$1 = add_locations(/* @__PURE__ */ template2(`<div class="no-data-label svelte-1af89zx"> </div>`), ContinuousColorLegend[FILENAME], [[81, 6]]);
-  var root_2$1 = add_locations(/* @__PURE__ */ template2(`<div class="no-data"><div class="no-data-symbol svelte-1af89zx"><svg class="no-data-symbol svelte-1af89zx"><rect class="no-data-rect"></rect></svg></div></div>`), ContinuousColorLegend[FILENAME], [
-    [
-      91,
-      4,
-      [
-        [92, 6, [[93, 8, [[94, 10]]]]]
-      ]
+  function identity$1(x) {
+    return x;
+  }
+  function formatDecimal(x) {
+    return Math.abs(x = Math.round(x)) >= 1e21 ? x.toLocaleString("en").replace(/,/g, "") : x.toString(10);
+  }
+  function formatDecimalParts(x, p) {
+    if ((i = (x = p ? x.toExponential(p - 1) : x.toExponential()).indexOf("e")) < 0) return null;
+    var i, coefficient = x.slice(0, i);
+    return [
+      coefficient.length > 1 ? coefficient[0] + coefficient.slice(2) : coefficient,
+      +x.slice(i + 1)
+    ];
+  }
+  function exponent(x) {
+    return x = formatDecimalParts(Math.abs(x)), x ? x[1] : NaN;
+  }
+  function formatGroup(grouping, thousands) {
+    return function(value, width) {
+      var i = value.length, t = [], j = 0, g = grouping[0], length = 0;
+      while (i > 0 && g > 0) {
+        if (length + g + 1 > width) g = Math.max(1, width - length);
+        t.push(value.substring(i -= g, i + g));
+        if ((length += g + 1) > width) break;
+        g = grouping[j = (j + 1) % grouping.length];
+      }
+      return t.reverse().join(thousands);
+    };
+  }
+  function formatNumerals(numerals) {
+    return function(value) {
+      return value.replace(/[0-9]/g, function(i) {
+        return numerals[+i];
+      });
+    };
+  }
+  var re = /^(?:(.)?([<>=^]))?([+\-( ])?([$#])?(0)?(\d+)?(,)?(\.\d+)?(~)?([a-z%])?$/i;
+  function formatSpecifier(specifier) {
+    if (!(match = re.exec(specifier))) throw new Error("invalid format: " + specifier);
+    var match;
+    return new FormatSpecifier({
+      fill: match[1],
+      align: match[2],
+      sign: match[3],
+      symbol: match[4],
+      zero: match[5],
+      width: match[6],
+      comma: match[7],
+      precision: match[8] && match[8].slice(1),
+      trim: match[9],
+      type: match[10]
+    });
+  }
+  formatSpecifier.prototype = FormatSpecifier.prototype;
+  function FormatSpecifier(specifier) {
+    this.fill = specifier.fill === void 0 ? " " : specifier.fill + "";
+    this.align = specifier.align === void 0 ? ">" : specifier.align + "";
+    this.sign = specifier.sign === void 0 ? "-" : specifier.sign + "";
+    this.symbol = specifier.symbol === void 0 ? "" : specifier.symbol + "";
+    this.zero = !!specifier.zero;
+    this.width = specifier.width === void 0 ? void 0 : +specifier.width;
+    this.comma = !!specifier.comma;
+    this.precision = specifier.precision === void 0 ? void 0 : +specifier.precision;
+    this.trim = !!specifier.trim;
+    this.type = specifier.type === void 0 ? "" : specifier.type + "";
+  }
+  FormatSpecifier.prototype.toString = function() {
+    return this.fill + this.align + this.sign + this.symbol + (this.zero ? "0" : "") + (this.width === void 0 ? "" : Math.max(1, this.width | 0)) + (this.comma ? "," : "") + (this.precision === void 0 ? "" : "." + Math.max(0, this.precision | 0)) + (this.trim ? "~" : "") + this.type;
+  };
+  function formatTrim(s) {
+    out: for (var n = s.length, i = 1, i0 = -1, i1; i < n; ++i) {
+      switch (s[i]) {
+        case ".":
+          i0 = i1 = i;
+          break;
+        case "0":
+          if (i0 === 0) i0 = i;
+          i1 = i;
+          break;
+        default:
+          if (!+s[i]) break out;
+          if (i0 > 0) i0 = 0;
+          break;
+      }
+    }
+    return i0 > 0 ? s.slice(0, i0) + s.slice(i1 + 1) : s;
+  }
+  var prefixExponent;
+  function formatPrefixAuto(x, p) {
+    var d = formatDecimalParts(x, p);
+    if (!d) return x + "";
+    var coefficient = d[0], exponent2 = d[1], i = exponent2 - (prefixExponent = Math.max(-8, Math.min(8, Math.floor(exponent2 / 3))) * 3) + 1, n = coefficient.length;
+    return i === n ? coefficient : i > n ? coefficient + new Array(i - n + 1).join("0") : i > 0 ? coefficient.slice(0, i) + "." + coefficient.slice(i) : "0." + new Array(1 - i).join("0") + formatDecimalParts(x, Math.max(0, p + i - 1))[0];
+  }
+  function formatRounded(x, p) {
+    var d = formatDecimalParts(x, p);
+    if (!d) return x + "";
+    var coefficient = d[0], exponent2 = d[1];
+    return exponent2 < 0 ? "0." + new Array(-exponent2).join("0") + coefficient : coefficient.length > exponent2 + 1 ? coefficient.slice(0, exponent2 + 1) + "." + coefficient.slice(exponent2 + 1) : coefficient + new Array(exponent2 - coefficient.length + 2).join("0");
+  }
+  const formatTypes = {
+    "%": (x, p) => (x * 100).toFixed(p),
+    "b": (x) => Math.round(x).toString(2),
+    "c": (x) => x + "",
+    "d": formatDecimal,
+    "e": (x, p) => x.toExponential(p),
+    "f": (x, p) => x.toFixed(p),
+    "g": (x, p) => x.toPrecision(p),
+    "o": (x) => Math.round(x).toString(8),
+    "p": (x, p) => formatRounded(x * 100, p),
+    "r": formatRounded,
+    "s": formatPrefixAuto,
+    "X": (x) => Math.round(x).toString(16).toUpperCase(),
+    "x": (x) => Math.round(x).toString(16)
+  };
+  function identity(x) {
+    return x;
+  }
+  var map = Array.prototype.map, prefixes = ["y", "z", "a", "f", "p", "n", "µ", "m", "", "k", "M", "G", "T", "P", "E", "Z", "Y"];
+  function formatLocale(locale2) {
+    var group = locale2.grouping === void 0 || locale2.thousands === void 0 ? identity : formatGroup(map.call(locale2.grouping, Number), locale2.thousands + ""), currencyPrefix = locale2.currency === void 0 ? "" : locale2.currency[0] + "", currencySuffix = locale2.currency === void 0 ? "" : locale2.currency[1] + "", decimal = locale2.decimal === void 0 ? "." : locale2.decimal + "", numerals = locale2.numerals === void 0 ? identity : formatNumerals(map.call(locale2.numerals, String)), percent = locale2.percent === void 0 ? "%" : locale2.percent + "", minus = locale2.minus === void 0 ? "−" : locale2.minus + "", nan = locale2.nan === void 0 ? "NaN" : locale2.nan + "";
+    function newFormat(specifier) {
+      specifier = formatSpecifier(specifier);
+      var fill = specifier.fill, align = specifier.align, sign = specifier.sign, symbol = specifier.symbol, zero2 = specifier.zero, width = specifier.width, comma = specifier.comma, precision = specifier.precision, trim = specifier.trim, type = specifier.type;
+      if (type === "n") comma = true, type = "g";
+      else if (!formatTypes[type]) precision === void 0 && (precision = 12), trim = true, type = "g";
+      if (zero2 || fill === "0" && align === "=") zero2 = true, fill = "0", align = "=";
+      var prefix = symbol === "$" ? currencyPrefix : symbol === "#" && /[boxX]/.test(type) ? "0" + type.toLowerCase() : "", suffix = symbol === "$" ? currencySuffix : /[%p]/.test(type) ? percent : "";
+      var formatType = formatTypes[type], maybeSuffix = /[defgprs%]/.test(type);
+      precision = precision === void 0 ? 6 : /[gprs]/.test(type) ? Math.max(1, Math.min(21, precision)) : Math.max(0, Math.min(20, precision));
+      function format2(value) {
+        var valuePrefix = prefix, valueSuffix = suffix, i, n, c;
+        if (type === "c") {
+          valueSuffix = formatType(value) + valueSuffix;
+          value = "";
+        } else {
+          value = +value;
+          var valueNegative = value < 0 || 1 / value < 0;
+          value = isNaN(value) ? nan : formatType(Math.abs(value), precision);
+          if (trim) value = formatTrim(value);
+          if (valueNegative && +value === 0 && sign !== "+") valueNegative = false;
+          valuePrefix = (valueNegative ? sign === "(" ? sign : minus : sign === "-" || sign === "(" ? "" : sign) + valuePrefix;
+          valueSuffix = (type === "s" ? prefixes[8 + prefixExponent / 3] : "") + valueSuffix + (valueNegative && sign === "(" ? ")" : "");
+          if (maybeSuffix) {
+            i = -1, n = value.length;
+            while (++i < n) {
+              if (c = value.charCodeAt(i), 48 > c || c > 57) {
+                valueSuffix = (c === 46 ? decimal + value.slice(i + 1) : value.slice(i)) + valueSuffix;
+                value = value.slice(0, i);
+                break;
+              }
+            }
+          }
+        }
+        if (comma && !zero2) value = group(value, Infinity);
+        var length = valuePrefix.length + value.length + valueSuffix.length, padding = length < width ? new Array(width - length + 1).join(fill) : "";
+        if (comma && zero2) value = group(padding + value, padding.length ? width - valueSuffix.length : Infinity), padding = "";
+        switch (align) {
+          case "<":
+            value = valuePrefix + value + valueSuffix + padding;
+            break;
+          case "=":
+            value = valuePrefix + padding + value + valueSuffix;
+            break;
+          case "^":
+            value = padding.slice(0, length = padding.length >> 1) + valuePrefix + value + valueSuffix + padding.slice(length);
+            break;
+          default:
+            value = padding + valuePrefix + value + valueSuffix;
+            break;
+        }
+        return numerals(value);
+      }
+      format2.toString = function() {
+        return specifier + "";
+      };
+      return format2;
+    }
+    function formatPrefix2(specifier, value) {
+      var f = newFormat((specifier = formatSpecifier(specifier), specifier.type = "f", specifier)), e = Math.max(-8, Math.min(8, Math.floor(exponent(value) / 3))) * 3, k = Math.pow(10, -e), prefix = prefixes[8 + e / 3];
+      return function(value2) {
+        return f(k * value2) + prefix;
+      };
+    }
+    return {
+      format: newFormat,
+      formatPrefix: formatPrefix2
+    };
+  }
+  var locale;
+  var format;
+  var formatPrefix;
+  defaultLocale({
+    thousands: ",",
+    grouping: [3],
+    currency: ["$", ""]
+  });
+  function defaultLocale(definition) {
+    locale = formatLocale(definition);
+    format = locale.format;
+    formatPrefix = locale.formatPrefix;
+    return locale;
+  }
+  function precisionFixed(step) {
+    return Math.max(0, -exponent(Math.abs(step)));
+  }
+  function precisionPrefix(step, value) {
+    return Math.max(0, Math.max(-8, Math.min(8, Math.floor(exponent(value) / 3))) * 3 - exponent(Math.abs(step)));
+  }
+  function precisionRound(step, max2) {
+    step = Math.abs(step), max2 = Math.abs(max2) - step;
+    return Math.max(0, exponent(max2) - exponent(step)) + 1;
+  }
+  function tickFormat(start, stop, count, specifier) {
+    var step = tickStep(start, stop, count), precision;
+    specifier = formatSpecifier(specifier == null ? ",f" : specifier);
+    switch (specifier.type) {
+      case "s": {
+        var value = Math.max(Math.abs(start), Math.abs(stop));
+        if (specifier.precision == null && !isNaN(precision = precisionPrefix(step, value))) specifier.precision = precision;
+        return formatPrefix(specifier, value);
+      }
+      case "":
+      case "e":
+      case "g":
+      case "p":
+      case "r": {
+        if (specifier.precision == null && !isNaN(precision = precisionRound(step, Math.max(Math.abs(start), Math.abs(stop))))) specifier.precision = precision - (specifier.type === "e");
+        break;
+      }
+      case "f":
+      case "%": {
+        if (specifier.precision == null && !isNaN(precision = precisionFixed(step))) specifier.precision = precision - (specifier.type === "%") * 2;
+        break;
+      }
+    }
+    return format(specifier);
+  }
+  function linearish(scale) {
+    var domain = scale.domain;
+    scale.ticks = function(count) {
+      var d = domain();
+      return ticks(d[0], d[d.length - 1], count == null ? 10 : count);
+    };
+    scale.tickFormat = function(count, specifier) {
+      var d = domain();
+      return tickFormat(d[0], d[d.length - 1], count == null ? 10 : count, specifier);
+    };
+    scale.nice = function(count) {
+      if (count == null) count = 10;
+      var d = domain();
+      var i0 = 0;
+      var i1 = d.length - 1;
+      var start = d[i0];
+      var stop = d[i1];
+      var prestep;
+      var step;
+      var maxIter = 10;
+      if (stop < start) {
+        step = start, start = stop, stop = step;
+        step = i0, i0 = i1, i1 = step;
+      }
+      while (maxIter-- > 0) {
+        step = tickIncrement(start, stop, count);
+        if (step === prestep) {
+          d[i0] = start;
+          d[i1] = stop;
+          return domain(d);
+        } else if (step > 0) {
+          start = Math.floor(start / step) * step;
+          stop = Math.ceil(stop / step) * step;
+        } else if (step < 0) {
+          start = Math.ceil(start * step) / step;
+          stop = Math.floor(stop * step) / step;
+        } else {
+          break;
+        }
+        prestep = step;
+      }
+      return scale;
+    };
+    return scale;
+  }
+  function quantile() {
+    var domain = [], range = [], thresholds = [], unknown;
+    function rescale() {
+      var i = 0, n = Math.max(1, range.length);
+      thresholds = new Array(n - 1);
+      while (++i < n) thresholds[i - 1] = quantileSorted(domain, i / n);
+      return scale;
+    }
+    function scale(x) {
+      return x == null || isNaN(x = +x) ? unknown : range[bisectRight(thresholds, x)];
+    }
+    scale.invertExtent = function(y) {
+      var i = range.indexOf(y);
+      return i < 0 ? [NaN, NaN] : [
+        i > 0 ? thresholds[i - 1] : domain[0],
+        i < thresholds.length ? thresholds[i] : domain[domain.length - 1]
+      ];
+    };
+    scale.domain = function(_) {
+      if (!arguments.length) return domain.slice();
+      domain = [];
+      for (let d of _) if (d != null && !isNaN(d = +d)) domain.push(d);
+      domain.sort(ascending);
+      return rescale();
+    };
+    scale.range = function(_) {
+      return arguments.length ? (range = Array.from(_), rescale()) : range.slice();
+    };
+    scale.unknown = function(_) {
+      return arguments.length ? (unknown = _, scale) : unknown;
+    };
+    scale.quantiles = function() {
+      return thresholds.slice();
+    };
+    scale.copy = function() {
+      return quantile().domain(domain).range(range).unknown(unknown);
+    };
+    return initRange.apply(scale, arguments);
+  }
+  function quantize() {
+    var x0 = 0, x1 = 1, n = 1, domain = [0.5], range = [0, 1], unknown;
+    function scale(x) {
+      return x != null && x <= x ? range[bisectRight(domain, x, 0, n)] : unknown;
+    }
+    function rescale() {
+      var i = -1;
+      domain = new Array(n);
+      while (++i < n) domain[i] = ((i + 1) * x1 - (i - n) * x0) / (n + 1);
+      return scale;
+    }
+    scale.domain = function(_) {
+      return arguments.length ? ([x0, x1] = _, x0 = +x0, x1 = +x1, rescale()) : [x0, x1];
+    };
+    scale.range = function(_) {
+      return arguments.length ? (n = (range = Array.from(_)).length - 1, rescale()) : range.slice();
+    };
+    scale.invertExtent = function(y) {
+      var i = range.indexOf(y);
+      return i < 0 ? [NaN, NaN] : i < 1 ? [x0, domain[0]] : i >= n ? [domain[n - 1], x1] : [domain[i - 1], domain[i]];
+    };
+    scale.unknown = function(_) {
+      return arguments.length ? (unknown = _, scale) : scale;
+    };
+    scale.thresholds = function() {
+      return domain.slice();
+    };
+    scale.copy = function() {
+      return quantize().domain([x0, x1]).range(range).unknown(unknown);
+    };
+    return initRange.apply(linearish(scale), arguments);
+  }
+  function transformer() {
+    var x0 = 0, x1 = 1, t02, t12, k10, transform, interpolator = identity$1, clamp2 = false, unknown;
+    function scale(x) {
+      return x == null || isNaN(x = +x) ? unknown : interpolator(k10 === 0 ? 0.5 : (x = (transform(x) - t02) * k10, clamp2 ? Math.max(0, Math.min(1, x)) : x));
+    }
+    scale.domain = function(_) {
+      return arguments.length ? ([x0, x1] = _, t02 = transform(x0 = +x0), t12 = transform(x1 = +x1), k10 = t02 === t12 ? 0 : 1 / (t12 - t02), scale) : [x0, x1];
+    };
+    scale.clamp = function(_) {
+      return arguments.length ? (clamp2 = !!_, scale) : clamp2;
+    };
+    scale.interpolator = function(_) {
+      return arguments.length ? (interpolator = _, scale) : interpolator;
+    };
+    function range(interpolate2) {
+      return function(_) {
+        var r0, r1;
+        return arguments.length ? ([r0, r1] = _, interpolator = interpolate2(r0, r1), scale) : [interpolator(0), interpolator(1)];
+      };
+    }
+    scale.range = range(interpolate);
+    scale.rangeRound = range(interpolateRound);
+    scale.unknown = function(_) {
+      return arguments.length ? (unknown = _, scale) : unknown;
+    };
+    return function(t) {
+      transform = t, t02 = t(x0), t12 = t(x1), k10 = t02 === t12 ? 0 : 1 / (t12 - t02);
+      return scale;
+    };
+  }
+  function copy(source2, target) {
+    return target.domain(source2.domain()).interpolator(source2.interpolator()).clamp(source2.clamp()).unknown(source2.unknown());
+  }
+  function sequential() {
+    var scale = linearish(transformer()(identity$1));
+    scale.copy = function() {
+      return copy(scale, sequential());
+    };
+    return initInterpolator.apply(scale, arguments);
+  }
+  let wbColors = {
+    "cat1": "#34A7F2",
+    "cat2": "#FF9800",
+    "cat3": "#664AB6",
+    "cat4": "#4EC2C0",
+    "cat5": "#F3578E",
+    "cat6": "#081079",
+    "cat7": "#0C7C68",
+    "cat8": "#AA0000",
+    "cat9": "#DDDA21",
+    "WLD": "#081079",
+    "NAC": "#34A7F2",
+    "LCN": "#0C7C68",
+    "SAS": "#4EC2C0",
+    "MEA": "#664AB6",
+    "ECS": "#AA0000",
+    "EAS": "#F3578E",
+    "SSF": "#FF9800",
+    "AFE": "#FF9800",
+    "AFW": "#DDDA21",
+    "HIC": "#016B6C",
+    "UMC": "#73AF48",
+    "LMC": "#DB95D7",
+    "LIC": "#3B4DA6",
+    "male": "#664AB6",
+    "female": "#FF9800",
+    "diverse": "#4EC2C0",
+    "rural": "#54AE89",
+    "urban": "#6D88D1",
+    "youngestAge": "#F8A8DF",
+    "youngerAge": "#B38FD8",
+    "middleAge": "#462f98",
+    "olderAge": "#6D88D1",
+    "oldestAge": "#A1C6FF",
+    "yes": "#0071BC",
+    "no": "#EBEEF4",
+    "noData": "#CED4DE",
+    "seq1": "#FDF6DB",
+    "seq2": "#A1CBCF",
+    "seq3": "#5D99C2",
+    "seq4": "#2868A0",
+    "seq5": "#023B6F",
+    "seqRev1": "#E3F6FD",
+    "seqRev2": "#91C5F0",
+    "seqRev3": "#8B8AC0",
+    "seqRev4": "#88506E",
+    "seqRev5": "#691B15",
+    "seqB1": "#E3F6FD",
+    "seqB2": "#75CCEC",
+    "seqB3": "#089BD4",
+    "seqB4": "#0169A1",
+    "seqB5": "#023B6F",
+    "seqY1": "#FDF7DB",
+    "seqY2": "#ECB63A",
+    "seqY3": "#BE792B",
+    "seqY4": "#8D4117",
+    "seqY5": "#5C0000",
+    "seqP1": "#FFE2FF",
+    "seqP2": "#D3ACE6",
+    "seqP3": "#A37ACD",
+    "seqP4": "#6F4CB4",
+    "seqP5": "#2F1E9C",
+    "divPos3": "#025288",
+    "divPos2": "#3587C3",
+    "divPos1": "#80BDE7",
+    "divMid": "#EFEFEF",
+    "divNeg1": "#E3A763",
+    "divNeg2": "#BD6126",
+    "divNeg3": "#920000",
+    "div2L3": "#24768E",
+    "div2L2": "#4EA2AC",
+    "div2L1": "#98CBCC",
+    "div2Mid": "#EFEFEF",
+    "div2R1": "#D1AEE3",
+    "div2R2": "#A873C4",
+    "div2R3": "#754493"
+  };
+  let allColors = {
+    "wld": wbColors.WLD,
+    "nac": wbColors.NAC,
+    "lcn": wbColors.LCN,
+    "sas": wbColors.SAS,
+    "mea": wbColors.MEA,
+    "ecs": wbColors.ECS,
+    "eas": wbColors.EAS,
+    "ssf": wbColors.SSF,
+    "afe": wbColors.AFE,
+    "afw": wbColors.AFW,
+    "world": wbColors.WLD,
+    "north america": wbColors.NAC,
+    "latin america and caribbean": wbColors.LCN,
+    "south asia": wbColors.SAS,
+    "middle east and north africa": wbColors.MEA,
+    "europe and central asia": wbColors.ECS,
+    "east asia and pacific": wbColors.EAS,
+    "sub-saharan africa": wbColors.SSF,
+    "latin america & caribbean": wbColors.LCN,
+    "middle east & north africa": wbColors.MEA,
+    "europe & central asia": wbColors.ECS,
+    "east asia & pacific": wbColors.EAS,
+    "hic": wbColors.HIC,
+    "umc": wbColors.UMC,
+    "lmc": wbColors.LMC,
+    "lic": wbColors.LIC,
+    "high income": wbColors.HIC,
+    "upper middle income": wbColors.UMC,
+    "lower middle income": wbColors.LMC,
+    "low income": wbColors.LIC,
+    "male": wbColors.male,
+    "female": wbColors.female,
+    "diverse": wbColors.diverse,
+    "rural": wbColors.rural,
+    "urban": wbColors.urban,
+    "youngestage": wbColors.youngestAge,
+    "youngerage": wbColors.youngerAge,
+    "middleage": wbColors.middleAge,
+    "olderage": wbColors.olderAge,
+    "oldestage": wbColors.oldestAge,
+    "yes": wbColors.yes,
+    "no": wbColors.no
+  };
+  let catColors = {
+    default: {
+      cat1: wbColors.cat1,
+      cat2: wbColors.cat2,
+      cat3: wbColors.cat3,
+      cat4: wbColors.cat4,
+      cat5: wbColors.cat5,
+      cat6: wbColors.cat6,
+      cat7: wbColors.cat7,
+      cat8: wbColors.cat8,
+      cat9: wbColors.cat9
+    }
+  };
+  let seqColors = {
+    seq: [
+      wbColors.seq1,
+      wbColors.seq2,
+      wbColors.seq3,
+      wbColors.seq4,
+      wbColors.seq5
+    ],
+    seqRev: [
+      wbColors.seqRev1,
+      wbColors.seqRev2,
+      wbColors.seqRev3,
+      wbColors.seqRev4,
+      wbColors.seqRev5
+    ],
+    seqB: [
+      wbColors.seqB1,
+      wbColors.seqB2,
+      wbColors.seqB3,
+      wbColors.seqB4,
+      wbColors.seqB5
+    ],
+    seqY: [
+      wbColors.seqY1,
+      wbColors.seqY2,
+      wbColors.seqY3,
+      wbColors.seqY4,
+      wbColors.seqY5
+    ],
+    seqP: [
+      wbColors.seqP1,
+      wbColors.seqP2,
+      wbColors.seqP3,
+      wbColors.seqP4,
+      wbColors.seqP5
+    ],
+    div: [
+      wbColors.divNeg3,
+      wbColors.divNeg2,
+      wbColors.divNeg1,
+      wbColors.divMid,
+      wbColors.divPos1,
+      wbColors.divPos2,
+      wbColors.divPos3
+    ],
+    div2: [
+      wbColors.div2L3,
+      wbColors.div2L2,
+      wbColors.div2L1,
+      wbColors.div2Mid,
+      wbColors.div2R1,
+      wbColors.div2R2,
+      wbColors.div2R3
     ]
-  ]);
-  var root_4 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), ContinuousColorLegend[FILENAME], [[121, 14]]);
-  var root_6 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), ContinuousColorLegend[FILENAME], [[127, 16]]);
-  var root_3$2 = add_locations(/* @__PURE__ */ ns_template(`<image class="gradient svelte-1af89zx" preserveAspectRatio="none"></image><rect class="gradient-border svelte-1af89zx"></rect><g class="ticks"><!><!></g>`, 1), ContinuousColorLegend[FILENAME], [[103, 10], [112, 10], [119, 10]]);
-  var root_8$1 = add_locations(/* @__PURE__ */ ns_template(`<rect></rect>`), ContinuousColorLegend[FILENAME], [[136, 12]]);
-  var root_9 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), ContinuousColorLegend[FILENAME], [[146, 16]]);
-  var root_7 = add_locations(/* @__PURE__ */ ns_template(`<!><!>`, 1), ContinuousColorLegend[FILENAME], []);
-  var root$6 = add_locations(/* @__PURE__ */ template2(`<div><div class="legend-text-container svelte-1af89zx"><!> <div class="legend-title svelte-1af89zx"><span> </span>&nbsp;<span class="label-unit svelte-1af89zx"> </span></div></div> <div class="gradient-container svelte-1af89zx"><!> <div class="gradient svelte-1af89zx"><svg class="svelte-1af89zx"><!><!></svg></div></div></div>`), ContinuousColorLegend[FILENAME], [
+  };
+  let colorRamps = {
+    seq: piecewise(lab, seqColors.seq),
+    seqRev: piecewise(lab, seqColors.seqRev),
+    seqB: piecewise(lab, seqColors.seqB),
+    seqY: piecewise(lab, seqColors.seqY),
+    seqP: piecewise(lab, seqColors.seqP),
+    div: piecewise(lab, seqColors.div),
+    div2: piecewise(lab, seqColors.div2)
+  };
+  let getNumericalColorScale = function(data2, domain, linearOrBinned, scaleType, colorScale, colorScaleDiverging, binningMode, numberOfBins) {
+    if (linearOrBinned == "linear") {
+      return sequential(
+        colorRamps[scaleType == "sequential" ? colorScale : colorScaleDiverging]
+      ).domain(domain);
+    }
+    let getDiscreteColors = function(colorRamp, colorNumber) {
+      let arr = [...Array(colorNumber).keys()].map((i) => i / (colorNumber - 1));
+      let colors = arr.map((d) => colorRamp(d));
+      return colors;
+    };
+    if (linearOrBinned == "binned" && binningMode == "fixedWidth") {
+      return quantize(
+        getDiscreteColors(
+          colorRamps[scaleType == "sequential" ? colorScale : colorScaleDiverging],
+          numberOfBins
+        )
+      ).domain(domain);
+    }
+    if (linearOrBinned == "binned" && binningMode == "quantile") {
+      return quantile(
+        getDiscreteColors(
+          colorRamps[scaleType == "sequential" ? colorScale : colorScaleDiverging],
+          numberOfBins
+        )
+      ).domain(data2.plotdata.map((d) => d.color));
+    }
+  };
+  let getCategoricalColorScale = function(data2) {
+    let colorDomain = [...new Set(data2.plotdata.map((d) => d.color))].filter(
+      (d) => d != ""
+    );
+    let colorRange = colorDomain.map((d) => {
+      if (allColors[d.toLowerCase()]) {
+        return allColors[d.toLowerCase()];
+      } else {
+        return wbColors.noData;
+      }
+    });
+    if (colorRange.every((d) => d == wbColors.noData)) {
+      colorRange = Object.values(catColors.default);
+    }
+    return ordinal(colorDomain, colorRange).unknown(wbColors.noData);
+  };
+  let generateHexLayout = function(grid, size, shift2) {
+    let hexGrid2 = grid.map((d) => {
+      let hex2 = {};
+      let x = size + d.q * 3 / 2 * size;
+      let y = d.q % 2 == 0 ? 2 * size + d.r * size * 2 * shift2 : 2 * size + d.r * size * 2 * shift2 - Math.sqrt(3) * size / 2;
+      hex2.q = d.q;
+      hex2.r = d.r;
+      hex2.iso3c = d.iso3c;
+      hex2.x = x;
+      hex2.y = y;
+      hex2.size = size;
+      let vertices = [];
+      for (let i = 0; i < 6; i++) {
+        var angle_deg = 60 * i;
+        var angle_rad = Math.PI / 180 * angle_deg;
+        vertices.push([
+          x + size * Math.cos(angle_rad),
+          y + size * Math.sin(angle_rad)
+        ]);
+      }
+      hex2.vertices = vertices;
+      return hex2;
+    });
+    return hexGrid2;
+  };
+  mark_module_start();
+  WorldHexGrid[FILENAME] = "src/WorldHexGrid.svelte";
+  var on_mouseover$1 = (_, currentCountry, hex2, searched, tooltipVisible) => {
+    currentCountry(get(hex2).iso3c);
+    searched(false);
+    tooltipVisible(true);
+  };
+  var on_mouseout$1 = (__1, currentCountry, tooltipVisible) => {
+    currentCountry(null);
+    tooltipVisible(false);
+  };
+  var root_2$3 = add_locations(/* @__PURE__ */ ns_template(`<text class="country-label svelte-166i5y3" paint-order="stroke" stroke-linejoin="round"> </text>`), WorldHexGrid[FILENAME], [[80, 6]]);
+  var root_1$3 = add_locations(/* @__PURE__ */ ns_template(`<polygon></polygon><!>`, 1), WorldHexGrid[FILENAME], [[48, 4]]);
+  var root_3$3 = add_locations(/* @__PURE__ */ ns_template(`<polygon></polygon><polygon></polygon>`, 1), WorldHexGrid[FILENAME], [[95, 4], [102, 4]]);
+  var root$8 = add_locations(/* @__PURE__ */ ns_template(`<g><!><!></g>`), WorldHexGrid[FILENAME], [[45, 0]]);
+  function WorldHexGrid($$anchor, $$props) {
+    check_target(new.target);
+    push($$props, true, WorldHexGrid);
+    let currentCountry = prop($$props, "currentCountry", 15), currentTilePos = prop($$props, "currentTilePos", 15), searched = prop($$props, "searched", 15), tooltipVisible = prop($$props, "tooltipVisible", 15);
+    let valueType = /* @__PURE__ */ derived(() => $$props.data.plotdata.metadata.color.type);
+    const shift2 = Math.cos(Math.PI / 180 * 30);
+    let size = /* @__PURE__ */ derived(() => Math.min($$props.width / (33 * 3 / 2), $$props.height / (22 * 2 * shift2)));
+    let hexLayout = /* @__PURE__ */ derived(() => generateHexLayout(hexGrid, get(size), shift2));
+    let currentTile = /* @__PURE__ */ derived(() => get(hexLayout).find((d) => equals(d.iso3c, currentCountry())));
+    let gridWidth = /* @__PURE__ */ derived(() => Math.round(max$1(get(hexLayout).map((d) => d.x))));
+    let gridShift = /* @__PURE__ */ derived(() => ($$props.width - get(gridWidth)) / 2);
+    user_effect(() => {
+      if (currentCountry()) {
+        currentTilePos({
+          x: get(currentTile).x,
+          y: get(currentTile).y + 2.5 * get(currentTile).size
+        });
+      }
+    });
+    var g = root$8();
+    var node = child(g);
+    each(node, 17, () => get(hexLayout), index, ($$anchor2, hex2) => {
+      var fragment = root_1$3();
+      var polygon = first_child(fragment);
+      polygon.__mouseover = [
+        on_mouseover$1,
+        currentCountry,
+        hex2,
+        searched,
+        tooltipVisible
+      ];
+      polygon.__mouseout = [on_mouseout$1, currentCountry, tooltipVisible];
+      var node_1 = sibling(polygon);
+      {
+        var consequent = ($$anchor3) => {
+          var text = root_2$3();
+          set_attribute(text, "text-anchor", "middle");
+          set_attribute(text, "font-size", "0.6rem");
+          set_attribute(text, "stroke", "#ffffff");
+          set_attribute(text, "stroke-width", 2);
+          var text_1 = child(text);
+          template_effect(() => {
+            set_attribute(text, "x", get(hex2).x);
+            set_attribute(text, "y", get(hex2).y + 4);
+            set_text(text_1, get(hex2).iso3c);
+          });
+          append($$anchor3, text);
+        };
+        if_block(node_1, ($$render) => {
+          if ($$props.countryCodes) $$render(consequent);
+        });
+      }
+      template_effect(
+        ($0) => {
+          set_class(polygon, 0, `hex q-${get(hex2).q} r-${get(hex2).r}`, "svelte-166i5y3");
+          set_attribute(polygon, "points", get(hex2).vertices);
+          set_attribute(polygon, "fill", $0);
+          set_style(polygon, "stroke-width", $$props.strokeWidth);
+          set_style(polygon, "stroke", $$props.stroke);
+        },
+        [
+          () => $$props.data.plotdata.find((d) => equals(d.iso3c, get(hex2).iso3c)) ? equals(get(valueType), "string") ? $$props.categoricalColorScale($$props.data.plotdata.find((d) => equals(d.iso3c, get(hex2).iso3c)).color) : $$props.numericalColorScale($$props.data.plotdata.find((d) => equals(d.iso3c, get(hex2).iso3c)).color) : $$props.noDataColor
+        ]
+      );
+      event("focus", polygon, () => {
+        currentCountry(get(hex2).iso3c);
+        searched(false);
+        tooltipVisible(true);
+      });
+      event("blur", polygon, () => {
+        currentCountry(null);
+        tooltipVisible(false);
+      });
+      append($$anchor2, fragment);
+    });
+    var node_2 = sibling(node);
+    {
+      var consequent_1 = ($$anchor2) => {
+        var fragment_1 = root_3$3();
+        var polygon_1 = first_child(fragment_1);
+        set_class(polygon_1, 0, "highlight-outline svelte-166i5y3");
+        set_attribute(polygon_1, "fill", "none");
+        set_attribute(polygon_1, "stroke", "#FFFFFF");
+        var polygon_2 = sibling(polygon_1);
+        set_class(polygon_2, 0, "highlight-outline svelte-166i5y3");
+        set_attribute(polygon_2, "fill", "none");
+        set_attribute(polygon_2, "stroke", "#000000");
+        template_effect(() => {
+          set_attribute(polygon_1, "points", get(currentTile).vertices);
+          set_attribute(polygon_1, "stroke-width", $$props.strokeWidth + 2);
+          set_attribute(polygon_2, "points", get(currentTile).vertices);
+          set_attribute(polygon_2, "stroke-width", $$props.strokeWidth);
+        });
+        append($$anchor2, fragment_1);
+      };
+      if_block(node_2, ($$render) => {
+        if (currentCountry()) $$render(consequent_1);
+      });
+    }
+    template_effect(() => set_attribute(g, "transform", `translate(${get(gridShift)},0)`));
+    append($$anchor, g);
+    return pop({ ...legacy_api() });
+  }
+  mark_module_end(WorldHexGrid);
+  delegate(["mouseover", "mouseout"]);
+  const squareGrid = [{ "iso3c": "FIN", "x": 16, "y": 1, "country": "Finland", "region_iso3c": "ECS" }, { "iso3c": "GRL", "x": 8, "y": 1, "country": "Greenland", "region_iso3c": "ECS" }, { "iso3c": "ISL", "x": 10, "y": 1, "country": "Iceland", "region_iso3c": "ECS" }, { "iso3c": "NOR", "x": 14, "y": 1, "country": "Norway", "region_iso3c": "ECS" }, { "iso3c": "SWE", "x": 15, "y": 1, "country": "Sweden", "region_iso3c": "ECS" }, { "iso3c": "EST", "x": 16, "y": 2, "country": "Estonia", "region_iso3c": "ECS" }, { "iso3c": "LVA", "x": 16, "y": 3, "country": "Latvia", "region_iso3c": "ECS" }, { "iso3c": "FRO", "x": 11, "y": 3, "country": "Faroe Islands", "region_iso3c": "ECS" }, { "iso3c": "LTU", "x": 15, "y": 3, "country": "Lithuania", "region_iso3c": "ECS" }, { "iso3c": "IMN", "x": 10, "y": 4, "country": "Isle of Man", "region_iso3c": "ECS" }, { "iso3c": "MAF", "x": 8, "y": 4, "country": "Saint Martin", "region_iso3c": "LCN" }, { "iso3c": "BLR", "x": 16, "y": 4, "country": "Belarus", "region_iso3c": "ECS" }, { "iso3c": "POL", "x": 15, "y": 4, "country": "Poland", "region_iso3c": "ECS" }, { "iso3c": "GBR", "x": 11, "y": 4, "country": "Great Britain and Northern Ireland", "region_iso3c": "ECS" }, { "iso3c": "CAN", "x": 1, "y": 4, "country": "Canada", "region_iso3c": "NAC" }, { "iso3c": "DNK", "x": 13, "y": 4, "country": "Denmark", "region_iso3c": "ECS" }, { "iso3c": "BMU", "x": 4, "y": 5, "country": "Bermuda", "region_iso3c": "NAC" }, { "iso3c": "NLD", "x": 12, "y": 5, "country": "Netherlands", "region_iso3c": "ECS" }, { "iso3c": "IRL", "x": 10, "y": 5, "country": "Ireland", "region_iso3c": "ECS" }, { "iso3c": "VGB", "x": 7, "y": 5, "country": "Virgin Islands British", "region_iso3c": "LCN" }, { "iso3c": "SXM", "x": 8, "y": 5, "country": "St Maarten", "region_iso3c": "LCN" }, { "iso3c": "CZE", "x": 14, "y": 5, "country": "Czech Republic", "region_iso3c": "ECS" }, { "iso3c": "SVK", "x": 15, "y": 5, "country": "Slovakia", "region_iso3c": "ECS" }, { "iso3c": "UKR", "x": 16, "y": 5, "country": "Ukraine", "region_iso3c": "ECS" }, { "iso3c": "USA", "x": 1, "y": 5, "country": "United States of America", "region_iso3c": "NAC" }, { "iso3c": "DEU", "x": 13, "y": 5, "country": "Germany", "region_iso3c": "ECS" }, { "iso3c": "MDA", "x": 17, "y": 5, "country": "Moldova (Republic of)", "region_iso3c": "ECS" }, { "iso3c": "KAZ", "x": 21, "y": 5, "country": "Kazakhstan", "region_iso3c": "ECS" }, { "iso3c": "RUS", "x": 22, "y": 5, "country": "Russian Federation", "region_iso3c": "ECS" }, { "iso3c": "BHS", "x": 4, "y": 6, "country": "Bahamas", "region_iso3c": "LCN" }, { "iso3c": "LIE", "x": 14, "y": 6, "country": "Liechtenstein", "region_iso3c": "ECS" }, { "iso3c": "BEL", "x": 12, "y": 6, "country": "Belgium", "region_iso3c": "ECS" }, { "iso3c": "VIR", "x": 7, "y": 6, "country": "Virgin Islands US", "region_iso3c": "LCN" }, { "iso3c": "TCA", "x": 5, "y": 6, "country": "Turks and Caicos Islands", "region_iso3c": "LCN" }, { "iso3c": "ATG", "x": 8, "y": 6, "country": "Antigua & Barbuda", "region_iso3c": "LCN" }, { "iso3c": "AUT", "x": 15, "y": 6, "country": "Austria", "region_iso3c": "ECS" }, { "iso3c": "HUN", "x": 16, "y": 6, "country": "Hungary", "region_iso3c": "ECS" }, { "iso3c": "KGZ", "x": 21, "y": 6, "country": "Kyrgyzstan", "region_iso3c": "ECS" }, { "iso3c": "ROU", "x": 17, "y": 6, "country": "Romania", "region_iso3c": "ECS" }, { "iso3c": "UZB", "x": 20, "y": 6, "country": "Uzbekistan", "region_iso3c": "ECS" }, { "iso3c": "MEX", "x": 1, "y": 6, "country": "Mexico", "region_iso3c": "LCN" }, { "iso3c": "LUX", "x": 13, "y": 6, "country": "Luxembourg", "region_iso3c": "ECS" }, { "iso3c": "ARM", "x": 19, "y": 6, "country": "Armenia", "region_iso3c": "ECS" }, { "iso3c": "MNG", "x": 22, "y": 6, "country": "Mongolia", "region_iso3c": "EAS" }, { "iso3c": "PRK", "x": 23, "y": 6, "country": "North Korea", "region_iso3c": "EAS" }, { "iso3c": "KOR", "x": 24, "y": 6, "country": "South Korea", "region_iso3c": "EAS" }, { "iso3c": "JPN", "x": 27, "y": 6, "country": "Japan", "region_iso3c": "EAS" }, { "iso3c": "TWN", "x": 25, "y": 7, "country": "Taiwan", "region_iso3c": "EAS" }, { "iso3c": "HKG", "x": 24, "y": 7, "country": "Hong Kong", "region_iso3c": "EAS" }, { "iso3c": "CUB", "x": 4, "y": 7, "country": "Cuba", "region_iso3c": "LCN" }, { "iso3c": "FRA", "x": 12, "y": 7, "country": "France", "region_iso3c": "ECS" }, { "iso3c": "CHE", "x": 13, "y": 7, "country": "Switzerland", "region_iso3c": "ECS" }, { "iso3c": "AND", "x": 11, "y": 7, "country": "Andorra", "region_iso3c": "ECS" }, { "iso3c": "AZE", "x": 19, "y": 7, "country": "Azerbaijan", "region_iso3c": "ECS" }, { "iso3c": "GEO", "x": 18, "y": 7, "country": "Georgia", "region_iso3c": "ECS" }, { "iso3c": "PRI", "x": 7, "y": 7, "country": "Puerto Rico", "region_iso3c": "LCN" }, { "iso3c": "DOM", "x": 6, "y": 7, "country": "Dominican Republic", "region_iso3c": "LCN" }, { "iso3c": "BLZ", "x": 2, "y": 7, "country": "Belize", "region_iso3c": "LCN" }, { "iso3c": "CYM", "x": 3, "y": 7, "country": "Cayman Islands", "region_iso3c": "LCN" }, { "iso3c": "HTI", "x": 5, "y": 7, "country": "Haiti", "region_iso3c": "LCN" }, { "iso3c": "DMA", "x": 8, "y": 7, "country": "Dominica", "region_iso3c": "LCN" }, { "iso3c": "SVN", "x": 14, "y": 7, "country": "Slovenia", "region_iso3c": "ECS" }, { "iso3c": "BIH", "x": 15, "y": 7, "country": "Bosnia & Herzegovina", "region_iso3c": "ECS" }, { "iso3c": "BGR", "x": 17, "y": 7, "country": "Bulgaria", "region_iso3c": "ECS" }, { "iso3c": "SRB", "x": 16, "y": 7, "country": "Serbia", "region_iso3c": "ECS" }, { "iso3c": "TJK", "x": 21, "y": 7, "country": "Tajikistan", "region_iso3c": "ECS" }, { "iso3c": "TKM", "x": 20, "y": 7, "country": "Turkmenistan", "region_iso3c": "ECS" }, { "iso3c": "GTM", "x": 1, "y": 7, "country": "Guatemala", "region_iso3c": "LCN" }, { "iso3c": "NPL", "x": 22, "y": 7, "country": "Nepal", "region_iso3c": "SAS" }, { "iso3c": "CHN", "x": 23, "y": 7, "country": "China", "region_iso3c": "EAS" }, { "iso3c": "MAC", "x": 25, "y": 8, "country": "Macao SAR", "region_iso3c": "EAS" }, { "iso3c": "JAM", "x": 4, "y": 8, "country": "Jamaica", "region_iso3c": "LCN" }, { "iso3c": "PRT", "x": 10, "y": 8, "country": "Portugal", "region_iso3c": "ECS" }, { "iso3c": "ESP", "x": 11, "y": 8, "country": "Spain", "region_iso3c": "ECS" }, { "iso3c": "MCO", "x": 12, "y": 8, "country": "Monaco", "region_iso3c": "ECS" }, { "iso3c": "ITA", "x": 13, "y": 8, "country": "Italy", "region_iso3c": "ECS" }, { "iso3c": "TUR", "x": 18, "y": 8, "country": "Turkey", "region_iso3c": "ECS" }, { "iso3c": "KNA", "x": 7, "y": 8, "country": "St. Kitts & Nevis", "region_iso3c": "LCN" }, { "iso3c": "HND", "x": 2, "y": 8, "country": "Honduras", "region_iso3c": "LCN" }, { "iso3c": "LCA", "x": 8, "y": 8, "country": "St. Lucia", "region_iso3c": "LCN" }, { "iso3c": "HRV", "x": 14, "y": 8, "country": "Croatia", "region_iso3c": "ECS" }, { "iso3c": "AFG", "x": 20, "y": 8, "country": "Afghanistan", "region_iso3c": "SAS" }, { "iso3c": "IRN", "x": 19, "y": 8, "country": "Iran (Islamic Republic of)", "region_iso3c": "MEA" }, { "iso3c": "XKX", "x": 16, "y": 8, "country": "Kosovo", "region_iso3c": "ECS" }, { "iso3c": "MKD", "x": 17, "y": 8, "country": "Macedonia", "region_iso3c": "ECS" }, { "iso3c": "MNE", "x": 15, "y": 8, "country": "Montenegro", "region_iso3c": "ECS" }, { "iso3c": "PAK", "x": 21, "y": 8, "country": "Pakistan", "region_iso3c": "SAS" }, { "iso3c": "IND", "x": 22, "y": 8, "country": "India", "region_iso3c": "SAS" }, { "iso3c": "SLV", "x": 1, "y": 8, "country": "El Salvador", "region_iso3c": "LCN" }, { "iso3c": "BTN", "x": 23, "y": 8, "country": "Bhutan", "region_iso3c": "SAS" }, { "iso3c": "LAO", "x": 24, "y": 8, "country": "Lao People's Democratic Republic", "region_iso3c": "EAS" }, { "iso3c": "VNM", "x": 25, "y": 9, "country": "Viet Nam", "region_iso3c": "EAS" }, { "iso3c": "MMR", "x": 24, "y": 9, "country": "Myanmar", "region_iso3c": "EAS" }, { "iso3c": "SMR", "x": 13, "y": 9, "country": "San Marino", "region_iso3c": "ECS" }, { "iso3c": "IRQ", "x": 19, "y": 9, "country": "Iraq", "region_iso3c": "MEA" }, { "iso3c": "SYR", "x": 18, "y": 9, "country": "Syria", "region_iso3c": "MEA" }, { "iso3c": "NIC", "x": 2, "y": 9, "country": "Nicaragua", "region_iso3c": "LCN" }, { "iso3c": "VCT", "x": 7, "y": 9, "country": "St. Vincent & the Grenadines", "region_iso3c": "LCN" }, { "iso3c": "BRB", "x": 8, "y": 9, "country": "Barbados", "region_iso3c": "LCN" }, { "iso3c": "ALB", "x": 15, "y": 9, "country": "Albania", "region_iso3c": "ECS" }, { "iso3c": "GRC", "x": 16, "y": 9, "country": "Greece", "region_iso3c": "ECS" }, { "iso3c": "LKA", "x": 22, "y": 9, "country": "Sri Lanka", "region_iso3c": "SAS" }, { "iso3c": "GIB", "x": 11, "y": 9, "country": "Gibraltar", "region_iso3c": "ECS" }, { "iso3c": "MDV", "x": 21, "y": 9, "country": "Maldives", "region_iso3c": "SAS" }, { "iso3c": "BGD", "x": 23, "y": 9, "country": "Bangladesh", "region_iso3c": "SAS" }, { "iso3c": "MNP", "x": 29, "y": 10, "country": "Northern Mariana Islands", "region_iso3c": "EAS" }, { "iso3c": "KHM", "x": 25, "y": 10, "country": "Cambodia", "region_iso3c": "EAS" }, { "iso3c": "THA", "x": 24, "y": 10, "country": "Thailand", "region_iso3c": "EAS" }, { "iso3c": "PHL", "x": 27, "y": 10, "country": "Philippines", "region_iso3c": "EAS" }, { "iso3c": "MLT", "x": 14, "y": 10, "country": "Malta", "region_iso3c": "MEA" }, { "iso3c": "KWT", "x": 20, "y": 10, "country": "Kuwait", "region_iso3c": "MEA" }, { "iso3c": "LBN", "x": 18, "y": 10, "country": "Lebanon", "region_iso3c": "MEA" }, { "iso3c": "CUW", "x": 6, "y": 10, "country": "Curacao", "region_iso3c": "LCN" }, { "iso3c": "GRD", "x": 8, "y": 10, "country": "Grenada", "region_iso3c": "LCN" }, { "iso3c": "ABW", "x": 5, "y": 10, "country": "Aruba", "region_iso3c": "LCN" }, { "iso3c": "CRI", "x": 2, "y": 10, "country": "Costa Rica", "region_iso3c": "LCN" }, { "iso3c": "CYP", "x": 16, "y": 10, "country": "Cyprus", "region_iso3c": "ECS" }, { "iso3c": "JOR", "x": 19, "y": 10, "country": "Jordan", "region_iso3c": "MEA" }, { "iso3c": "GUM", "x": 29, "y": 11, "country": "Guam", "region_iso3c": "EAS" }, { "iso3c": "MYS", "x": 24, "y": 11, "country": "Malaysia", "region_iso3c": "EAS" }, { "iso3c": "BHR", "x": 20, "y": 11, "country": "Bahrain", "region_iso3c": "MEA" }, { "iso3c": "SAU", "x": 19, "y": 11, "country": "Saudi Arabia", "region_iso3c": "MEA" }, { "iso3c": "PSE", "x": 17, "y": 11, "country": "West Bank and Gaza", "region_iso3c": "MEA" }, { "iso3c": "ISR", "x": 18, "y": 11, "country": "Israel", "region_iso3c": "MEA" }, { "iso3c": "TTO", "x": 8, "y": 11, "country": "Trinidad & Tobago", "region_iso3c": "LCN" }, { "iso3c": "PAN", "x": 3, "y": 11, "country": "Panama", "region_iso3c": "LCN" }, { "iso3c": "DZA", "x": 13, "y": 11, "country": "Algeria", "region_iso3c": "MEA" }, { "iso3c": "MAR", "x": 12, "y": 11, "country": "Morocco", "region_iso3c": "MEA" }, { "iso3c": "TUN", "x": 14, "y": 11, "country": "Tunisia", "region_iso3c": "MEA" }, { "iso3c": "QAT", "x": 21, "y": 11, "country": "Qatar", "region_iso3c": "MEA" }, { "iso3c": "MHL", "x": 29, "y": 12, "country": "Marshall Islands", "region_iso3c": "EAS" }, { "iso3c": "SGP", "x": 24, "y": 12, "country": "Singapore", "region_iso3c": "EAS" }, { "iso3c": "EGY", "x": 16, "y": 12, "country": "Egypt", "region_iso3c": "MEA" }, { "iso3c": "LBY", "x": 15, "y": 12, "country": "Libya", "region_iso3c": "MEA" }, { "iso3c": "ARE", "x": 21, "y": 12, "country": "United Arab Emirates", "region_iso3c": "MEA" }, { "iso3c": "OMN", "x": 20, "y": 12, "country": "Oman", "region_iso3c": "MEA" }, { "iso3c": "YEM", "x": 19, "y": 12, "country": "Yemen", "region_iso3c": "MEA" }, { "iso3c": "VEN", "x": 5, "y": 12, "country": "Venezuela", "region_iso3c": "LCN" }, { "iso3c": "GUY", "x": 6, "y": 12, "country": "Guyana", "region_iso3c": "LCN" }, { "iso3c": "SUR", "x": 7, "y": 12, "country": "Suriname", "region_iso3c": "LCN" }, { "iso3c": "MLI", "x": 13, "y": 12, "country": "Mali", "region_iso3c": "SSF" }, { "iso3c": "MRT", "x": 12, "y": 12, "country": "Mauritania", "region_iso3c": "SSF" }, { "iso3c": "NER", "x": 14, "y": 12, "country": "Niger", "region_iso3c": "SSF" }, { "iso3c": "SEN", "x": 11, "y": 12, "country": "Senegal", "region_iso3c": "SSF" }, { "iso3c": "COL", "x": 4, "y": 12, "country": "Colombia", "region_iso3c": "LCN" }, { "iso3c": "PLW", "x": 28, "y": 13, "country": "Palau", "region_iso3c": "EAS" }, { "iso3c": "FSM", "x": 29, "y": 13, "country": "Micronesia (Federated States of)", "region_iso3c": "EAS" }, { "iso3c": "BRN", "x": 25, "y": 13, "country": "Brunei Darussalam", "region_iso3c": "EAS" }, { "iso3c": "CPV", "x": 10, "y": 13, "country": "Cabo Verde", "region_iso3c": "SSF" }, { "iso3c": "SDN", "x": 16, "y": 13, "country": "Sudan", "region_iso3c": "SSF" }, { "iso3c": "TCD", "x": 15, "y": 13, "country": "Chad", "region_iso3c": "SSF" }, { "iso3c": "GMB", "x": 12, "y": 13, "country": "Gambia", "region_iso3c": "SSF" }, { "iso3c": "ECU", "x": 4, "y": 13, "country": "Ecuador", "region_iso3c": "LCN" }, { "iso3c": "BFA", "x": 13, "y": 13, "country": "Burkina Faso", "region_iso3c": "SSF" }, { "iso3c": "DJI", "x": 18, "y": 13, "country": "Djibouti", "region_iso3c": "MEA" }, { "iso3c": "ERI", "x": 17, "y": 13, "country": "Eritrea", "region_iso3c": "SSF" }, { "iso3c": "GNB", "x": 11, "y": 13, "country": "Guinea-Bissau", "region_iso3c": "SSF" }, { "iso3c": "TGO", "x": 14, "y": 13, "country": "Togo", "region_iso3c": "SSF" }, { "iso3c": "BRA", "x": 5, "y": 13, "country": "Brazil", "region_iso3c": "LCN" }, { "iso3c": "KIR", "x": 29, "y": 14, "country": "Kiribati", "region_iso3c": "EAS" }, { "iso3c": "NRU", "x": 28, "y": 14, "country": "Nauru", "region_iso3c": "EAS" }, { "iso3c": "SLB", "x": 27, "y": 14, "country": "Solomon Islands", "region_iso3c": "EAS" }, { "iso3c": "PNG", "x": 26, "y": 14, "country": "Papua New Guinea", "region_iso3c": "EAS" }, { "iso3c": "IDN", "x": 25, "y": 14, "country": "Indonesia", "region_iso3c": "EAS" }, { "iso3c": "PER", "x": 4, "y": 14, "country": "Peru", "region_iso3c": "LCN" }, { "iso3c": "SSD", "x": 16, "y": 14, "country": "South Sudan", "region_iso3c": "SSF" }, { "iso3c": "CAF", "x": 15, "y": 14, "country": "Central African Republic", "region_iso3c": "SSF" }, { "iso3c": "WSM", "x": 1, "y": 14, "country": "Samoa", "region_iso3c": "EAS" }, { "iso3c": "BOL", "x": 5, "y": 14, "country": "Bolivia", "region_iso3c": "LCN" }, { "iso3c": "BEN", "x": 14, "y": 14, "country": "Benin", "region_iso3c": "SSF" }, { "iso3c": "ETH", "x": 17, "y": 14, "country": "Ethiopia", "region_iso3c": "SSF" }, { "iso3c": "GHA", "x": 13, "y": 14, "country": "Ghana", "region_iso3c": "SSF" }, { "iso3c": "LBR", "x": 12, "y": 14, "country": "Liberia", "region_iso3c": "SSF" }, { "iso3c": "SOM", "x": 18, "y": 14, "country": "Somalia", "region_iso3c": "SSF" }, { "iso3c": "GIN", "x": 11, "y": 14, "country": "Guinea", "region_iso3c": "SSF" }, { "iso3c": "URY", "x": 6, "y": 15, "country": "Uruguay", "region_iso3c": "LCN" }, { "iso3c": "PRY", "x": 5, "y": 15, "country": "Paraguay", "region_iso3c": "LCN" }, { "iso3c": "VUT", "x": 28, "y": 15, "country": "Vanuatu", "region_iso3c": "EAS" }, { "iso3c": "TUV", "x": 29, "y": 15, "country": "Tuvalu", "region_iso3c": "EAS" }, { "iso3c": "TLS", "x": 25, "y": 15, "country": "Timor-Leste", "region_iso3c": "EAS" }, { "iso3c": "CHL", "x": 4, "y": 15, "country": "Chile", "region_iso3c": "LCN" }, { "iso3c": "UGA", "x": 16, "y": 15, "country": "Uganda", "region_iso3c": "SSF" }, { "iso3c": "SLE", "x": 11, "y": 15, "country": "Sierra Leone", "region_iso3c": "SSF" }, { "iso3c": "ASM", "x": 1, "y": 15, "country": "American Samoa", "region_iso3c": "EAS" }, { "iso3c": "CMR", "x": 14, "y": 15, "country": "Cameroon", "region_iso3c": "SSF" }, { "iso3c": "CIV", "x": 12, "y": 15, "country": "Côte d'Ivoire", "region_iso3c": "SSF" }, { "iso3c": "NGA", "x": 13, "y": 15, "country": "Nigeria", "region_iso3c": "SSF" }, { "iso3c": "RWA", "x": 15, "y": 15, "country": "Rwanda", "region_iso3c": "SSF" }, { "iso3c": "KEN", "x": 17, "y": 15, "country": "Kenya", "region_iso3c": "SSF" }, { "iso3c": "ARG", "x": 5, "y": 16, "country": "Argentina", "region_iso3c": "LCN" }, { "iso3c": "FJI", "x": 29, "y": 16, "country": "Fiji", "region_iso3c": "EAS" }, { "iso3c": "NCL", "x": 28, "y": 16, "country": "New Caledonia", "region_iso3c": "EAS" }, { "iso3c": "AUS", "x": 26, "y": 16, "country": "Australia", "region_iso3c": "EAS" }, { "iso3c": "PYF", "x": 2, "y": 16, "country": "French Polynesia", "region_iso3c": "EAS" }, { "iso3c": "BDI", "x": 16, "y": 16, "country": "Burundi", "region_iso3c": "SSF" }, { "iso3c": "GNQ", "x": 14, "y": 16, "country": "Equatorial Guinea", "region_iso3c": "SSF" }, { "iso3c": "TZA", "x": 17, "y": 16, "country": "Tanzania", "region_iso3c": "SSF" }, { "iso3c": "SYC", "x": 19, "y": 16, "country": "Seychelles", "region_iso3c": "SSF" }, { "iso3c": "GAB", "x": 13, "y": 16, "country": "Gabon", "region_iso3c": "SSF" }, { "iso3c": "COD", "x": 15, "y": 16, "country": "Congo (Democratic Republic of the)", "region_iso3c": "SSF" }, { "iso3c": "COG", "x": 13, "y": 17, "country": "Congo", "region_iso3c": "SSF" }, { "iso3c": "NZL", "x": 27, "y": 17, "country": "New Zealand", "region_iso3c": "EAS" }, { "iso3c": "MOZ", "x": 16, "y": 17, "country": "Mozambique", "region_iso3c": "SSF" }, { "iso3c": "TON", "x": 1, "y": 17, "country": "Tonga", "region_iso3c": "EAS" }, { "iso3c": "MWI", "x": 15, "y": 17, "country": "Malawi", "region_iso3c": "SSF" }, { "iso3c": "COM", "x": 18, "y": 17, "country": "Comoros", "region_iso3c": "SSF" }, { "iso3c": "STP", "x": 11, "y": 17, "country": "Sao Tome and Principe", "region_iso3c": "SSF" }, { "iso3c": "ZMB", "x": 14, "y": 17, "country": "Zambia", "region_iso3c": "SSF" }, { "iso3c": "ZWE", "x": 15, "y": 18, "country": "Zimbabwe", "region_iso3c": "SSF" }, { "iso3c": "AGO", "x": 13, "y": 18, "country": "Angola", "region_iso3c": "SSF" }, { "iso3c": "MDG", "x": 19, "y": 18, "country": "Madagascar", "region_iso3c": "SSF" }, { "iso3c": "MUS", "x": 20, "y": 18, "country": "Mauritius", "region_iso3c": "SSF" }, { "iso3c": "BWA", "x": 14, "y": 18, "country": "Botswana", "region_iso3c": "SSF" }, { "iso3c": "NAM", "x": 13, "y": 19, "country": "Namibia", "region_iso3c": "SSF" }, { "iso3c": "SWZ", "x": 14, "y": 19, "country": "Swaziland", "region_iso3c": "SSF" }, { "iso3c": "LSO", "x": 15, "y": 19, "country": "Lesotho", "region_iso3c": "SSF" }, { "iso3c": "ZAF", "x": 14, "y": 20, "country": "South Africa", "region_iso3c": "SSF" }, { "iso3c": "ATA", "x": 14, "y": 22, "country": "Antarctica" }];
+  mark_module_start();
+  WorldSquareGrid[FILENAME] = "src/WorldSquareGrid.svelte";
+  var on_mouseover = (_, currentCountry, cell, searched, tooltipVisible) => {
+    currentCountry(get(cell).iso3c);
+    searched(false);
+    tooltipVisible(true);
+  };
+  var on_mouseout = (__1, currentCountry, tooltipVisible) => {
+    currentCountry(null);
+    tooltipVisible(false);
+  };
+  var root_3$2 = add_locations(/* @__PURE__ */ ns_template(`<text class="country-label svelte-buoy2n" paint-order="stroke" stroke-linejoin="round"> </text>`), WorldSquareGrid[FILENAME], [[86, 8]]);
+  var root_2$2 = add_locations(/* @__PURE__ */ ns_template(` <g><rect></rect><!></g>`, 1), WorldSquareGrid[FILENAME], [[48, 4, [[53, 6]]]]);
+  var root_4$1 = add_locations(/* @__PURE__ */ ns_template(`<rect class="highlight-outline svelte-buoy2n"></rect><rect class="highlight-outline svelte-buoy2n"></rect>`, 1), WorldSquareGrid[FILENAME], [[103, 2], [113, 2]]);
+  var root$7 = add_locations(/* @__PURE__ */ ns_template(`<!><!>`, 1), WorldSquareGrid[FILENAME], []);
+  function WorldSquareGrid($$anchor, $$props) {
+    check_target(new.target);
+    push($$props, true, WorldSquareGrid);
+    let currentCountry = prop($$props, "currentCountry", 15), currentTilePos = prop($$props, "currentTilePos", 15), searched = prop($$props, "searched", 15), tooltipVisible = prop($$props, "tooltipVisible", 15);
+    let valueType = /* @__PURE__ */ derived(() => $$props.data.plotdata.metadata.color.type);
+    let tileSize = /* @__PURE__ */ derived(() => Math.min(($$props.width - $$props.margins.left - $$props.margins.right) / 29, ($$props.height - $$props.margins.top - $$props.margins.bottom) / 22));
+    let currentTile = /* @__PURE__ */ derived(() => squareGrid.find((d) => equals(d.iso3c, currentCountry())));
+    let gridWidth = /* @__PURE__ */ derived(() => get(tileSize) * 29);
+    let shift2 = /* @__PURE__ */ derived(() => ($$props.width - get(gridWidth)) / 2);
+    user_effect(() => {
+      if (currentCountry()) {
+        currentTilePos({
+          x: get(currentTile).x * get(tileSize) - get(tileSize),
+          y: get(currentTile).y * get(tileSize) + get(tileSize)
+        });
+      }
+    });
+    var fragment = root$7();
+    var node = first_child(fragment);
+    {
+      var consequent_1 = ($$anchor2) => {
+        var fragment_1 = comment();
+        var node_1 = first_child(fragment_1);
+        each(node_1, 17, () => squareGrid, index, ($$anchor3, cell) => {
+          var fragment_2 = root_2$2();
+          var text = first_child(fragment_2);
+          var g = sibling(text);
+          var rect = child(g);
+          set_attribute(rect, "x", 0);
+          set_attribute(rect, "y", 0);
+          rect.__mouseover = [
+            on_mouseover,
+            currentCountry,
+            cell,
+            searched,
+            tooltipVisible
+          ];
+          rect.__mouseout = [on_mouseout, currentCountry, tooltipVisible];
+          var node_2 = sibling(rect);
+          {
+            var consequent = ($$anchor4) => {
+              var text_1 = root_3$2();
+              set_attribute(text_1, "text-anchor", "middle");
+              set_attribute(text_1, "font-size", "0.6rem");
+              set_attribute(text_1, "stroke", "#ffffff");
+              set_attribute(text_1, "stroke-width", 2);
+              var text_2 = child(text_1);
+              template_effect(() => {
+                set_attribute(text_1, "x", get(tileSize) / 2);
+                set_attribute(text_1, "y", get(tileSize) / 2 + 4);
+                set_text(text_2, get(cell).iso3c);
+              });
+              append($$anchor4, text_1);
+            };
+            if_block(node_2, ($$render) => {
+              if ($$props.countryCodes && get(tileSize)) $$render(consequent);
+            });
+          }
+          template_effect(
+            ($0, $1) => {
+              set_text(text, $0);
+              set_attribute(g, "transform", `translate(${(get(cell).x - 1) * get(tileSize) + get(shift2)},${(get(cell).y - 1) * get(tileSize)})`);
+              set_attribute(rect, "width", get(tileSize));
+              set_attribute(rect, "height", get(tileSize));
+              set_attribute(rect, "fill", $1);
+              set_attribute(rect, "stroke", $$props.stroke);
+              set_attribute(rect, "stroke-width", $$props.strokeWidth);
+            },
+            [
+              () => console.log(...log_if_contains_state("log", get(cell))),
+              () => $$props.data.plotdata.find((d) => equals(d.iso3c, get(cell).iso3c)) ? equals(get(valueType), "string") ? $$props.categoricalColorScale($$props.data.plotdata.find((d) => equals(d.iso3c, get(cell).iso3c)).color) : $$props.numericalColorScale($$props.data.plotdata.find((d) => equals(d.iso3c, get(cell).iso3c)).color) : $$props.noDataColor
+            ]
+          );
+          event("focus", rect, () => {
+            currentCountry(get(cell).iso3c);
+            searched(false);
+            tooltipVisible(true);
+          });
+          event("blur", rect, () => {
+            currentCountry(null);
+            tooltipVisible(false);
+          });
+          append($$anchor3, fragment_2);
+        });
+        append($$anchor2, fragment_1);
+      };
+      if_block(node, ($$render) => {
+        if (get(tileSize)) $$render(consequent_1);
+      });
+    }
+    var node_3 = sibling(node);
+    {
+      var consequent_2 = ($$anchor2) => {
+        var fragment_3 = root_4$1();
+        var rect_1 = first_child(fragment_3);
+        set_attribute(rect_1, "fill", "none");
+        set_attribute(rect_1, "stroke", "#FFFFFF");
+        var rect_2 = sibling(rect_1);
+        set_attribute(rect_2, "fill", "none");
+        set_attribute(rect_2, "stroke", "#000000");
+        template_effect(() => {
+          set_attribute(rect_1, "x", get(currentTile).x * get(tileSize) - get(tileSize) + get(shift2));
+          set_attribute(rect_1, "y", get(currentTile).y * get(tileSize) - get(tileSize));
+          set_attribute(rect_1, "width", get(tileSize));
+          set_attribute(rect_1, "height", get(tileSize));
+          set_attribute(rect_1, "stroke-width", $$props.strokeWidth + 2);
+          set_attribute(rect_2, "x", get(currentTile).x * get(tileSize) - get(tileSize) + get(shift2));
+          set_attribute(rect_2, "y", get(currentTile).y * get(tileSize) - get(tileSize));
+          set_attribute(rect_2, "width", get(tileSize));
+          set_attribute(rect_2, "height", get(tileSize));
+          set_attribute(rect_2, "stroke-width", $$props.strokeWidth);
+        });
+        append($$anchor2, fragment_3);
+      };
+      if_block(node_3, ($$render) => {
+        if (currentCountry()) $$render(consequent_2);
+      });
+    }
+    append($$anchor, fragment);
+    return pop({ ...legacy_api() });
+  }
+  mark_module_end(WorldSquareGrid);
+  delegate(["mouseover", "mouseout"]);
+  mark_module_start();
+  NumericalColorLegend[FILENAME] = "src/template/NumericalColorLegend.svelte";
+  var root_1$2 = add_locations(/* @__PURE__ */ template2(`<div class="no-data-label svelte-1af89zx"> </div>`), NumericalColorLegend[FILENAME], [[104, 6]]);
+  var root_2$1 = add_locations(/* @__PURE__ */ template2(`<div class="no-data"><div class="no-data-symbol svelte-1af89zx"><svg class="no-data-symbol svelte-1af89zx"><rect class="no-data-rect"></rect></svg></div></div>`), NumericalColorLegend[FILENAME], [
     [
-      78,
-      0,
+      116,
+      6,
       [
         [
-          79,
-          2,
-          [[83, 4, [[84, 6], [84, 32]]]]
-        ],
-        [
-          89,
-          2,
-          [[100, 4, [[101, 6]]]]
+          117,
+          8,
+          [[118, 10, [[119, 12]]]]
         ]
       ]
     ]
   ]);
-  function ContinuousColorLegend($$anchor, $$props) {
+  var root_4 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), NumericalColorLegend[FILENAME], [[151, 14]]);
+  var root_6 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), NumericalColorLegend[FILENAME], [[157, 16]]);
+  var root_3$1 = add_locations(/* @__PURE__ */ ns_template(`<image class="gradient svelte-1af89zx" preserveAspectRatio="none"></image><rect class="gradient-border svelte-1af89zx"></rect><g class="ticks"><!><!></g>`, 1), NumericalColorLegend[FILENAME], [[133, 10], [142, 10], [149, 10]]);
+  var root_8$1 = add_locations(/* @__PURE__ */ ns_template(`<rect></rect>`), NumericalColorLegend[FILENAME], [[166, 12]]);
+  var root_9 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), NumericalColorLegend[FILENAME], [[177, 12]]);
+  var root_7 = add_locations(/* @__PURE__ */ ns_template(`<!><!>`, 1), NumericalColorLegend[FILENAME], []);
+  var root$6 = add_locations(/* @__PURE__ */ template2(`<div><div class="legend-text-container svelte-1af89zx"><!> <div class="legend-title svelte-1af89zx"><span> </span>&nbsp;<span class="label-unit svelte-1af89zx"> </span></div></div> <div class="gradient-container svelte-1af89zx"><!> <div class="gradient svelte-1af89zx"><svg class="svelte-1af89zx"><!><!></svg></div></div></div>`), NumericalColorLegend[FILENAME], [
+    [
+      101,
+      0,
+      [
+        [
+          102,
+          2,
+          [
+            [108, 4, [[109, 6], [109, 32]]]
+          ]
+        ],
+        [
+          114,
+          2,
+          [[130, 4, [[131, 6]]]]
+        ]
+      ]
+    ]
+  ]);
+  function NumericalColorLegend($$anchor, $$props) {
     check_target(new.target);
-    push($$props, true, ContinuousColorLegend);
+    push($$props, true, NumericalColorLegend);
     let units = prop($$props, "units", 3, ""), tickLabels = prop($$props, "tickLabels", 19, () => []);
     let tickSize = 12;
     let height = 12 + tickSize;
@@ -5464,7 +6266,7 @@ ${indent}in ${name}`).join("")}
       left: 0
     };
     let domain = /* @__PURE__ */ derived(() => {
-      const d = $$props.contColorScale.domain();
+      const d = $$props.numericalColorScale.domain();
       if (equals(d.length, 2)) {
         return [d[0], d[0] + (d[1] - d[0]) / 2, d[1]];
       } else {
@@ -5483,43 +6285,46 @@ ${indent}in ${name}`).join("")}
       return canvas;
     }
     let n = /* @__PURE__ */ derived(() => {
-      if ($$props.contColorScale.interpolate) {
-        return Math.min($$props.contColorScale.domain().length, $$props.contColorScale.range().length);
+      if ($$props.numericalColorScale.interpolate) {
+        return Math.min($$props.numericalColorScale.domain().length, $$props.numericalColorScale.range().length);
       }
-      if ($$props.contColorScale.interpolator) {
+      if ($$props.numericalColorScale.interpolator) {
         return;
       }
     });
     let x = /* @__PURE__ */ derived(() => {
-      if ($$props.contColorScale.interpolate) {
-        return $$props.contColorScale.copy().rangeRound(quantize$1(interpolate(margin.left, $$props.width - margin.right), get(n)));
+      if ($$props.numericalColorScale.interpolate) {
+        return $$props.numericalColorScale.copy().rangeRound(quantize$1(interpolate(margin.left, get(gradientWidth) - margin.right), get(n)));
       }
-      if ($$props.contColorScale.interpolator) {
-        return Object.assign($$props.contColorScale.copy().interpolator(interpolateRound(margin.left, $$props.width - margin.right)), {
+      if ($$props.numericalColorScale.interpolator) {
+        return Object.assign($$props.numericalColorScale.copy().interpolator(interpolateRound(margin.left, get(gradientWidth) - margin.right)), {
           range() {
-            return [margin.left, $$props.width - margin.right];
+            return [
+              margin.left,
+              get(gradientWidth) - margin.right
+            ];
           }
         });
       }
     });
     let href = /* @__PURE__ */ derived(() => {
-      if ($$props.contColorScale.interpolate) {
-        return ramp($$props.contColorScale.copy().domain(quantize$1(interpolate(0, 1), get(n)))).toDataURL();
+      if ($$props.numericalColorScale.interpolate) {
+        return ramp($$props.numericalColorScale.copy().domain(quantize$1(interpolate(0, 1), get(n)))).toDataURL();
       }
-      if ($$props.contColorScale.interpolator) {
-        return ramp($$props.contColorScale.interpolator()).toDataURL();
+      if ($$props.numericalColorScale.interpolator) {
+        return ramp($$props.numericalColorScale.interpolator()).toDataURL();
       }
     });
     let noDataWidth = /* @__PURE__ */ derived(() => $$props.includeNoData ? 70 : 0);
     let gradientWidth = state$1(0);
-    let discreteTicks = /* @__PURE__ */ derived(() => equals($$props.linearOrBinned, "linear") ? [] : equals($$props.binningMode, "fixedWidth") ? $$props.contColorScale.thresholds() : $$props.contColorScale.quantiles());
+    let discreteTicks = /* @__PURE__ */ derived(() => equals($$props.linearOrBinned, "linear") ? [] : equals($$props.binningMode, "fixedWidth") ? $$props.numericalColorScale.thresholds() : $$props.numericalColorScale.quantiles());
     var div = root$6();
     set_class(div, 1, "legend svelte-1af89zx");
     var div_1 = child(div);
     var node = child(div_1);
     {
       var consequent = ($$anchor2) => {
-        var div_2 = root_1$1();
+        var div_2 = root_1$2();
         var text = child(div_2);
         template_effect(() => {
           set_style(div_2, "width", get(noDataWidth) + "px");
@@ -5567,7 +6372,7 @@ ${indent}in ${name}`).join("")}
     var node_2 = child(svg_1);
     {
       var consequent_3 = ($$anchor2) => {
-        var fragment = root_3$2();
+        var fragment = root_3$1();
         var image = first_child(fragment);
         set_attribute(image, "height", 10);
         var rect_1 = sibling(image);
@@ -5631,7 +6436,7 @@ ${indent}in ${name}`).join("")}
       var consequent_4 = ($$anchor2) => {
         var fragment_2 = root_7();
         var node_7 = first_child(fragment_2);
-        each(node_7, 17, () => $$props.contColorScale.range(), index, ($$anchor3, bin, i) => {
+        each(node_7, 17, () => $$props.numericalColorScale.range(), index, ($$anchor3, bin, i) => {
           var rect_2 = root_8$1();
           set_class(rect_2, 0, "bin-color svelte-1af89zx");
           set_attribute(rect_2, "height", 10);
@@ -5643,8 +6448,8 @@ ${indent}in ${name}`).join("")}
               set_attribute(rect_2, "fill", get(bin));
             },
             [
-              () => margin.left + i * get(gradientWidth) / $$props.contColorScale.range().length,
-              () => get(gradientWidth) / $$props.contColorScale.range().length
+              () => margin.left + i * get(gradientWidth) / $$props.numericalColorScale.range().length,
+              () => get(gradientWidth) / $$props.numericalColorScale.range().length
             ]
           );
           append($$anchor3, rect_2);
@@ -5660,7 +6465,7 @@ ${indent}in ${name}`).join("")}
               set_text(text_8, $1);
             },
             [
-              () => margin.left + (i + 1) * get(gradientWidth) / $$props.contColorScale.range().length,
+              () => margin.left + (i + 1) * get(gradientWidth) / $$props.numericalColorScale.range().length,
               () => Math.round(get(tick) * 10) / 10 + units()
             ]
           );
@@ -5680,108 +6485,12 @@ ${indent}in ${name}`).join("")}
     append($$anchor, div);
     return pop({ ...legacy_api() });
   }
-  mark_module_end(ContinuousColorLegend);
-  let wbColors = {
-    "cat1": "#34A7F2",
-    "cat2": "#FF9800",
-    "cat3": "#664AB6",
-    "cat4": "#4EC2C0",
-    "cat5": "#F3578E",
-    "cat6": "#081079",
-    "cat7": "#0C7C68",
-    "cat8": "#AA0000",
-    "cat9": "#DDDA21",
-    "cat1Text": "#106CA1",
-    "cat2Text": "#B65F0C",
-    "cat3Text": "#664AB6",
-    "cat4Text": "#208383",
-    "cat5Text": "#BB3B64",
-    "cat6Text": "#081079",
-    "cat7Text": "#0C7C68",
-    "cat8Text": "#AA0000",
-    "cat9Text": "#767712",
-    "wld": "#081079",
-    "nac": "#34A7F2",
-    "lcn": "#0C7C68",
-    "sas": "#4EC2C0",
-    "mea": "#664AB6",
-    "ecs": "#AA0000",
-    "eas": "#F3578E",
-    "ssf": "#FF9800",
-    "afe": "#FF9800",
-    "afw": "#DDDA21",
-    "nacText": "#106CA1",
-    "ssfText": "#B65F0C",
-    "afeText": "#B65F0C",
-    "meaText": "#664AB6",
-    "sasText": "#208383",
-    "easText": "#BB3B64",
-    "wldText": "#081079",
-    "lcnText": "#0C7C68",
-    "ecsText": "#AA0000",
-    "afwText": "#767712",
-    "hic": "#016B6C",
-    "umc": "#73AF48",
-    "lmc": "#DB95D7",
-    "lic": "#3B4DA6",
-    "male": "#664AB6",
-    "female": "#FF9800",
-    "diverse": "#4EC2C0",
-    "rural": "#54AE89",
-    "urban": "#6D88D1",
-    "youngestAge": "#F8A8DF",
-    "youngerAge": "#B38FD8",
-    "middleAge": "#8A969F",
-    "olderAge": "#6D88D1",
-    "oldestAge": "#A1C6FF",
-    "yes": "#0071BC",
-    "no": "#EBEEF4",
-    "noData": "#CED4DE",
-    "seq1": "#FDF6DB",
-    "seq2": "#A1CBCF",
-    "seq3": "#5D99C2",
-    "seq4": "#2868A0",
-    "seq5": "#023B6F",
-    "seqRev1": "#E3F6FD",
-    "seqRev2": "#91C5F0",
-    "seqRev3": "#8B8AC0",
-    "seqRev4": "#88506E",
-    "seqRev5": "#691B15",
-    "seqB1": "#E3F6FD",
-    "seqB2": "#75CCEC",
-    "seqB3": "#089BD4",
-    "seqB4": "#0169A1",
-    "seqB5": "#023B6F",
-    "seqY1": "#FDF7DB",
-    "seqY2": "#ECB63A",
-    "seqY3": "#BE792B",
-    "seqY4": "#8D4117",
-    "seqY5": "#5C0000",
-    "seqP1": "#FFE2FF",
-    "seqP2": "#D3ACE6",
-    "seqP3": "#A37ACD",
-    "seqP4": "#6F4CB4",
-    "seqP5": "#2F1E9C",
-    "divPos3": "#025288",
-    "divPos2": "#3587C3",
-    "divPos1": "#80BDE7",
-    "divMid": "#EFEFEF",
-    "divNeg1": "#E3A763",
-    "divNeg2": "#BD6126",
-    "divNeg3": "#920000",
-    "div2L3": "#24768E",
-    "div2L2": "#4EA2AC",
-    "div2L1": "#98CBCC",
-    "div2Mid": "#EFEFEF",
-    "div2R1": "#D1AEE3",
-    "div2R2": "#A873C4",
-    "div2R3": "#754493"
-  };
+  mark_module_end(NumericalColorLegend);
   mark_module_start();
   CategoricalColorLegend[FILENAME] = "src/template/CategoricalColorLegend.svelte";
-  var root_2 = add_locations(/* @__PURE__ */ template2(`<div class="pill-container svelte-hjs62s"><div></div> <div> </div></div>`), CategoricalColorLegend[FILENAME], [[15, 8, [[16, 10], [20, 10]]]]);
-  var root_3$1 = add_locations(/* @__PURE__ */ template2(`<div class="pill-container svelte-hjs62s"><div></div> <div> </div></div>`), CategoricalColorLegend[FILENAME], [[25, 6, [[26, 8], [27, 8]]]]);
-  var root$5 = add_locations(/* @__PURE__ */ template2(`<div><div class="legend-text-container svelte-hjs62s"><div class="legend-title svelte-hjs62s"><span> </span></div></div> <div class="categorical-legend svelte-hjs62s" aria-hidden="true"><!> <!></div></div>`), CategoricalColorLegend[FILENAME], [
+  var root_1$1 = add_locations(/* @__PURE__ */ template2(`<div class="pill-container svelte-1ervix3"><div></div> <div> </div></div>`), CategoricalColorLegend[FILENAME], [[14, 8, [[15, 10], [19, 10]]]]);
+  var root_2 = add_locations(/* @__PURE__ */ template2(`<div class="pill-container svelte-1ervix3"><div></div> <div> </div></div>`), CategoricalColorLegend[FILENAME], [[23, 6, [[24, 8], [25, 8]]]]);
+  var root$5 = add_locations(/* @__PURE__ */ template2(`<div><div class="legend-text-container svelte-1ervix3"><div class="legend-title svelte-1ervix3"><span> </span></div></div> <div class="categorical-legend svelte-1ervix3" aria-hidden="true"><!> <!></div></div>`), CategoricalColorLegend[FILENAME], [
     [
       6,
       0,
@@ -5795,49 +6504,39 @@ ${indent}in ${name}`).join("")}
     check_target(new.target);
     push($$props, true, CategoricalColorLegend);
     var div = root$5();
-    set_class(div, 1, "legend svelte-hjs62s");
+    set_class(div, 1, "legend svelte-1ervix3");
     var div_1 = child(div);
     var div_2 = child(div_1);
     var span = child(div_2);
     var text = child(span);
     var div_3 = sibling(div_1, 2);
     var node = child(div_3);
-    each(node, 17, () => $$props.catColorScale.domain(), index, ($$anchor2, item) => {
-      var fragment = comment();
-      var node_1 = first_child(fragment);
-      {
-        var consequent = ($$anchor3) => {
-          var div_4 = root_2();
-          var div_5 = child(div_4);
-          set_class(div_5, 1, `pill circle`, "svelte-hjs62s");
-          var div_6 = sibling(div_5, 2);
-          set_class(div_6, 1, "label small");
-          var text_1 = child(div_6);
-          template_effect(
-            ($0) => {
-              set_style(div_5, "background-color", $0);
-              set_text(text_1, get(item));
-            },
-            [
-              () => $$props.catColorScale(get(item))
-            ]
-          );
-          append($$anchor3, div_4);
-        };
-        if_block(node_1, ($$render) => {
-          if ($$props.usedCats.includes(get(item))) $$render(consequent);
-        });
-      }
-      append($$anchor2, fragment);
+    each(node, 17, () => $$props.categoricalColorScale.domain(), index, ($$anchor2, item) => {
+      var div_4 = root_1$1();
+      var div_5 = child(div_4);
+      set_class(div_5, 1, `pill circle`, "svelte-1ervix3");
+      var div_6 = sibling(div_5, 2);
+      set_class(div_6, 1, "label svelte-1ervix3");
+      var text_1 = child(div_6);
+      template_effect(
+        ($0) => {
+          set_style(div_5, "background-color", $0);
+          set_text(text_1, get(item));
+        },
+        [
+          () => $$props.categoricalColorScale(get(item))
+        ]
+      );
+      append($$anchor2, div_4);
     });
-    var node_2 = sibling(node, 2);
+    var node_1 = sibling(node, 2);
     {
-      var consequent_1 = ($$anchor2) => {
-        var div_7 = root_3$1();
+      var consequent = ($$anchor2) => {
+        var div_7 = root_2();
         var div_8 = child(div_7);
-        set_class(div_8, 1, `pill circle`, "svelte-hjs62s");
+        set_class(div_8, 1, `pill circle`, "svelte-1ervix3");
         var div_9 = sibling(div_8, 2);
-        set_class(div_9, 1, "label small");
+        set_class(div_9, 1, "label small svelte-1ervix3");
         var text_2 = child(div_9);
         template_effect(() => {
           set_style(div_8, "background-color", wbColors.noData);
@@ -5845,8 +6544,8 @@ ${indent}in ${name}`).join("")}
         });
         append($$anchor2, div_7);
       };
-      if_block(node_2, ($$render) => {
-        if ($$props.includeNoData) $$render(consequent_1);
+      if_block(node_1, ($$render) => {
+        if ($$props.includeNoData) $$render(consequent);
       });
     }
     template_effect(() => set_text(text, $$props.title));
@@ -7100,36 +7799,33 @@ ${indent}in ${name}`).join("")}
   mark_module_end(Objects);
   mark_module_start();
   SearchBox[FILENAME] = "src/SearchBox.svelte";
-  var root_1 = add_locations(/* @__PURE__ */ template2(`<ul class="typeahead-object-list svelte-1aa3cok"><!></ul>`), SearchBox[FILENAME], [[35, 3]]);
-  var root$1 = add_locations(/* @__PURE__ */ template2(`<div class="typeahead svelte-1aa3cok"><input id="searchfield" type="text" name="searchfield" placeholder="Search country" class="svelte-1aa3cok"></div> <!>`, 1), SearchBox[FILENAME], [[31, 3, [[32, 5]]]]);
+  const typeahead = (_, $$props, searchInput, results) => {
+    let resultsIncludes = $$props.data.filter((d) => d.label.toLowerCase().includes(get(searchInput).toLowerCase()));
+    let resultsStartWith = $$props.data.filter((d) => d.label.toLowerCase().startsWith(get(searchInput).toLowerCase()));
+    set(results, proxy(resultsStartWith.sort().concat(resultsIncludes.sort()), null, results));
+    set(results, proxy([...new Set(get(results))], null, results));
+  };
+  var root_1 = add_locations(/* @__PURE__ */ template2(`<ul class="typeahead-object-list svelte-6s1u2p"><!></ul>`), SearchBox[FILENAME], [[33, 3]]);
+  var root$1 = add_locations(/* @__PURE__ */ template2(`<div class="typeahead svelte-6s1u2p"><input id="searchfield" type="text" name="searchfield" placeholder="Search country" class="svelte-6s1u2p"></div> <!>`, 1), SearchBox[FILENAME], [[29, 3, [[30, 5]]]]);
   function SearchBox($$anchor, $$props) {
     check_target(new.target);
-    push($$props, false, SearchBox);
-    let data2 = prop($$props, "data", 8);
-    let currentCountry = prop($$props, "currentCountry", 12);
-    let searched = prop($$props, "searched", 12);
-    let tooltipVisible = prop($$props, "tooltipVisible", 12);
-    let results = mutable_state([]);
-    let searchInput = mutable_state("");
-    let isFocused = mutable_state(false);
+    push($$props, true, SearchBox);
+    let currentCountry = prop($$props, "currentCountry", 15), searched = prop($$props, "searched", 15), tooltipVisible = prop($$props, "tooltipVisible", 15);
+    let results = state$1(proxy([]));
+    let searchInput = state$1("");
+    let isFocused = state$1(false);
     const onFocus = () => set(isFocused, true);
     const onBlur = () => set(isFocused, false);
-    const typeahead = () => {
-      let resultsIncludes = data2().filter((d) => d.label.toLowerCase().includes(get(searchInput).toLowerCase()));
-      let resultsStartWith = data2().filter((d) => d.label.toLowerCase().startsWith(get(searchInput).toLowerCase()));
-      set(results, resultsStartWith.sort().concat(resultsIncludes.sort()));
-      set(results, [...new Set(get(results))]);
-    };
     const newSearchInput = (oneResult) => {
-      set(searchInput, oneResult.label);
+      set(searchInput, proxy(oneResult.label, null, searchInput));
       currentCountry(oneResult.iso3c);
       searched(true);
       tooltipVisible(true);
     };
-    init();
     var fragment = root$1();
     var div = first_child(fragment);
     var input = child(div);
+    input.__input = [typeahead, $$props, searchInput, results];
     var node = sibling(div, 2);
     {
       var consequent_2 = ($$anchor2) => {
@@ -7143,7 +7839,7 @@ ${indent}in ${name}`).join("")}
               var consequent = ($$anchor4) => {
                 var fragment_2 = comment();
                 var node_3 = first_child(fragment_2);
-                each(node_3, 1, data2, index, ($$anchor5, oneResult) => {
+                each(node_3, 17, () => $$props.data, index, ($$anchor5, oneResult) => {
                   Objects($$anchor5, {
                     get object() {
                       return get(oneResult);
@@ -7158,7 +7854,7 @@ ${indent}in ${name}`).join("")}
               var alternate = ($$anchor4) => {
                 var fragment_4 = comment();
                 var node_4 = first_child(fragment_4);
-                each(node_4, 1, () => get(results), index, ($$anchor5, oneResult) => {
+                each(node_4, 17, () => get(results), index, ($$anchor5, oneResult) => {
                   Objects($$anchor5, {
                     get object() {
                       return get(oneResult);
@@ -7187,626 +7883,31 @@ ${indent}in ${name}`).join("")}
         if (get(searchInput).length > 1) $$render(consequent_2);
       });
     }
-    bind_value(input, () => get(searchInput), ($$value) => set(searchInput, $$value));
-    event("input", input, typeahead);
     event("focus", input, onFocus);
     event("blur", input, onBlur);
+    bind_value(input, () => get(searchInput), ($$value) => set(searchInput, $$value));
     append($$anchor, fragment);
     return pop({ ...legacy_api() });
   }
   mark_module_end(SearchBox);
-  function initRange(domain, range) {
-    switch (arguments.length) {
-      case 0:
-        break;
-      case 1:
-        this.range(domain);
-        break;
-      default:
-        this.range(range).domain(domain);
-        break;
-    }
-    return this;
-  }
-  function initInterpolator(domain, interpolator) {
-    switch (arguments.length) {
-      case 0:
-        break;
-      case 1: {
-        if (typeof domain === "function") this.interpolator(domain);
-        else this.range(domain);
-        break;
-      }
-      default: {
-        this.domain(domain);
-        if (typeof interpolator === "function") this.interpolator(interpolator);
-        else this.range(interpolator);
-        break;
-      }
-    }
-    return this;
-  }
-  const implicit = Symbol("implicit");
-  function ordinal() {
-    var index2 = new InternMap(), domain = [], range = [], unknown = implicit;
-    function scale(d) {
-      let i = index2.get(d);
-      if (i === void 0) {
-        if (unknown !== implicit) return unknown;
-        index2.set(d, i = domain.push(d) - 1);
-      }
-      return range[i % range.length];
-    }
-    scale.domain = function(_) {
-      if (!arguments.length) return domain.slice();
-      domain = [], index2 = new InternMap();
-      for (const value of _) {
-        if (index2.has(value)) continue;
-        index2.set(value, domain.push(value) - 1);
-      }
-      return scale;
-    };
-    scale.range = function(_) {
-      return arguments.length ? (range = Array.from(_), scale) : range.slice();
-    };
-    scale.unknown = function(_) {
-      return arguments.length ? (unknown = _, scale) : unknown;
-    };
-    scale.copy = function() {
-      return ordinal(domain, range).unknown(unknown);
-    };
-    initRange.apply(scale, arguments);
-    return scale;
-  }
-  function identity$1(x) {
-    return x;
-  }
-  function formatDecimal(x) {
-    return Math.abs(x = Math.round(x)) >= 1e21 ? x.toLocaleString("en").replace(/,/g, "") : x.toString(10);
-  }
-  function formatDecimalParts(x, p) {
-    if ((i = (x = p ? x.toExponential(p - 1) : x.toExponential()).indexOf("e")) < 0) return null;
-    var i, coefficient = x.slice(0, i);
-    return [
-      coefficient.length > 1 ? coefficient[0] + coefficient.slice(2) : coefficient,
-      +x.slice(i + 1)
-    ];
-  }
-  function exponent(x) {
-    return x = formatDecimalParts(Math.abs(x)), x ? x[1] : NaN;
-  }
-  function formatGroup(grouping, thousands) {
-    return function(value, width) {
-      var i = value.length, t = [], j = 0, g = grouping[0], length = 0;
-      while (i > 0 && g > 0) {
-        if (length + g + 1 > width) g = Math.max(1, width - length);
-        t.push(value.substring(i -= g, i + g));
-        if ((length += g + 1) > width) break;
-        g = grouping[j = (j + 1) % grouping.length];
-      }
-      return t.reverse().join(thousands);
-    };
-  }
-  function formatNumerals(numerals) {
-    return function(value) {
-      return value.replace(/[0-9]/g, function(i) {
-        return numerals[+i];
-      });
-    };
-  }
-  var re = /^(?:(.)?([<>=^]))?([+\-( ])?([$#])?(0)?(\d+)?(,)?(\.\d+)?(~)?([a-z%])?$/i;
-  function formatSpecifier(specifier) {
-    if (!(match = re.exec(specifier))) throw new Error("invalid format: " + specifier);
-    var match;
-    return new FormatSpecifier({
-      fill: match[1],
-      align: match[2],
-      sign: match[3],
-      symbol: match[4],
-      zero: match[5],
-      width: match[6],
-      comma: match[7],
-      precision: match[8] && match[8].slice(1),
-      trim: match[9],
-      type: match[10]
-    });
-  }
-  formatSpecifier.prototype = FormatSpecifier.prototype;
-  function FormatSpecifier(specifier) {
-    this.fill = specifier.fill === void 0 ? " " : specifier.fill + "";
-    this.align = specifier.align === void 0 ? ">" : specifier.align + "";
-    this.sign = specifier.sign === void 0 ? "-" : specifier.sign + "";
-    this.symbol = specifier.symbol === void 0 ? "" : specifier.symbol + "";
-    this.zero = !!specifier.zero;
-    this.width = specifier.width === void 0 ? void 0 : +specifier.width;
-    this.comma = !!specifier.comma;
-    this.precision = specifier.precision === void 0 ? void 0 : +specifier.precision;
-    this.trim = !!specifier.trim;
-    this.type = specifier.type === void 0 ? "" : specifier.type + "";
-  }
-  FormatSpecifier.prototype.toString = function() {
-    return this.fill + this.align + this.sign + this.symbol + (this.zero ? "0" : "") + (this.width === void 0 ? "" : Math.max(1, this.width | 0)) + (this.comma ? "," : "") + (this.precision === void 0 ? "" : "." + Math.max(0, this.precision | 0)) + (this.trim ? "~" : "") + this.type;
-  };
-  function formatTrim(s) {
-    out: for (var n = s.length, i = 1, i0 = -1, i1; i < n; ++i) {
-      switch (s[i]) {
-        case ".":
-          i0 = i1 = i;
-          break;
-        case "0":
-          if (i0 === 0) i0 = i;
-          i1 = i;
-          break;
-        default:
-          if (!+s[i]) break out;
-          if (i0 > 0) i0 = 0;
-          break;
-      }
-    }
-    return i0 > 0 ? s.slice(0, i0) + s.slice(i1 + 1) : s;
-  }
-  var prefixExponent;
-  function formatPrefixAuto(x, p) {
-    var d = formatDecimalParts(x, p);
-    if (!d) return x + "";
-    var coefficient = d[0], exponent2 = d[1], i = exponent2 - (prefixExponent = Math.max(-8, Math.min(8, Math.floor(exponent2 / 3))) * 3) + 1, n = coefficient.length;
-    return i === n ? coefficient : i > n ? coefficient + new Array(i - n + 1).join("0") : i > 0 ? coefficient.slice(0, i) + "." + coefficient.slice(i) : "0." + new Array(1 - i).join("0") + formatDecimalParts(x, Math.max(0, p + i - 1))[0];
-  }
-  function formatRounded(x, p) {
-    var d = formatDecimalParts(x, p);
-    if (!d) return x + "";
-    var coefficient = d[0], exponent2 = d[1];
-    return exponent2 < 0 ? "0." + new Array(-exponent2).join("0") + coefficient : coefficient.length > exponent2 + 1 ? coefficient.slice(0, exponent2 + 1) + "." + coefficient.slice(exponent2 + 1) : coefficient + new Array(exponent2 - coefficient.length + 2).join("0");
-  }
-  const formatTypes = {
-    "%": (x, p) => (x * 100).toFixed(p),
-    "b": (x) => Math.round(x).toString(2),
-    "c": (x) => x + "",
-    "d": formatDecimal,
-    "e": (x, p) => x.toExponential(p),
-    "f": (x, p) => x.toFixed(p),
-    "g": (x, p) => x.toPrecision(p),
-    "o": (x) => Math.round(x).toString(8),
-    "p": (x, p) => formatRounded(x * 100, p),
-    "r": formatRounded,
-    "s": formatPrefixAuto,
-    "X": (x) => Math.round(x).toString(16).toUpperCase(),
-    "x": (x) => Math.round(x).toString(16)
-  };
-  function identity(x) {
-    return x;
-  }
-  var map = Array.prototype.map, prefixes = ["y", "z", "a", "f", "p", "n", "µ", "m", "", "k", "M", "G", "T", "P", "E", "Z", "Y"];
-  function formatLocale(locale2) {
-    var group = locale2.grouping === void 0 || locale2.thousands === void 0 ? identity : formatGroup(map.call(locale2.grouping, Number), locale2.thousands + ""), currencyPrefix = locale2.currency === void 0 ? "" : locale2.currency[0] + "", currencySuffix = locale2.currency === void 0 ? "" : locale2.currency[1] + "", decimal = locale2.decimal === void 0 ? "." : locale2.decimal + "", numerals = locale2.numerals === void 0 ? identity : formatNumerals(map.call(locale2.numerals, String)), percent = locale2.percent === void 0 ? "%" : locale2.percent + "", minus = locale2.minus === void 0 ? "−" : locale2.minus + "", nan = locale2.nan === void 0 ? "NaN" : locale2.nan + "";
-    function newFormat(specifier) {
-      specifier = formatSpecifier(specifier);
-      var fill = specifier.fill, align = specifier.align, sign = specifier.sign, symbol = specifier.symbol, zero2 = specifier.zero, width = specifier.width, comma = specifier.comma, precision = specifier.precision, trim = specifier.trim, type = specifier.type;
-      if (type === "n") comma = true, type = "g";
-      else if (!formatTypes[type]) precision === void 0 && (precision = 12), trim = true, type = "g";
-      if (zero2 || fill === "0" && align === "=") zero2 = true, fill = "0", align = "=";
-      var prefix = symbol === "$" ? currencyPrefix : symbol === "#" && /[boxX]/.test(type) ? "0" + type.toLowerCase() : "", suffix = symbol === "$" ? currencySuffix : /[%p]/.test(type) ? percent : "";
-      var formatType = formatTypes[type], maybeSuffix = /[defgprs%]/.test(type);
-      precision = precision === void 0 ? 6 : /[gprs]/.test(type) ? Math.max(1, Math.min(21, precision)) : Math.max(0, Math.min(20, precision));
-      function format2(value) {
-        var valuePrefix = prefix, valueSuffix = suffix, i, n, c;
-        if (type === "c") {
-          valueSuffix = formatType(value) + valueSuffix;
-          value = "";
-        } else {
-          value = +value;
-          var valueNegative = value < 0 || 1 / value < 0;
-          value = isNaN(value) ? nan : formatType(Math.abs(value), precision);
-          if (trim) value = formatTrim(value);
-          if (valueNegative && +value === 0 && sign !== "+") valueNegative = false;
-          valuePrefix = (valueNegative ? sign === "(" ? sign : minus : sign === "-" || sign === "(" ? "" : sign) + valuePrefix;
-          valueSuffix = (type === "s" ? prefixes[8 + prefixExponent / 3] : "") + valueSuffix + (valueNegative && sign === "(" ? ")" : "");
-          if (maybeSuffix) {
-            i = -1, n = value.length;
-            while (++i < n) {
-              if (c = value.charCodeAt(i), 48 > c || c > 57) {
-                valueSuffix = (c === 46 ? decimal + value.slice(i + 1) : value.slice(i)) + valueSuffix;
-                value = value.slice(0, i);
-                break;
-              }
-            }
-          }
-        }
-        if (comma && !zero2) value = group(value, Infinity);
-        var length = valuePrefix.length + value.length + valueSuffix.length, padding = length < width ? new Array(width - length + 1).join(fill) : "";
-        if (comma && zero2) value = group(padding + value, padding.length ? width - valueSuffix.length : Infinity), padding = "";
-        switch (align) {
-          case "<":
-            value = valuePrefix + value + valueSuffix + padding;
-            break;
-          case "=":
-            value = valuePrefix + padding + value + valueSuffix;
-            break;
-          case "^":
-            value = padding.slice(0, length = padding.length >> 1) + valuePrefix + value + valueSuffix + padding.slice(length);
-            break;
-          default:
-            value = padding + valuePrefix + value + valueSuffix;
-            break;
-        }
-        return numerals(value);
-      }
-      format2.toString = function() {
-        return specifier + "";
-      };
-      return format2;
-    }
-    function formatPrefix2(specifier, value) {
-      var f = newFormat((specifier = formatSpecifier(specifier), specifier.type = "f", specifier)), e = Math.max(-8, Math.min(8, Math.floor(exponent(value) / 3))) * 3, k = Math.pow(10, -e), prefix = prefixes[8 + e / 3];
-      return function(value2) {
-        return f(k * value2) + prefix;
-      };
-    }
-    return {
-      format: newFormat,
-      formatPrefix: formatPrefix2
-    };
-  }
-  var locale;
-  var format;
-  var formatPrefix;
-  defaultLocale({
-    thousands: ",",
-    grouping: [3],
-    currency: ["$", ""]
-  });
-  function defaultLocale(definition) {
-    locale = formatLocale(definition);
-    format = locale.format;
-    formatPrefix = locale.formatPrefix;
-    return locale;
-  }
-  function precisionFixed(step) {
-    return Math.max(0, -exponent(Math.abs(step)));
-  }
-  function precisionPrefix(step, value) {
-    return Math.max(0, Math.max(-8, Math.min(8, Math.floor(exponent(value) / 3))) * 3 - exponent(Math.abs(step)));
-  }
-  function precisionRound(step, max2) {
-    step = Math.abs(step), max2 = Math.abs(max2) - step;
-    return Math.max(0, exponent(max2) - exponent(step)) + 1;
-  }
-  function tickFormat(start, stop, count, specifier) {
-    var step = tickStep(start, stop, count), precision;
-    specifier = formatSpecifier(specifier == null ? ",f" : specifier);
-    switch (specifier.type) {
-      case "s": {
-        var value = Math.max(Math.abs(start), Math.abs(stop));
-        if (specifier.precision == null && !isNaN(precision = precisionPrefix(step, value))) specifier.precision = precision;
-        return formatPrefix(specifier, value);
-      }
-      case "":
-      case "e":
-      case "g":
-      case "p":
-      case "r": {
-        if (specifier.precision == null && !isNaN(precision = precisionRound(step, Math.max(Math.abs(start), Math.abs(stop))))) specifier.precision = precision - (specifier.type === "e");
-        break;
-      }
-      case "f":
-      case "%": {
-        if (specifier.precision == null && !isNaN(precision = precisionFixed(step))) specifier.precision = precision - (specifier.type === "%") * 2;
-        break;
-      }
-    }
-    return format(specifier);
-  }
-  function linearish(scale) {
-    var domain = scale.domain;
-    scale.ticks = function(count) {
-      var d = domain();
-      return ticks(d[0], d[d.length - 1], count == null ? 10 : count);
-    };
-    scale.tickFormat = function(count, specifier) {
-      var d = domain();
-      return tickFormat(d[0], d[d.length - 1], count == null ? 10 : count, specifier);
-    };
-    scale.nice = function(count) {
-      if (count == null) count = 10;
-      var d = domain();
-      var i0 = 0;
-      var i1 = d.length - 1;
-      var start = d[i0];
-      var stop = d[i1];
-      var prestep;
-      var step;
-      var maxIter = 10;
-      if (stop < start) {
-        step = start, start = stop, stop = step;
-        step = i0, i0 = i1, i1 = step;
-      }
-      while (maxIter-- > 0) {
-        step = tickIncrement(start, stop, count);
-        if (step === prestep) {
-          d[i0] = start;
-          d[i1] = stop;
-          return domain(d);
-        } else if (step > 0) {
-          start = Math.floor(start / step) * step;
-          stop = Math.ceil(stop / step) * step;
-        } else if (step < 0) {
-          start = Math.ceil(start * step) / step;
-          stop = Math.floor(stop * step) / step;
-        } else {
-          break;
-        }
-        prestep = step;
-      }
-      return scale;
-    };
-    return scale;
-  }
-  function quantile() {
-    var domain = [], range = [], thresholds = [], unknown;
-    function rescale() {
-      var i = 0, n = Math.max(1, range.length);
-      thresholds = new Array(n - 1);
-      while (++i < n) thresholds[i - 1] = quantileSorted(domain, i / n);
-      return scale;
-    }
-    function scale(x) {
-      return x == null || isNaN(x = +x) ? unknown : range[bisectRight(thresholds, x)];
-    }
-    scale.invertExtent = function(y) {
-      var i = range.indexOf(y);
-      return i < 0 ? [NaN, NaN] : [
-        i > 0 ? thresholds[i - 1] : domain[0],
-        i < thresholds.length ? thresholds[i] : domain[domain.length - 1]
-      ];
-    };
-    scale.domain = function(_) {
-      if (!arguments.length) return domain.slice();
-      domain = [];
-      for (let d of _) if (d != null && !isNaN(d = +d)) domain.push(d);
-      domain.sort(ascending);
-      return rescale();
-    };
-    scale.range = function(_) {
-      return arguments.length ? (range = Array.from(_), rescale()) : range.slice();
-    };
-    scale.unknown = function(_) {
-      return arguments.length ? (unknown = _, scale) : unknown;
-    };
-    scale.quantiles = function() {
-      return thresholds.slice();
-    };
-    scale.copy = function() {
-      return quantile().domain(domain).range(range).unknown(unknown);
-    };
-    return initRange.apply(scale, arguments);
-  }
-  function quantize() {
-    var x0 = 0, x1 = 1, n = 1, domain = [0.5], range = [0, 1], unknown;
-    function scale(x) {
-      return x != null && x <= x ? range[bisectRight(domain, x, 0, n)] : unknown;
-    }
-    function rescale() {
-      var i = -1;
-      domain = new Array(n);
-      while (++i < n) domain[i] = ((i + 1) * x1 - (i - n) * x0) / (n + 1);
-      return scale;
-    }
-    scale.domain = function(_) {
-      return arguments.length ? ([x0, x1] = _, x0 = +x0, x1 = +x1, rescale()) : [x0, x1];
-    };
-    scale.range = function(_) {
-      return arguments.length ? (n = (range = Array.from(_)).length - 1, rescale()) : range.slice();
-    };
-    scale.invertExtent = function(y) {
-      var i = range.indexOf(y);
-      return i < 0 ? [NaN, NaN] : i < 1 ? [x0, domain[0]] : i >= n ? [domain[n - 1], x1] : [domain[i - 1], domain[i]];
-    };
-    scale.unknown = function(_) {
-      return arguments.length ? (unknown = _, scale) : scale;
-    };
-    scale.thresholds = function() {
-      return domain.slice();
-    };
-    scale.copy = function() {
-      return quantize().domain([x0, x1]).range(range).unknown(unknown);
-    };
-    return initRange.apply(linearish(scale), arguments);
-  }
-  function transformer() {
-    var x0 = 0, x1 = 1, t02, t12, k10, transform, interpolator = identity$1, clamp2 = false, unknown;
-    function scale(x) {
-      return x == null || isNaN(x = +x) ? unknown : interpolator(k10 === 0 ? 0.5 : (x = (transform(x) - t02) * k10, clamp2 ? Math.max(0, Math.min(1, x)) : x));
-    }
-    scale.domain = function(_) {
-      return arguments.length ? ([x0, x1] = _, t02 = transform(x0 = +x0), t12 = transform(x1 = +x1), k10 = t02 === t12 ? 0 : 1 / (t12 - t02), scale) : [x0, x1];
-    };
-    scale.clamp = function(_) {
-      return arguments.length ? (clamp2 = !!_, scale) : clamp2;
-    };
-    scale.interpolator = function(_) {
-      return arguments.length ? (interpolator = _, scale) : interpolator;
-    };
-    function range(interpolate2) {
-      return function(_) {
-        var r0, r1;
-        return arguments.length ? ([r0, r1] = _, interpolator = interpolate2(r0, r1), scale) : [interpolator(0), interpolator(1)];
-      };
-    }
-    scale.range = range(interpolate);
-    scale.rangeRound = range(interpolateRound);
-    scale.unknown = function(_) {
-      return arguments.length ? (unknown = _, scale) : unknown;
-    };
-    return function(t) {
-      transform = t, t02 = t(x0), t12 = t(x1), k10 = t02 === t12 ? 0 : 1 / (t12 - t02);
-      return scale;
-    };
-  }
-  function copy(source2, target) {
-    return target.domain(source2.domain()).interpolator(source2.interpolator()).clamp(source2.clamp()).unknown(source2.unknown());
-  }
-  function sequential() {
-    var scale = linearish(transformer()(identity$1));
-    scale.copy = function() {
-      return copy(scale, sequential());
-    };
-    return initInterpolator.apply(scale, arguments);
-  }
-  let catColors = {
-    default: {
-      cat1: wbColors.cat1,
-      cat2: wbColors.cat2,
-      cat3: wbColors.cat3,
-      cat4: wbColors.cat4,
-      cat5: wbColors.cat5,
-      cat6: wbColors.cat6,
-      cat7: wbColors.cat7,
-      cat8: wbColors.cat8,
-      cat9: wbColors.cat9
-    },
-    defaultText: {
-      cat1Text: wbColors.cat1Text,
-      cat2Text: wbColors.cat2Text,
-      cat3Text: wbColors.cat3Text,
-      cat4Text: wbColors.cat4Text,
-      cat5Text: wbColors.cat5Text,
-      cat6Text: wbColors.cat6Text,
-      cat7Text: wbColors.cat7Text,
-      cat8Text: wbColors.cat8Text,
-      cat9Text: wbColors.cat9Text
-    },
-    region: {
-      wld: wbColors.wld,
-      nac: wbColors.nac,
-      lcn: wbColors.lcn,
-      sas: wbColors.sas,
-      mea: wbColors.mea,
-      ecs: wbColors.ecs,
-      eas: wbColors.eas,
-      ssf: wbColors.ssf,
-      afe: wbColors.afe,
-      afw: wbColors.afw
-    },
-    regionText: {
-      wldText: wbColors.wldText,
-      nacText: wbColors.nacText,
-      lcnText: wbColors.lcnText,
-      sasText: wbColors.sasText,
-      meaText: wbColors.meaText,
-      ecsText: wbColors.ecsText,
-      easText: wbColors.easText,
-      ssfText: wbColors.ssfText,
-      afeText: wbColors.afeText,
-      afwText: wbColors.afwText
-    },
-    income: {
-      hic: wbColors.hic,
-      umc: wbColors.umc,
-      lmc: wbColors.lmc,
-      lic: wbColors.lic
-    },
-    gender: {
-      male: wbColors.male,
-      female: wbColors.female,
-      diverse: wbColors.diverse
-    },
-    urbanization: {
-      rural: wbColors.rural,
-      urban: wbColors.urban
-    },
-    age: {
-      youngestAge: wbColors.youngestAge,
-      youngerAge: wbColors.youngerAge,
-      middleAge: wbColors.middleAge,
-      olderAge: wbColors.olderAge,
-      oldestAge: wbColors.oldestAge
-    },
-    binary: {
-      yes: wbColors.yes,
-      no: wbColors.no
-    }
-  };
-  let seqColors = {
-    seq: [
-      wbColors.seq1,
-      wbColors.seq2,
-      wbColors.seq3,
-      wbColors.seq4,
-      wbColors.seq5
-    ],
-    seqRev: [
-      wbColors.seqRev1,
-      wbColors.seqRev2,
-      wbColors.seqRev3,
-      wbColors.seqRev4,
-      wbColors.seqRev5
-    ],
-    seqB: [
-      wbColors.seqB1,
-      wbColors.seqB2,
-      wbColors.seqB3,
-      wbColors.seqB4,
-      wbColors.seqB5
-    ],
-    seqY: [
-      wbColors.seqY1,
-      wbColors.seqY2,
-      wbColors.seqY3,
-      wbColors.seqY4,
-      wbColors.seqY5
-    ],
-    seqP: [
-      wbColors.seqP1,
-      wbColors.seqP2,
-      wbColors.seqP3,
-      wbColors.seqP4,
-      wbColors.seqP5
-    ],
-    div: [
-      wbColors.divNeg3,
-      wbColors.divNeg2,
-      wbColors.divNeg1,
-      wbColors.divMid,
-      wbColors.divPos1,
-      wbColors.divPos2,
-      wbColors.divPos3
-    ],
-    div2: [
-      wbColors.div2L3,
-      wbColors.div2L2,
-      wbColors.div2L1,
-      wbColors.div2Mid,
-      wbColors.div2R1,
-      wbColors.div2R2,
-      wbColors.div2R3
-    ]
-  };
-  let colorRamps = {
-    seq: piecewise(lab, seqColors.seq),
-    seqRev: piecewise(lab, seqColors.seqRev),
-    seqB: piecewise(lab, seqColors.seqB),
-    seqY: piecewise(lab, seqColors.seqY),
-    seqP: piecewise(lab, seqColors.seqP),
-    div: piecewise(lab, seqColors.div),
-    div2: piecewise(lab, seqColors.div2)
-  };
-  let getDiscreteColors = function(colorRamp, colorNumber) {
-    let arr = [...Array(colorNumber).keys()].map((i) => i / (colorNumber - 1));
-    let colors = arr.map((d) => colorRamp(d));
-    return colors;
-  };
+  delegate(["input"]);
   mark_module_start();
   Viz[FILENAME] = "src/Viz.svelte";
   function updateMouse(evt, mousePos) {
     set(mousePos, proxy({ x: evt.clientX, y: evt.clientY }, null, mousePos));
   }
-  var root_3 = add_locations(/* @__PURE__ */ ns_template(`<svg><g><!><!></g></svg>`), Viz[FILENAME], [[122, 4, [[123, 6]]]]);
-  var root_8 = add_locations(/* @__PURE__ */ template2(`<div class="legend-container svelte-vkqg7t"><!> <!></div>`), Viz[FILENAME], [[180, 2]]);
-  var root = add_locations(/* @__PURE__ */ template2(`<div class="chart-container svelte-vkqg7t"><div class="header-container"><!></div> <div class="viz-container svelte-vkqg7t"><!> <!> <!></div> <!> <div class="footer-container"><!></div></div>`), Viz[FILENAME], [
+  var root_3 = add_locations(/* @__PURE__ */ ns_template(`<svg><g><!><!></g></svg>`), Viz[FILENAME], [[85, 4, [[86, 6]]]]);
+  var root_8 = add_locations(/* @__PURE__ */ template2(`<!> <!>`, 1), Viz[FILENAME], []);
+  var root = add_locations(/* @__PURE__ */ template2(`<div class="chart-container svelte-1i5cyi5"><div class="header-container"><!></div> <div class="viz-container svelte-1i5cyi5"><!> <!> <!></div> <div class="legend-container svelte-1i5cyi5"><!></div> <div class="footer-container"><!></div></div>`), Viz[FILENAME], [
     [
-      104,
+      67,
       0,
-      [[105, 2], [111, 2], [205, 2]]
+      [
+        [68, 2],
+        [74, 2],
+        [142, 2],
+        [166, 2]
+      ]
     ]
   ]);
   function Viz($$anchor, $$props) {
@@ -7815,27 +7916,20 @@ ${indent}in ${name}`).join("")}
     let width = state$1(500);
     let height = state$1(500);
     let margins = { top: 0, right: 0, bottom: 0, left: 0 };
-    let valueType = /* @__PURE__ */ derived(() => $$props.data.data.metadata.value.type);
+    let valueType = /* @__PURE__ */ derived(() => $$props.data.plotdata.metadata.color.type);
     const noDataColor = wbColors.noData;
-    let domainMinimum = /* @__PURE__ */ derived(() => !$$props.domainMin ? Math.floor(min$1($$props.data.data.map((d) => d.value))) : $$props.domainMin);
-    let domainMaximum = /* @__PURE__ */ derived(() => !$$props.domainMax ? Math.ceil(max$1($$props.data.data.map((d) => d.value))) : $$props.domainMax);
-    let dataDomain = /* @__PURE__ */ derived(() => [
-      Math.floor(min$1($$props.data.data.map((d) => d.value))),
-      Math.ceil(max$1($$props.data.data.map((d) => d.value)))
-    ]);
+    let domainMinimum = /* @__PURE__ */ derived(() => strict_equals(typeof $$props.domainMin, "undefined") ? Math.floor(min$1($$props.data.plotdata.map((d) => d.color))) : $$props.domainMin);
+    let domainMaximum = /* @__PURE__ */ derived(() => strict_equals(typeof $$props.domainMax, "undefined") ? Math.ceil(max$1($$props.data.plotdata.map((d) => d.color))) : $$props.domainMax);
+    let dataDomain = /* @__PURE__ */ derived(() => extent($$props.data.plotdata, (d) => d.color));
     let customDomain = /* @__PURE__ */ derived(() => [
       get(domainMinimum),
       get(domainMaximum)
     ]);
     let domain = /* @__PURE__ */ derived(() => equals($$props.domainAutoCustom, "auto") ? get(dataDomain) : get(customDomain));
-    let contColorScale = /* @__PURE__ */ derived(() => equals($$props.linearOrBinned, "linear") ? sequential(colorRamps[equals($$props.scaleType, "sequential") ? $$props.colorScale : $$props.colorScaleDiverging]).domain(get(domain)) : equals($$props.binningMode, "fixedWidth") ? quantize(getDiscreteColors(colorRamps[equals($$props.scaleType, "sequential") ? $$props.colorScale : $$props.colorScaleDiverging], $$props.numberOfBins)).domain(get(domain)) : quantile(getDiscreteColors(colorRamps[equals($$props.scaleType, "sequential") ? $$props.colorScale : $$props.colorScaleDiverging], $$props.numberOfBins)).domain($$props.data.data.map((d) => d.value)));
-    let colorDomain = /* @__PURE__ */ derived(() => [
-      ...new Set($$props.data.data.map((d) => d.value))
-    ].filter((d) => equals(d, "", false)));
-    let catColorScale = /* @__PURE__ */ derived(() => catColors[$$props.categoricalColorPalette] && equals($$props.categoricalColorPalette, "default", false) ? ordinal(Object.keys(catColors[$$props.categoricalColorPalette]), Object.values(catColors[$$props.categoricalColorPalette])).unknown(noDataColor) : ordinal(get(colorDomain), Object.values(catColors["default"])).unknown(noDataColor));
-    let usedCats = /* @__PURE__ */ derived(() => get(catColorScale).domain().filter((d) => get(colorDomain).includes(d)));
+    let numericalColorScale = /* @__PURE__ */ derived(() => getNumericalColorScale($$props.data, get(domain), $$props.linearOrBinned, $$props.scaleType, $$props.colorScale, $$props.colorScaleDiverging, $$props.binningMode, $$props.numberOfBins));
+    let categoricalColorScale = /* @__PURE__ */ derived(() => getCategoricalColorScale($$props.data));
     let currentCountry = state$1(void 0);
-    let currentCountryData = /* @__PURE__ */ derived(() => $$props.data.data.find((d) => equals(d.iso3c, get(currentCountry))));
+    let currentCountryData = /* @__PURE__ */ derived(() => $$props.data.plotdata.find((d) => equals(d.iso3c, get(currentCountry))));
     let mousePos = state$1(void 0);
     let tooltipVisible = state$1(false);
     let headerHeight = state$1(void 0);
@@ -7873,7 +7967,7 @@ ${indent}in ${name}`).join("")}
           add_owner_effect(() => get(tooltipVisible), SearchBox);
           SearchBox($$anchor2, {
             get data() {
-              return $$props.data.data;
+              return $$props.data.plotdata;
             },
             get currentCountry() {
               return get(currentCountry);
@@ -7935,11 +8029,11 @@ ${indent}in ${name}`).join("")}
                 get data() {
                   return $$props.data;
                 },
-                get contColorScale() {
-                  return get(contColorScale);
+                get numericalColorScale() {
+                  return get(numericalColorScale);
                 },
-                get catColorScale() {
-                  return get(catColorScale);
+                get categoricalColorScale() {
+                  return get(categoricalColorScale);
                 },
                 get currentCountry() {
                   return get(currentCountry);
@@ -8000,11 +8094,11 @@ ${indent}in ${name}`).join("")}
                 get data() {
                   return $$props.data;
                 },
-                get contColorScale() {
-                  return get(contColorScale);
+                get numericalColorScale() {
+                  return get(numericalColorScale);
                 },
-                get catColorScale() {
-                  return get(catColorScale);
+                get categoricalColorScale() {
+                  return get(categoricalColorScale);
                 },
                 get currentCountry() {
                   return get(currentCountry);
@@ -8060,7 +8154,7 @@ ${indent}in ${name}`).join("")}
             return get(expression);
           },
           children: wrap_snippet(Viz, ($$anchor3, $$slotProps) => {
-            const expression_1 = /* @__PURE__ */ derived(() => equals(get(currentCountryData).value, null, false) && equals(get(currentCountryData).value, "", false) ? equals(get(valueType), "number") ? Math.round(get(currentCountryData).value * 10) / 10 + "%" : get(currentCountryData).value : "No data");
+            const expression_1 = /* @__PURE__ */ derived(() => equals(get(currentCountryData).color, null, false) && equals(get(currentCountryData).color, "", false) ? equals(get(valueType), "number") ? get(currentCountryData).color : get(currentCountryData).color : "No data");
             TooltipContent($$anchor3, {
               get tooltipHeader() {
                 return get(currentCountryData).label;
@@ -8077,25 +8171,23 @@ ${indent}in ${name}`).join("")}
         if (get(currentCountryData) && get(mousePos)) $$render(consequent_5);
       });
     }
-    var node_6 = sibling(div_2, 2);
+    var div_3 = sibling(div_2, 2);
+    var node_6 = child(div_3);
     {
       var consequent_8 = ($$anchor2) => {
-        var div_3 = root_8();
-        var node_7 = child(div_3);
+        var fragment_6 = root_8();
+        var node_7 = first_child(fragment_6);
         {
           var consequent_6 = ($$anchor3) => {
-            ContinuousColorLegend($$anchor3, {
-              get width() {
-                return get(vizWidth);
-              },
+            NumericalColorLegend($$anchor3, {
               get title() {
                 return $$props.legendTitle;
               },
               get unitLabel() {
                 return $$props.unitLabel;
               },
-              get contColorScale() {
-                return get(contColorScale);
+              get numericalColorScale() {
+                return get(numericalColorScale);
               },
               get linearOrBinned() {
                 return $$props.linearOrBinned;
@@ -8123,11 +8215,8 @@ ${indent}in ${name}`).join("")}
               get title() {
                 return $$props.legendTitle;
               },
-              get catColorScale() {
-                return get(catColorScale);
-              },
-              get usedCats() {
-                return get(usedCats);
+              get categoricalColorScale() {
+                return get(categoricalColorScale);
               },
               get includeNoData() {
                 return $$props.includeNoData;
@@ -8141,14 +8230,13 @@ ${indent}in ${name}`).join("")}
             if (equals(get(valueType), "string")) $$render(consequent_7);
           });
         }
-        bind_element_size(div_3, "clientHeight", ($$value) => set(legendHeight, $$value));
-        append($$anchor2, div_3);
+        append($$anchor2, fragment_6);
       };
       if_block(node_6, ($$render) => {
         if ($$props.showLegend) $$render(consequent_8);
       });
     }
-    var div_4 = sibling(node_6, 2);
+    var div_4 = sibling(div_3, 2);
     var node_9 = child(div_4);
     {
       var consequent_9 = ($$anchor2) => {
@@ -8172,6 +8260,7 @@ ${indent}in ${name}`).join("")}
     bind_window_size("innerHeight", ($$value) => set(height, proxy($$value, null, height)));
     bind_element_size(div_1, "clientHeight", ($$value) => set(headerHeight, $$value));
     bind_element_size(div_2, "clientWidth", ($$value) => set(vizWidth, $$value));
+    bind_element_size(div_3, "clientHeight", ($$value) => set(legendHeight, $$value));
     bind_element_size(div_4, "clientHeight", ($$value) => set(footerHeight, $$value));
     append($$anchor, div);
     return pop({ ...legacy_api() });
@@ -8192,8 +8281,8 @@ ${indent}in ${name}`).join("")}
   colors_link.setAttribute("href", window.Flourish.static_prefix + "/colors.css");
   var data = {};
   var state = {
-    title: "",
-    subtitle: "",
+    title: "Title",
+    subtitle: "Subtitle",
     strokeWidth: 1,
     stroke: "#FFFFFF",
     countryCodes: true,
@@ -8203,7 +8292,7 @@ ${indent}in ${name}`).join("")}
     colorScaleDiverging: "div",
     binningMode: "fixedWidth",
     numberOfBins: 4,
-    categoricalColorPalette: "default",
+    //categoricalColorPalette: "default",
     gridType: "squares",
     showLegend: true,
     legendTitle: "",
@@ -8213,9 +8302,9 @@ ${indent}in ${name}`).join("")}
     domainAutoCustom: "auto",
     domainMin: void 0,
     domainMax: void 0,
-    notesTitle: "",
-    notes: "",
-    includeLogo: false,
+    notesTitle: "Source: ",
+    notes: "World Bank",
+    includeLogo: true,
     showSearchBox: false
   };
   let reactiveState = state$1(proxy({}));

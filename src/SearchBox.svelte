@@ -1,13 +1,11 @@
 <script>
     import Objects from "./Objects.svelte"
-    export let data;
-    export let currentCountry
-    export let searched;
-    export let tooltipVisible;
 
-    let results = [];
-    let searchInput = "";
-    let isFocused = false;
+    let { data, currentCountry = $bindable(), searched = $bindable(), tooltipVisible = $bindable() } = $props()
+
+    let results = $state([]);
+    let searchInput = $state("");
+    let isFocused = $state(false);
    
     const onFocus = () => isFocused=true;
     const onBlur = () => isFocused=false;
@@ -29,7 +27,7 @@
  </script>
    
    <div class="typeahead">
-     <input id="searchfield" type="text" name="searchfield" placeholder="Search country" bind:value={searchInput} on:input={typeahead} on:focus={onFocus} on:blur={onBlur}> 
+     <input id="searchfield" type="text" name="searchfield" placeholder="Search country" bind:value={searchInput} oninput={typeahead} onfocus={onFocus} onblur={onBlur}> 
    </div>
    {#if searchInput.length > 1}
    <ul class="typeahead-object-list" >
@@ -54,13 +52,13 @@
    left: 0px;
  }
  input{
-    box-shadow: 2px 2px 2px rgb(from var(--darkest) R G B / 0.15);
+    box-shadow: 2px 2px 2px rgb(from var(--grey500) R G B / 0.15);
  }
  input[type=text] {
-    height: 1.2rem;
+   height: 1.2rem;
    width: 160px;
    display: block;
-   border: 1px solid var(--middle);
+   border: 1px solid var(--grey300);
    border-radius: 1px;
    transition: width 0.4s ease-in-out;
  }

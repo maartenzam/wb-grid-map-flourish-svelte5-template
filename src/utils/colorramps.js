@@ -1,6 +1,51 @@
 import { wbColors } from "./colors";
 import { piecewise, interpolateLab } from "d3-interpolate";
 
+export let allColors = {
+    "wld": wbColors.WLD,
+    "nac": wbColors.NAC,
+    "lcn": wbColors.LCN,
+    "sas": wbColors.SAS,
+    "mea": wbColors.MEA,
+    "ecs": wbColors.ECS,
+    "eas": wbColors.EAS,
+    "ssf": wbColors.SSF,
+    "afe": wbColors.AFE,
+    "afw": wbColors.AFW,
+    "world": wbColors.WLD,
+    "north america": wbColors.NAC,
+    "latin america and caribbean": wbColors.LCN,
+    "south asia": wbColors.SAS,
+    "middle east and north africa": wbColors.MEA,
+    "europe and central asia": wbColors.ECS,
+    "east asia and pacific": wbColors.EAS,
+    "sub-saharan africa": wbColors.SSF,
+    "latin america & caribbean": wbColors.LCN,
+    "middle east & north africa": wbColors.MEA,
+    "europe & central asia": wbColors.ECS,
+    "east asia & pacific": wbColors.EAS,
+    "hic": wbColors.HIC,
+    "umc": wbColors.UMC,
+    "lmc": wbColors.LMC,
+    "lic": wbColors.LIC,
+    "high income": wbColors.HIC,
+    "upper middle income": wbColors.UMC,
+    "lower middle income": wbColors.LMC,
+    "low income": wbColors.LIC,
+    "male": wbColors.male,
+    "female": wbColors.female,
+    "diverse": wbColors.diverse,
+    "rural": wbColors.rural,
+    "urban": wbColors.urban,
+    "youngestage": wbColors.youngestAge,
+    "youngerage": wbColors.youngerAge,
+    "middleage": wbColors.middleAge,
+    "olderage": wbColors.olderAge,
+    "oldestage": wbColors.oldestAge,
+    "yes": wbColors.yes,
+    "no": wbColors.no
+}
+
 export let catColors = {
   default: {
     cat1: wbColors.cat1,
@@ -140,10 +185,4 @@ export let colorRamps = {
   seqP: piecewise(interpolateLab, seqColors.seqP),
   div: piecewise(interpolateLab, seqColors.div),
   div2: piecewise(interpolateLab, seqColors.div2),
-};
-
-export let getDiscreteColors = function (colorRamp, colorNumber) {
-  let arr = [...Array(colorNumber).keys()].map((i) => i / (colorNumber - 1));
-  let colors = arr.map((d) => colorRamp(d));
-  return colors;
 };

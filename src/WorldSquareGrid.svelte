@@ -1,6 +1,5 @@
 <script>
   import { squareGrid } from './layouts/worldtilegrid';
-  import { getFill } from './utils/utils';
 
   let {
     width,
@@ -11,13 +10,15 @@
     margins,
     noDataColor,
     data,
-    contColorScale,
-    catColorScale,
+    numericalColorScale,
+    categoricalColorScale,
     currentCountry = $bindable(),
     currentTilePos = $bindable(),
     searched = $bindable(),
     tooltipVisible = $bindable()
   } = $props();
+
+  let valueType = $derived(data.plotdata.metadata.color.type)
 
   let tileSize = $derived(
     Math.min(
@@ -43,6 +44,7 @@
 
 {#if tileSize}
   {#each squareGrid as cell}
+    {console.log(cell)}
     <g
       transform={`translate(${(cell.x - 1) * tileSize + shift},${(cell.y - 1) * tileSize})`}
     >
@@ -53,13 +55,12 @@
         y={0}
         width={tileSize}
         height={tileSize}
-        fill={getFill(
-          data,
-          cell.iso3c,
-          contColorScale,
-          catColorScale,
-          noDataColor
-        )}
+        fill={data.plotdata.find(d => d.iso3c == cell.iso3c)
+            ? valueType == 'string' 
+              ? categoricalColorScale(data.plotdata.find(d => d.iso3c == cell.iso3c).color)
+              : numericalColorScale(data.plotdata.find(d => d.iso3c == cell.iso3c).color)
+            : noDataColor 
+        }
         {stroke}
         stroke-width={strokeWidth}
         onmouseover={() => {

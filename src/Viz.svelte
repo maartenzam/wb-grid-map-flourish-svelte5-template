@@ -3,22 +3,17 @@
   import Footer from "./template/Footer.svelte";
   import WorldHexGrid from "./WorldHexGrid.svelte";
   import WorldSquareGrid from "./WorldSquareGrid.svelte";
-  import ContinuousColorLegend from "./template/ContinuousColorLegend.svelte";
+  import NumericalColorLegend from "./template/NumericalColorLegend.svelte";
   import CategoricalColorLegend from "./template/CategoricalColorLegend.svelte";
   import Tooltip from "./template/Tooltip.svelte";
   import TooltipContent from "./template/TooltipContent.svelte";
   import SearchBox from "./SearchBox.svelte";
-  import {
-    scaleSequential,
-    scaleQuantize,
-    scaleQuantile,
-    scaleOrdinal,
-  } from "d3-scale";
-  import { min, max } from "d3-array";
-  import { colorRamps, getDiscreteColors, catColors } from "./utils/colorramps";
+  import { getCategoricalColorScale, getNumericalColorScale } from './utils/colorscales';
+  import { min, max, extent } from "d3-array";
+
   import { wbColors } from "./utils/colors";
   
-  let {title, subtitle, gridType, countryCodes, strokeWidth, stroke, scaleType, colorScale, colorScaleDiverging, linearOrBinned, binningMode, numberOfBins, categoricalColorPalette, data, showLegend, legendTitle, includeNoData, noDataLabel, unitLabel, domainAutoCustom, domainMin, domainMax, notesTitle, notes, includeLogo, showSearchBox } = $props()
+  let {title, subtitle, gridType, countryCodes, strokeWidth, stroke, scaleType, colorScale, colorScaleDiverging, linearOrBinned, binningMode, numberOfBins, data, showLegend, legendTitle, includeNoData, noDataLabel, unitLabel, domainAutoCustom, domainMin, domainMax, notesTitle, notes, includeLogo, showSearchBox } = $props()
 
   let width = $state(500);
   let height = $state(500);
@@ -30,55 +25,23 @@
     left: 0,
   };
 
-  let valueType = $derived(data.data.metadata.value.type)
+  let valueType = $derived(data.plotdata.metadata.color.type)
 
   const noDataColor = wbColors.noData;
 
-  // When value is numeric
-  let domainMinimum = $derived(!domainMin ? Math.floor(min(data.data.map((d) => d.value))) : domainMin)
-  let domainMaximum = $derived(!domainMax ? Math.ceil(max(data.data.map((d) => d.value))) : domainMax)
-  let dataDomain = $derived([
-    Math.floor(min(data.data.map((d) => d.value))),
-    Math.ceil(max(data.data.map((d) => d.value))),
-  ])
+  // Color scales
+  let domainMinimum = $derived(typeof domainMin === "undefined" ? Math.floor(min(data.plotdata.map((d) => d.color))) : domainMin)
+  let domainMaximum = $derived(typeof domainMax === "undefined"  ? Math.ceil(max(data.plotdata.map((d) => d.color))) : domainMax)
+  let dataDomain = $derived(extent(data.plotdata, d => d.color))
   let customDomain = $derived([domainMinimum, domainMaximum])
   let domain = $derived(domainAutoCustom == "auto" ? dataDomain : customDomain)
 
-  let contColorScale =
-    $derived(linearOrBinned == "linear"
-      ? scaleSequential(
-          colorRamps[
-            scaleType == "sequential" ? colorScale : colorScaleDiverging
-          ]
-        ).domain(domain)
-      : binningMode == "fixedWidth"
-        ? scaleQuantize(
-            getDiscreteColors(
-              colorRamps[
-                scaleType == "sequential" ? colorScale : colorScaleDiverging
-              ],
-              numberOfBins
-            )
-          ).domain(domain)
-        : scaleQuantile(
-            getDiscreteColors(
-              colorRamps[
-                scaleType == "sequential" ? colorScale : colorScaleDiverging
-              ],
-              numberOfBins
-            )
-          ).domain(data.data.map((d) => d.value)));
-
-  // When value is string
-  let colorDomain = $derived([...new Set(data.data.map((d) => d.value))].filter(d => d != ""));
-  let catColorScale = $derived(catColors[categoricalColorPalette] && categoricalColorPalette != "default"
-    ? scaleOrdinal(Object.keys(catColors[categoricalColorPalette]), Object.values(catColors[categoricalColorPalette])).unknown(noDataColor)
-    : scaleOrdinal(colorDomain, Object.values(catColors["default"])).unknown(noDataColor))
-  let usedCats = $derived(catColorScale.domain().filter(d => colorDomain.includes(d)))
+  let numericalColorScale = $derived(getNumericalColorScale(data, domain, linearOrBinned, scaleType, colorScale, colorScaleDiverging, binningMode, numberOfBins))
+  let categoricalColorScale = $derived(getCategoricalColorScale(data))
 
   // Tooltip
   let currentCountry = $state();
-  let currentCountryData = $derived(data.data.find((d) => d.iso3c == currentCountry));
+  let currentCountryData = $derived(data.plotdata.find((d) => d.iso3c == currentCountry));
 
   let mousePos = $state();
   function updateMouse(evt) {
@@ -111,7 +74,7 @@
   <div class="viz-container" bind:clientWidth={vizWidth}>
     {#if showSearchBox}
       <SearchBox
-        data={data.data}
+        data={data.plotdata}
         bind:currentCountry
         bind:searched
         bind:tooltipVisible
@@ -131,8 +94,8 @@
             {margins}
             {noDataColor}
             {data}
-            {contColorScale}
-            {catColorScale}
+            {numericalColorScale}
+            {categoricalColorScale}
             bind:currentCountry
             bind:searched
             bind:currentTilePos
@@ -149,8 +112,8 @@
             {countryCodes}
             {noDataColor}
             {data}
-            {contColorScale}
-            {catColorScale}
+            {numericalColorScale}
+            {categoricalColorScale}
             bind:currentCountry
             bind:searched
             bind:currentTilePos
@@ -167,41 +130,39 @@
       >
         <TooltipContent
           tooltipHeader={currentCountryData.label}
-          tooltipBody={currentCountryData.value != null && currentCountryData.value != ""
+          tooltipBody={currentCountryData.color != null && currentCountryData.color != ""
             ? valueType == "number"
-              ? Math.round(currentCountryData.value * 10) / 10 + "%"
-              : currentCountryData.value
+              ? currentCountryData.color
+              : currentCountryData.color
             : "No data"}
         ></TooltipContent>
       </Tooltip>
     {/if}
   </div>
-  {#if showLegend}
   <div class="legend-container" bind:clientHeight={legendHeight}>
+  {#if showLegend}
       {#if valueType == "number"}
-        <ContinuousColorLegend
-          width={vizWidth}
+        <NumericalColorLegend
           title={legendTitle}
           {unitLabel}
-          {contColorScale}
+          {numericalColorScale}
           {linearOrBinned}
           {binningMode}
           units={"%"}
           {includeNoData}
           {noDataLabel}
-        ></ContinuousColorLegend>
+        ></NumericalColorLegend>
       {/if}
       {#if valueType == "string"}
         <CategoricalColorLegend
           title={legendTitle}
-          {catColorScale}
-          {usedCats}
+          {categoricalColorScale}
           {includeNoData}
           {noDataLabel}
         ></CategoricalColorLegend>
       {/if}
-  </div>
   {/if}
+</div>
   <div class="footer-container" bind:clientHeight={footerHeight}>
     {#if notesTitle || notes}
       <Footer {notesTitle} {notes} {includeLogo}></Footer>
@@ -218,6 +179,7 @@
   .viz-container {
     width: 100%;
     flex-grow: 1;
+    position: relative;
   }
   .legend-container {
     width: 100%;

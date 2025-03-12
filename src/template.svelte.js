@@ -25,8 +25,8 @@ export var data = {};
 
 // Set up state as a serializable object
 export var state = {
-  title: "",
-  subtitle: "",
+  title: "Title",
+  subtitle: "Subtitle",
 	strokeWidth: 1,
 	stroke: "#FFFFFF",
   countryCodes: true,
@@ -36,7 +36,7 @@ export var state = {
   colorScaleDiverging: "div",
   binningMode: "fixedWidth",
   numberOfBins: 4,
-  categoricalColorPalette: "default",
+  //categoricalColorPalette: "default",
   gridType: "squares",
   showLegend: true,
   legendTitle: "",
@@ -46,9 +46,9 @@ export var state = {
   domainAutoCustom: "auto",
   domainMin: undefined,
   domainMax: undefined,
-  notesTitle: "",
-  notes: "",
-  includeLogo: false,
+  notesTitle: "Source: ",
+  notes: "World Bank",
+  includeLogo: true,
   showSearchBox: false
 };
 

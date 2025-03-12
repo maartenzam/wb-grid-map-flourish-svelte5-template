@@ -1,5 +1,5 @@
 <script>
-  let { title, catColorScale, includeNoData, noDataLabel, usedCats } = $props()
+  let { title, categoricalColorScale, includeNoData, noDataLabel } = $props()
   import { wbColors } from '../utils/colors';
 </script>
 
@@ -10,16 +10,14 @@
     </div>
   </div>
   <div class="categorical-legend" aria-hidden="true">
-    {#each catColorScale.domain() as item}
-      {#if usedCats.includes(item)}
+    {#each categoricalColorScale.domain() as item}
         <div class="pill-container">
           <div
             class={`pill circle`}
-            style:background-color={catColorScale(item)}
+            style:background-color={categoricalColorScale(item)}
           ></div>
-          <div class={'label small'}>{item}</div>
+          <div class={'label'}>{item}</div>
         </div>
-      {/if}
     {/each}
     {#if includeNoData}
       <div class="pill-container">
@@ -80,6 +78,10 @@
     .gradient-container {
       gap: var(--space-s-xl);
     }
+    div.label,
+    .no-data-label {
+      font-size: var(--font-size-s-s);
+    }
     .legend-title {
       font-size: var(--font-size-s-m);
       margin-bottom: var(--space-s-xxs);
@@ -93,7 +95,7 @@
     .gradient-container {
       gap: var(--space-m-xl);
     }
-    text.tick-label,
+    div.label,
     .no-data-label {
       font-size: var(--font-size-m-s);
     }
@@ -109,6 +111,10 @@
     .legend-text-container,
     .gradient-container {
       gap: var(--space-l-xl);
+    }
+    div.label,
+    .no-data-label {
+      font-size: var(--font-size-l-s);
     }
     .legend-title {
       font-size: var(--font-size-l-m);
