@@ -1,8 +1,8 @@
 "iso3c","country","region_iso3c","region","income_level_iso3c","income_level","lifexp","gdp_ppp_pc"
-"ABW","Aruba","LCN","Latin America & Caribbean","HIC","High income",74.99,44967
 "AFG","Afghanistan","SAS","South Asia","LIC","Low income",62.88,2211
 "AGO","Angola","SSF","Sub-Saharan Africa","LMC","Lower middle income",61.93,8041
 "ALB","Albania","ECS","Europe & Central Asia","UMC","Upper middle income",76.83,21208
+"ABW","Aruba","LCN","Latin America & Caribbean","HIC","High income",74.99,44967
 "AND","Andorra","ECS","Europe & Central Asia","HIC","High income",NA,71731
 "ARE","United Arab Emirates","MEA","Middle East & North Africa","HIC","High income",79.2,76110
 "ARG","Argentina","LCN","Latin America & Caribbean","UMC","Upper middle income",76.06,30082

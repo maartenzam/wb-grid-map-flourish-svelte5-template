@@ -8152,7 +8152,7 @@ ${indent}in ${name}`).join("")}
     gridType: "squares",
     showLegend: true,
     legendTitle: "",
-    includeNoData: true,
+    includeNoData: false,
     noDataLabel: "No data",
     unitLabel: "",
     domainAutoCustom: "auto",
