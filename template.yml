@@ -3,7 +3,7 @@ id: 'wb-grid-map-flourish-template'
 name: World Bank grid map
 description: Square and hexagonal world tile grid maps for World Bank economies
 author: Maarten Lambrechts
-version: 1.3.1
+version: 2.0.1
 
 # This template is compatible with SDK version 3
 sdk_version: 3

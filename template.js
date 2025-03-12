@@ -23,8 +23,7 @@ var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "acce
   const TEMPLATE_FRAGMENT = 1;
   const TEMPLATE_USE_IMPORT_NODE = 1 << 1;
   const UNINITIALIZED = Symbol();
-  const FILENAME = Symbol("filename");
-  const DEV = true;
+  const DEV = false;
   const DERIVED = 1 << 1;
   const EFFECT = 1 << 2;
   const RENDER_EFFECT = 1 << 3;
@@ -42,11 +41,9 @@ var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "acce
   const EFFECT_RAN = 1 << 15;
   const EFFECT_TRANSPARENT = 1 << 16;
   const LEGACY_DERIVED_PROP = 1 << 17;
-  const INSPECT_EFFECT = 1 << 18;
   const HEAD_EFFECT = 1 << 19;
   const EFFECT_HAS_DERIVED = 1 << 20;
   const STATE_SYMBOL = Symbol("$state");
-  const STATE_SYMBOL_METADATA = Symbol("$state metadata");
   const LEGACY_PROPS = Symbol("legacy props");
   const LOADING_ATTR_SYMBOL = Symbol("");
   var is_array = Array.isArray;
@@ -80,7 +77,7 @@ var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "acce
     }
     micro_tasks.push(fn);
   }
-  function equals$1(value) {
+  function equals(value) {
     return value === this.v;
   }
   function safe_not_equal(a, b) {
@@ -89,139 +86,49 @@ var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "acce
   function safe_equals(value) {
     return !safe_not_equal(value, this.v);
   }
-  function bind_invalid_checkbox_value() {
-    {
-      const error = new Error(`bind_invalid_checkbox_value
-Using \`bind:value\` together with a checkbox input is not allowed. Use \`bind:checked\` instead
-https://svelte.dev/e/bind_invalid_checkbox_value`);
-      error.name = "Svelte error";
-      throw error;
-    }
-  }
-  function component_api_changed(parent, method, component) {
-    {
-      const error = new Error(`component_api_changed
-${parent} called \`${method}\` on an instance of ${component}, which is no longer valid in Svelte 5
-https://svelte.dev/e/component_api_changed`);
-      error.name = "Svelte error";
-      throw error;
-    }
-  }
-  function component_api_invalid_new(component, name) {
-    {
-      const error = new Error(`component_api_invalid_new
-Attempted to instantiate ${component} with \`new ${name}\`, which is no longer valid in Svelte 5. If this component is not under your control, set the \`compatibility.componentApi\` compiler option to \`4\` to keep it working.
-https://svelte.dev/e/component_api_invalid_new`);
-      error.name = "Svelte error";
-      throw error;
-    }
-  }
-  function derived_references_self() {
-    {
-      const error = new Error(`derived_references_self
-A derived value cannot reference itself recursively
-https://svelte.dev/e/derived_references_self`);
-      error.name = "Svelte error";
-      throw error;
-    }
-  }
   function effect_in_teardown(rune) {
     {
-      const error = new Error(`effect_in_teardown
-\`${rune}\` cannot be used inside an effect cleanup function
-https://svelte.dev/e/effect_in_teardown`);
-      error.name = "Svelte error";
-      throw error;
+      throw new Error(`https://svelte.dev/e/effect_in_teardown`);
     }
   }
   function effect_in_unowned_derived() {
     {
-      const error = new Error(`effect_in_unowned_derived
-Effect cannot be created inside a \`$derived\` value that was not itself created inside an effect
-https://svelte.dev/e/effect_in_unowned_derived`);
-      error.name = "Svelte error";
-      throw error;
+      throw new Error(`https://svelte.dev/e/effect_in_unowned_derived`);
     }
   }
   function effect_orphan(rune) {
     {
-      const error = new Error(`effect_orphan
-\`${rune}\` can only be used inside an effect (e.g. during component initialisation)
-https://svelte.dev/e/effect_orphan`);
-      error.name = "Svelte error";
-      throw error;
+      throw new Error(`https://svelte.dev/e/effect_orphan`);
     }
   }
   function effect_update_depth_exceeded() {
     {
-      const error = new Error(`effect_update_depth_exceeded
-Maximum update depth exceeded. This can happen when a reactive block or effect repeatedly sets a new value. Svelte limits the number of nested updates to prevent infinite loops
-https://svelte.dev/e/effect_update_depth_exceeded`);
-      error.name = "Svelte error";
-      throw error;
-    }
-  }
-  function invalid_snippet() {
-    {
-      const error = new Error(`invalid_snippet
-Could not \`{@render}\` snippet due to the expression being \`null\` or \`undefined\`. Consider using optional chaining \`{@render snippet?.()}\`
-https://svelte.dev/e/invalid_snippet`);
-      error.name = "Svelte error";
-      throw error;
+      throw new Error(`https://svelte.dev/e/effect_update_depth_exceeded`);
     }
   }
   function props_invalid_value(key) {
     {
-      const error = new Error(`props_invalid_value
-Cannot do \`bind:${key}={undefined}\` when \`${key}\` has a fallback value
-https://svelte.dev/e/props_invalid_value`);
-      error.name = "Svelte error";
-      throw error;
-    }
-  }
-  function rune_outside_svelte(rune) {
-    {
-      const error = new Error(`rune_outside_svelte
-The \`${rune}\` rune is only available inside \`.svelte\` and \`.svelte.js/ts\` files
-https://svelte.dev/e/rune_outside_svelte`);
-      error.name = "Svelte error";
-      throw error;
+      throw new Error(`https://svelte.dev/e/props_invalid_value`);
     }
   }
   function state_descriptors_fixed() {
     {
-      const error = new Error(`state_descriptors_fixed
-Property descriptors defined on \`$state\` objects must contain \`value\` and always be \`enumerable\`, \`configurable\` and \`writable\`.
-https://svelte.dev/e/state_descriptors_fixed`);
-      error.name = "Svelte error";
-      throw error;
+      throw new Error(`https://svelte.dev/e/state_descriptors_fixed`);
     }
   }
   function state_prototype_fixed() {
     {
-      const error = new Error(`state_prototype_fixed
-Cannot set prototype of \`$state\` object
-https://svelte.dev/e/state_prototype_fixed`);
-      error.name = "Svelte error";
-      throw error;
+      throw new Error(`https://svelte.dev/e/state_prototype_fixed`);
     }
   }
   function state_unsafe_local_read() {
     {
-      const error = new Error(`state_unsafe_local_read
-Reading state that was created inside the same derived is forbidden. Consider using \`untrack\` to read locally created state
-https://svelte.dev/e/state_unsafe_local_read`);
-      error.name = "Svelte error";
-      throw error;
+      throw new Error(`https://svelte.dev/e/state_unsafe_local_read`);
     }
   }
   function state_unsafe_mutation() {
     {
-      const error = new Error(`state_unsafe_mutation
-Updating state inside a derived or a template expression is forbidden. If the value should not be reactive, declare it without \`$state\`
-https://svelte.dev/e/state_unsafe_mutation`);
-      error.name = "Svelte error";
-      throw error;
+      throw new Error(`https://svelte.dev/e/state_unsafe_mutation`);
     }
   }
   let legacy_mode_flag = false;
@@ -229,17 +136,13 @@ https://svelte.dev/e/state_unsafe_mutation`);
   function enable_legacy_mode_flag() {
     legacy_mode_flag = true;
   }
-  let inspect_effects = /* @__PURE__ */ new Set();
-  function set_inspect_effects(v) {
-    inspect_effects = v;
-  }
-  function source(v, stack2) {
+  function source(v, stack) {
     var signal = {
       f: 0,
       // TODO ideally we could skip this altogether, but it causes type errors
       v,
       reactions: null,
-      equals: equals$1,
+      equals,
       rv: 0,
       wv: 0
     };
@@ -292,18 +195,6 @@ https://svelte.dev/e/state_unsafe_mutation`);
           untracked_writes.push(source2);
         }
       }
-      if (inspect_effects.size > 0) {
-        const inspects = Array.from(inspect_effects);
-        for (const effect2 of inspects) {
-          if ((effect2.f & CLEAN) !== 0) {
-            set_signal_status(effect2, MAYBE_DIRTY);
-          }
-          if (check_dirtiness(effect2)) {
-            update_effect(effect2);
-          }
-        }
-        inspect_effects.clear();
-      }
     }
     return value;
   }
@@ -317,10 +208,6 @@ https://svelte.dev/e/state_unsafe_mutation`);
       var flags = reaction.f;
       if ((flags & DIRTY) !== 0) continue;
       if (!runes && reaction === active_effect) continue;
-      if ((flags & INSPECT_EFFECT) !== 0) {
-        inspect_effects.add(reaction);
-        continue;
-      }
       set_signal_status(reaction, status);
       if ((flags & (CLEAN | UNOWNED)) !== 0) {
         if ((flags & DERIVED) !== 0) {
@@ -354,7 +241,7 @@ https://svelte.dev/e/state_unsafe_mutation`);
       ctx: component_context,
       deps: null,
       effects: null,
-      equals: equals$1,
+      equals,
       f: flags,
       fn,
       reactions: null,
@@ -386,7 +273,6 @@ https://svelte.dev/e/state_unsafe_mutation`);
       }
     }
   }
-  let stack = [];
   function get_derived_parent_effect(derived2) {
     var parent = derived2.parent;
     while (parent !== null) {
@@ -405,19 +291,11 @@ https://svelte.dev/e/state_unsafe_mutation`);
     var prev_active_effect = active_effect;
     set_active_effect(get_derived_parent_effect(derived2));
     {
-      let prev_inspect_effects = inspect_effects;
-      set_inspect_effects(/* @__PURE__ */ new Set());
       try {
-        if (stack.includes(derived2)) {
-          derived_references_self();
-        }
-        stack.push(derived2);
         destroy_derived_effects(derived2);
         value = update_reaction(derived2);
       } finally {
         set_active_effect(prev_active_effect);
-        set_inspect_effects(prev_inspect_effects);
-        stack.pop();
       }
     }
     return value;
@@ -431,32 +309,8 @@ https://svelte.dev/e/state_unsafe_mutation`);
       derived2.wv = increment_write_version();
     }
   }
-  var bold = "font-weight: bold";
-  var normal = "font-weight: normal";
-  function ownership_invalid_binding(parent, child2, owner) {
-    {
-      console.warn(`%c[svelte] ownership_invalid_binding
-%c${parent} passed a value to ${child2} with \`bind:\`, but the value is owned by ${owner}. Consider creating a binding between ${owner} and ${parent}
-https://svelte.dev/e/ownership_invalid_binding`, bold, normal);
-    }
-  }
-  function ownership_invalid_mutation(component, owner) {
-    {
-      console.warn(`%c[svelte] ownership_invalid_mutation
-%c${component ? `${component} mutated a value owned by ${owner}. This is strongly discouraged. Consider passing values to child components with \`bind:\`, or use a callback instead` : "Mutating a value outside the component that created it is strongly discouraged. Consider passing values to child components with `bind:`, or use a callback instead"}
-https://svelte.dev/e/ownership_invalid_mutation`, bold, normal);
-    }
-  }
-  function state_proxy_equality_mismatch(operator) {
-    {
-      console.warn(`%c[svelte] state_proxy_equality_mismatch
-%cReactive \`$state(...)\` proxies and the values they proxy have different identities. Because of this, comparisons with \`${operator}\` will produce unexpected results
-https://svelte.dev/e/state_proxy_equality_mismatch`, bold, normal);
-    }
-  }
   let hydrating = false;
   function proxy(value, parent = null, prev) {
-    var _a, _b;
     if (typeof value !== "object" || value === null || STATE_SYMBOL in value) {
       return value;
     }
@@ -474,18 +328,6 @@ https://svelte.dev/e/state_proxy_equality_mismatch`, bold, normal);
       ));
     }
     var metadata;
-    {
-      metadata = {
-        parent,
-        owners: null
-      };
-      if (prev) {
-        const prev_owners = (_b = (_a = prev.v) == null ? void 0 : _a[STATE_SYMBOL_METADATA]) == null ? void 0 : _b.owners;
-        metadata.owners = prev_owners ? new Set(prev_owners) : null;
-      } else {
-        metadata.owners = parent === null ? component_context !== null ? /* @__PURE__ */ new Set([component_context.function]) : null : /* @__PURE__ */ new Set();
-      }
-    }
     return new Proxy(
       /** @type {any} */
       value,
@@ -526,27 +368,18 @@ https://svelte.dev/e/state_proxy_equality_mismatch`, bold, normal);
           return true;
         },
         get(target, prop2, receiver) {
-          var _a2;
-          if (prop2 === STATE_SYMBOL_METADATA) {
-            return metadata;
-          }
+          var _a;
           if (prop2 === STATE_SYMBOL) {
             return value;
           }
           var s = sources.get(prop2);
           var exists = prop2 in target;
-          if (s === void 0 && (!exists || ((_a2 = get_descriptor(target, prop2)) == null ? void 0 : _a2.writable))) {
+          if (s === void 0 && (!exists || ((_a = get_descriptor(target, prop2)) == null ? void 0 : _a.writable))) {
             s = source(proxy(exists ? target[prop2] : UNINITIALIZED, metadata));
             sources.set(prop2, s);
           }
           if (s !== void 0) {
             var v = get(s);
-            {
-              var prop_metadata = v == null ? void 0 : v[STATE_SYMBOL_METADATA];
-              if (prop_metadata && (prop_metadata == null ? void 0 : prop_metadata.parent) !== metadata) {
-                widen_ownership(metadata, prop_metadata);
-              }
-            }
             return v === UNINITIALIZED ? void 0 : v;
           }
           return Reflect.get(target, prop2, receiver);
@@ -571,16 +404,13 @@ https://svelte.dev/e/state_proxy_equality_mismatch`, bold, normal);
           return descriptor;
         },
         has(target, prop2) {
-          var _a2;
-          if (prop2 === STATE_SYMBOL_METADATA) {
-            return true;
-          }
+          var _a;
           if (prop2 === STATE_SYMBOL) {
             return true;
           }
           var s = sources.get(prop2);
           var has = s !== void 0 && s.v !== UNINITIALIZED || Reflect.has(target, prop2);
-          if (s !== void 0 || active_effect !== null && (!has || ((_a2 = get_descriptor(target, prop2)) == null ? void 0 : _a2.writable))) {
+          if (s !== void 0 || active_effect !== null && (!has || ((_a = get_descriptor(target, prop2)) == null ? void 0 : _a.writable))) {
             if (s === void 0) {
               s = source(has ? proxy(target[prop2], metadata) : UNINITIALIZED);
               sources.set(prop2, s);
@@ -593,7 +423,7 @@ https://svelte.dev/e/state_proxy_equality_mismatch`, bold, normal);
           return has;
         },
         set(target, prop2, value2, receiver) {
-          var _a2;
+          var _a;
           var s = sources.get(prop2);
           var has = prop2 in target;
           if (is_proxied_array && prop2 === "length") {
@@ -609,7 +439,7 @@ https://svelte.dev/e/state_proxy_equality_mismatch`, bold, normal);
             }
           }
           if (s === void 0) {
-            if (!has || ((_a2 = get_descriptor(target, prop2)) == null ? void 0 : _a2.writable)) {
+            if (!has || ((_a = get_descriptor(target, prop2)) == null ? void 0 : _a.writable)) {
               s = source(void 0);
               set(s, proxy(value2, metadata));
               sources.set(prop2, s);
@@ -617,13 +447,6 @@ https://svelte.dev/e/state_proxy_equality_mismatch`, bold, normal);
           } else {
             has = s.v !== UNINITIALIZED;
             set(s, proxy(value2, metadata));
-          }
-          {
-            var prop_metadata = value2 == null ? void 0 : value2[STATE_SYMBOL_METADATA];
-            if (prop_metadata && (prop_metadata == null ? void 0 : prop_metadata.parent) !== metadata) {
-              widen_ownership(metadata, prop_metadata);
-            }
-            check_ownership(metadata);
           }
           var descriptor = Reflect.getOwnPropertyDescriptor(target, prop2);
           if (descriptor == null ? void 0 : descriptor.set) {
@@ -666,76 +489,6 @@ https://svelte.dev/e/state_proxy_equality_mismatch`, bold, normal);
   function update_version(signal, d = 1) {
     set(signal, signal.v + d);
   }
-  function get_proxied_value(value) {
-    if (value !== null && typeof value === "object" && STATE_SYMBOL in value) {
-      return value[STATE_SYMBOL];
-    }
-    return value;
-  }
-  function init_array_prototype_warnings() {
-    const array_prototype2 = Array.prototype;
-    const cleanup = Array.__svelte_cleanup;
-    if (cleanup) {
-      cleanup();
-    }
-    const { indexOf, lastIndexOf, includes } = array_prototype2;
-    array_prototype2.indexOf = function(item, from_index) {
-      const index2 = indexOf.call(this, item, from_index);
-      if (index2 === -1) {
-        for (let i = from_index ?? 0; i < this.length; i += 1) {
-          if (get_proxied_value(this[i]) === item) {
-            state_proxy_equality_mismatch("array.indexOf(...)");
-            break;
-          }
-        }
-      }
-      return index2;
-    };
-    array_prototype2.lastIndexOf = function(item, from_index) {
-      const index2 = lastIndexOf.call(this, item, from_index ?? this.length - 1);
-      if (index2 === -1) {
-        for (let i = 0; i <= (from_index ?? this.length - 1); i += 1) {
-          if (get_proxied_value(this[i]) === item) {
-            state_proxy_equality_mismatch("array.lastIndexOf(...)");
-            break;
-          }
-        }
-      }
-      return index2;
-    };
-    array_prototype2.includes = function(item, from_index) {
-      const has = includes.call(this, item, from_index);
-      if (!has) {
-        for (let i = 0; i < this.length; i += 1) {
-          if (get_proxied_value(this[i]) === item) {
-            state_proxy_equality_mismatch("array.includes(...)");
-            break;
-          }
-        }
-      }
-      return has;
-    };
-    Array.__svelte_cleanup = () => {
-      array_prototype2.indexOf = indexOf;
-      array_prototype2.lastIndexOf = lastIndexOf;
-      array_prototype2.includes = includes;
-    };
-  }
-  function strict_equals(a, b, equal = true) {
-    try {
-      if (a === b !== (get_proxied_value(a) === get_proxied_value(b))) {
-        state_proxy_equality_mismatch(equal ? "===" : "!==");
-      }
-    } catch {
-    }
-    return a === b === equal;
-  }
-  function equals(a, b, equal = true) {
-    if (a == b !== (get_proxied_value(a) == get_proxied_value(b))) {
-      state_proxy_equality_mismatch(equal ? "==" : "!=");
-    }
-    return a == b === equal;
-  }
   var $window;
   var is_firefox;
   var first_child_getter;
@@ -756,10 +509,6 @@ https://svelte.dev/e/state_proxy_equality_mismatch`, bold, normal);
     element_prototype.__styles = null;
     element_prototype.__e = void 0;
     Text.prototype.__t = void 0;
-    {
-      element_prototype.__svelte_meta = null;
-      init_array_prototype_warnings();
-    }
   }
   function create_text(value = "") {
     return document.createTextNode(value);
@@ -803,7 +552,6 @@ https://svelte.dev/e/state_proxy_equality_mismatch`, bold, normal);
   function clear_text_content(node) {
     node.textContent = "";
   }
-  const handled_errors = /* @__PURE__ */ new WeakSet();
   let is_throwing_error = false;
   let is_flushing = false;
   let last_scheduled_effect = null;
@@ -915,7 +663,6 @@ https://svelte.dev/e/state_proxy_equality_mismatch`, bold, normal);
     return (effect2.f & DESTROYED) === 0 && (effect2.parent === null || (effect2.parent.f & BOUNDARY_EFFECT) === 0);
   }
   function handle_error(error, effect2, previous_effect, component_context2) {
-    var _a, _b;
     if (is_throwing_error) {
       if (previous_effect === null) {
         is_throwing_error = false;
@@ -928,55 +675,9 @@ https://svelte.dev/e/state_proxy_equality_mismatch`, bold, normal);
     if (previous_effect !== null) {
       is_throwing_error = true;
     }
-    if (component_context2 === null || !(error instanceof Error) || handled_errors.has(error)) {
+    {
       propagate_error(error, effect2);
       return;
-    }
-    handled_errors.add(error);
-    const component_stack = [];
-    const effect_name = (_a = effect2.fn) == null ? void 0 : _a.name;
-    if (effect_name) {
-      component_stack.push(effect_name);
-    }
-    let current_context = component_context2;
-    while (current_context !== null) {
-      {
-        var filename = (_b = current_context.function) == null ? void 0 : _b[FILENAME];
-        if (filename) {
-          const file = filename.split("/").pop();
-          component_stack.push(file);
-        }
-      }
-      current_context = current_context.p;
-    }
-    const indent = is_firefox ? "  " : "	";
-    define_property(error, "message", {
-      value: error.message + `
-${component_stack.map((name) => `
-${indent}in ${name}`).join("")}
-`
-    });
-    define_property(error, "component_stack", {
-      value: component_stack
-    });
-    const stack2 = error.stack;
-    if (stack2) {
-      const lines = stack2.split("\n");
-      const new_lines = [];
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        if (line.includes("svelte/src/internal")) {
-          continue;
-        }
-        new_lines.push(line);
-      }
-      define_property(error, "stack", {
-        value: new_lines.join("\n")
-      });
-    }
-    propagate_error(error, effect2);
-    if (should_rethrow_error(effect2)) {
-      throw error;
     }
   }
   function schedule_possible_effect_self_invalidation(signal, effect2, root2 = true) {
@@ -1127,10 +828,6 @@ ${indent}in ${name}`).join("")}
     var was_updating_effect = is_updating_effect;
     active_effect = effect2;
     is_updating_effect = true;
-    {
-      var previous_component_fn = dev_current_component_function;
-      set_dev_current_component_function(effect2.component_function);
-    }
     try {
       if ((flags & BLOCK_EFFECT) !== 0) {
         destroy_block_effect_children(effect2);
@@ -1144,48 +841,23 @@ ${indent}in ${name}`).join("")}
       var deps = effect2.deps;
       var dep;
       if (DEV && tracing_mode_flag && (effect2.f & DIRTY) !== 0 && deps !== null) ;
-      if (DEV) {
-        dev_effect_stack.push(effect2);
-      }
+      if (DEV) ;
     } catch (error) {
       handle_error(error, effect2, previous_effect, previous_component_context || effect2.ctx);
     } finally {
       is_updating_effect = was_updating_effect;
       active_effect = previous_effect;
-      {
-        set_dev_current_component_function(previous_component_fn);
-      }
     }
-  }
-  function log_effect_stack() {
-    console.error(
-      "Last ten effects were: ",
-      dev_effect_stack.slice(-10).map((d) => d.fn)
-    );
-    dev_effect_stack = [];
   }
   function infinite_loop_guard() {
     try {
       effect_update_depth_exceeded();
     } catch (error) {
-      {
-        define_property(error, "stack", {
-          value: ""
-        });
-      }
       if (last_scheduled_effect !== null) {
         {
-          try {
-            handle_error(error, last_scheduled_effect, null, null);
-          } catch (e) {
-            log_effect_stack();
-            throw e;
-          }
+          handle_error(error, last_scheduled_effect, null);
         }
       } else {
-        {
-          log_effect_stack();
-        }
         throw error;
       }
     }
@@ -1212,9 +884,6 @@ ${indent}in ${name}`).join("")}
     } finally {
       is_flushing = false;
       last_scheduled_effect = null;
-      {
-        dev_effect_stack = [];
-      }
     }
   }
   function flush_queued_effects(effects) {
@@ -1393,13 +1062,13 @@ ${indent}in ${name}`).join("")}
   }
   function validate_effect(rune) {
     if (active_effect === null && active_reaction === null) {
-      effect_orphan(rune);
+      effect_orphan();
     }
     if (active_reaction !== null && (active_reaction.f & UNOWNED) !== 0 && active_effect === null) {
       effect_in_unowned_derived();
     }
     if (is_destroying_effect) {
-      effect_in_teardown(rune);
+      effect_in_teardown();
     }
   }
   function push_effect(effect2, parent_effect) {
@@ -1415,11 +1084,6 @@ ${indent}in ${name}`).join("")}
   function create_effect(type, fn, sync, push2 = true) {
     var is_root = (type & ROOT_EFFECT) !== 0;
     var parent_effect = active_effect;
-    {
-      while (parent_effect !== null && (parent_effect.f & INSPECT_EFFECT) !== 0) {
-        parent_effect = parent_effect.parent;
-      }
-    }
     var effect2 = {
       ctx: component_context,
       deps: null,
@@ -1436,9 +1100,6 @@ ${indent}in ${name}`).join("")}
       transitions: null,
       wv: 0
     };
-    {
-      effect2.component_function = dev_current_component_function;
-    }
     if (sync) {
       try {
         update_effect(effect2);
@@ -1472,13 +1133,8 @@ ${indent}in ${name}`).join("")}
     return effect2;
   }
   function user_effect(fn) {
-    validate_effect("$effect");
+    validate_effect();
     var defer = active_effect !== null && (active_effect.f & BRANCH_EFFECT) !== 0 && component_context !== null && !component_context.m;
-    {
-      define_property(fn, "name", {
-        value: "$effect"
-      });
-    }
     if (defer) {
       var context = (
         /** @type {ComponentContext} */
@@ -1495,12 +1151,7 @@ ${indent}in ${name}`).join("")}
     }
   }
   function user_pre_effect(fn) {
-    validate_effect("$effect.pre");
-    {
-      define_property(fn, "name", {
-        value: "$effect.pre"
-      });
-    }
+    validate_effect();
     return render_effect(fn);
   }
   function component_root(fn) {
@@ -1528,11 +1179,6 @@ ${indent}in ${name}`).join("")}
   function template_effect(fn, thunks = [], d = derived) {
     const deriveds = thunks.map(d);
     const effect2 = () => fn(...deriveds.map(get));
-    {
-      define_property(effect2, "name", {
-        value: "{expression}"
-      });
-    }
     return block(effect2);
   }
   function block(fn, flags = 0) {
@@ -1603,9 +1249,6 @@ ${indent}in ${name}`).join("")}
     var parent = effect2.parent;
     if (parent !== null && parent.first !== null) {
       unlink_effect(effect2);
-    }
-    {
-      effect2.component_function = null;
     }
     effect2.next = effect2.prev = effect2.teardown = effect2.ctx = effect2.deps = effect2.fn = effect2.nodes_start = effect2.nodes_end = null;
   }
@@ -1685,187 +1328,9 @@ ${indent}in ${name}`).join("")}
       }
     }
   }
-  const boundaries = {};
-  const chrome_pattern = /at (?:.+ \()?(.+):(\d+):(\d+)\)?$/;
-  const firefox_pattern = /@(.+):(\d+):(\d+)$/;
-  function get_stack() {
-    const stack2 = new Error().stack;
-    if (!stack2) return null;
-    const entries = [];
-    for (const line of stack2.split("\n")) {
-      let match = chrome_pattern.exec(line) ?? firefox_pattern.exec(line);
-      if (match) {
-        entries.push({
-          file: match[1],
-          line: +match[2],
-          column: +match[3]
-        });
-      }
-    }
-    return entries;
-  }
-  function get_component() {
-    var _a;
-    const stack2 = (_a = get_stack()) == null ? void 0 : _a.slice(4);
-    if (!stack2) return null;
-    for (let i = 0; i < stack2.length; i++) {
-      const entry = stack2[i];
-      const modules = boundaries[entry.file];
-      if (!modules) {
-        if (i === 0) return null;
-        continue;
-      }
-      for (const module of modules) {
-        if (module.end == null) {
-          return null;
-        }
-        if (module.start.line < entry.line && module.end.line > entry.line) {
-          return module.component;
-        }
-      }
-    }
-    return null;
-  }
-  const ADD_OWNER = Symbol("ADD_OWNER");
-  function mark_module_start() {
-    var _a, _b;
-    const start = (_a = get_stack()) == null ? void 0 : _a[2];
-    if (start) {
-      (boundaries[_b = start.file] ?? (boundaries[_b] = [])).push({
-        start,
-        // @ts-expect-error
-        end: null,
-        // @ts-expect-error we add the component at the end, since HMR will overwrite the function
-        component: null
-      });
-    }
-  }
-  function mark_module_end(component) {
-    var _a;
-    const end = (_a = get_stack()) == null ? void 0 : _a[2];
-    if (end) {
-      const boundaries_file = boundaries[end.file];
-      const boundary = boundaries_file[boundaries_file.length - 1];
-      boundary.end = end;
-      boundary.component = component;
-    }
-  }
-  function add_owner(object2, owner, global = false, skip_warning = false) {
-    if (object2 && !global) {
-      const component = dev_current_component_function;
-      const metadata = object2[STATE_SYMBOL_METADATA];
-      if (metadata && !has_owner(metadata, component)) {
-        let original = get_owner(metadata);
-        if (owner && owner[FILENAME] !== component[FILENAME] && !skip_warning) {
-          ownership_invalid_binding(component[FILENAME], owner[FILENAME], original[FILENAME]);
-        }
-      }
-    }
-    add_owner_to_object(object2, owner, /* @__PURE__ */ new Set());
-  }
-  function add_owner_effect(get_object, Component, skip_warning = false) {
-    user_pre_effect(() => {
-      add_owner(get_object(), Component, false, skip_warning);
-    });
-  }
-  function widen_ownership(from, to) {
-    if (to.owners === null) {
-      return;
-    }
-    while (from) {
-      if (from.owners === null) {
-        to.owners = null;
-        break;
-      }
-      for (const owner of from.owners) {
-        to.owners.add(owner);
-      }
-      from = from.parent;
-    }
-  }
-  function add_owner_to_object(object2, owner, seen) {
-    var _a;
-    const metadata = (
-      /** @type {ProxyMetadata} */
-      object2 == null ? void 0 : object2[STATE_SYMBOL_METADATA]
-    );
-    if (metadata) {
-      if ("owners" in metadata && metadata.owners != null) {
-        if (owner) {
-          metadata.owners.add(owner);
-        } else {
-          metadata.owners = null;
-        }
-      }
-    } else if (object2 && typeof object2 === "object") {
-      if (seen.has(object2)) return;
-      seen.add(object2);
-      if (ADD_OWNER in object2 && object2[ADD_OWNER]) {
-        render_effect(() => {
-          object2[ADD_OWNER](owner);
-        });
-      } else {
-        var proto = get_prototype_of(object2);
-        if (proto === Object.prototype) {
-          for (const key in object2) {
-            if ((_a = Object.getOwnPropertyDescriptor(object2, key)) == null ? void 0 : _a.get) {
-              let current = UNINITIALIZED;
-              render_effect(() => {
-                const next = object2[key];
-                if (current !== next) {
-                  current = next;
-                  add_owner_to_object(next, owner, seen);
-                }
-              });
-            } else {
-              add_owner_to_object(object2[key], owner, seen);
-            }
-          }
-        } else if (proto === Array.prototype) {
-          for (let i = 0; i < object2.length; i += 1) {
-            add_owner_to_object(object2[i], owner, seen);
-          }
-        }
-      }
-    }
-  }
-  function has_owner(metadata, component) {
-    if (metadata.owners === null) {
-      return true;
-    }
-    return metadata.owners.has(component) || // This helps avoid false positives when using HMR, where the component function is replaced
-    FILENAME in component && [...metadata.owners].some(
-      (owner) => (
-        /** @type {any} */
-        owner[FILENAME] === component[FILENAME]
-      )
-    ) || metadata.parent !== null && has_owner(metadata.parent, component);
-  }
-  function get_owner(metadata) {
-    var _a;
-    return ((_a = metadata == null ? void 0 : metadata.owners) == null ? void 0 : _a.values().next().value) ?? get_owner(
-      /** @type {ProxyMetadata} */
-      metadata.parent
-    );
-  }
-  function check_ownership(metadata) {
-    const component = get_component();
-    if (component && !has_owner(metadata, component)) {
-      let original = get_owner(metadata);
-      if (original[FILENAME] !== component[FILENAME]) {
-        ownership_invalid_mutation(component[FILENAME], original[FILENAME]);
-      } else {
-        ownership_invalid_mutation();
-      }
-    }
-  }
   let component_context = null;
   function set_component_context(context) {
     component_context = context;
-  }
-  let dev_current_component_function = null;
-  function set_dev_current_component_function(fn) {
-    dev_current_component_function = fn;
   }
   function push(props, runes = false, fn) {
     component_context = {
@@ -1885,18 +1350,10 @@ ${indent}in ${name}`).join("")}
         r2: source(false)
       };
     }
-    {
-      component_context.function = fn;
-      dev_current_component_function = fn;
-    }
   }
   function pop(component) {
-    var _a;
     const context_stack_item = component_context;
     if (context_stack_item !== null) {
-      if (component !== void 0) {
-        context_stack_item.x = component;
-      }
       const component_effects = context_stack_item.e;
       if (component_effects !== null) {
         var previous_effect = active_effect;
@@ -1915,13 +1372,12 @@ ${indent}in ${name}`).join("")}
         }
       }
       component_context = context_stack_item.p;
-      {
-        dev_current_component_function = ((_a = context_stack_item.p) == null ? void 0 : _a.function) ?? null;
-      }
       context_stack_item.m = true;
     }
-    return component || /** @type {T} */
-    {};
+    return (
+      /** @type {T} */
+      {}
+    );
   }
   function is_runes() {
     return !legacy_mode_flag || component_context !== null && component_context.l === null;
@@ -1929,36 +1385,6 @@ ${indent}in ${name}`).join("")}
   const PASSIVE_EVENTS = ["touchstart", "touchmove"];
   function is_passive_event(name) {
     return PASSIVE_EVENTS.includes(name);
-  }
-  function add_locations(fn, filename, locations) {
-    return (...args) => {
-      const dom = fn(...args);
-      var node = dom.nodeType === 11 ? dom.firstChild : dom;
-      assign_locations(node, filename, locations);
-      return dom;
-    };
-  }
-  function assign_location(element, filename, location) {
-    element.__svelte_meta = {
-      loc: { file: filename, line: location[0], column: location[1] }
-    };
-    if (location[2]) {
-      assign_locations(element.firstChild, filename, location[2]);
-    }
-  }
-  function assign_locations(node, filename, locations) {
-    var i = 0;
-    while (node && i < locations.length) {
-      if (node.nodeType === 1) {
-        assign_location(
-          /** @type {Element} */
-          node,
-          filename,
-          locations[i++]
-        );
-      }
-      node = node.nextSibling;
-    }
   }
   let listening_to_form_reset = false;
   function add_form_reset_listener() {
@@ -2341,24 +1767,6 @@ ${indent}in ${name}`).join("")}
     return component;
   }
   let mounted_components = /* @__PURE__ */ new WeakMap();
-  function check_target(target) {
-    if (target) {
-      component_api_invalid_new(target[FILENAME] ?? "a component", target.name);
-    }
-  }
-  function legacy_api() {
-    const component = component_context == null ? void 0 : component_context.function;
-    function error(method) {
-      var _a;
-      const parent = ((_a = get_component()) == null ? void 0 : _a[FILENAME]) ?? "Something";
-      component_api_changed(parent, method, component[FILENAME]);
-    }
-    return {
-      $destroy: () => error("$destroy()"),
-      $on: () => error("$on(...)"),
-      $set: () => error("$set(...)")
-    };
-  }
   function if_block(node, fn, [root_index, hydrate_index] = [0, 0]) {
     var anchor = node;
     var consequent_effect = null;
@@ -2600,12 +2008,6 @@ ${indent}in ${name}`).join("")}
     var mutable = (flags & EACH_ITEM_IMMUTABLE) === 0;
     var v = reactive ? mutable ? /* @__PURE__ */ mutable_source(value) : source(value) : value;
     var i = (flags & EACH_INDEX_REACTIVE) === 0 ? index2 : source(index2);
-    {
-      v.debug = () => {
-        var collection_index = typeof i === "number" ? index2 : i.v;
-        get_collection()[collection_index];
-      };
-    }
     var item = {
       i,
       v,
@@ -2678,25 +2080,11 @@ ${indent}in ${name}`).join("")}
         destroy_effect(snippet_effect);
         snippet_effect = null;
       }
-      if (snippet2 == null) {
-        invalid_snippet();
-      }
       snippet_effect = branch(() => (
         /** @type {SnippetFn} */
         snippet2(anchor, ...args)
       ));
     }, EFFECT_TRANSPARENT);
-  }
-  function wrap_snippet(component, fn) {
-    return (node, ...args) => {
-      var previous_component_function = dev_current_component_function;
-      set_dev_current_component_function(component);
-      try {
-        return fn(node, ...args);
-      } finally {
-        set_dev_current_component_function(previous_component_function);
-      }
-    };
   }
   const whitespace = [..." 	\n\r\f \v\uFEFF"];
   function to_class(value, hash, directives) {
@@ -2802,9 +2190,6 @@ ${indent}in ${name}`).join("")}
   function bind_value(input, get2, set2 = get2) {
     var runes = is_runes();
     listen_to_event_and_reset_event(input, "input", (is_reset) => {
-      if (input.type === "checkbox") {
-        bind_invalid_checkbox_value();
-      }
       var value = is_reset ? input.defaultValue : input.value;
       value = is_numberlike_input(input) ? to_number(value) : value;
       set2(value);
@@ -2828,9 +2213,6 @@ ${indent}in ${name}`).join("")}
       set2(is_numberlike_input(input) ? to_number(input.value) : input.value);
     }
     render_effect(() => {
-      if (input.type === "checkbox") {
-        bind_invalid_checkbox_value();
-      }
       var value = get2();
       if (is_numberlike_input(input) && value === to_number(input.value)) {
         return;
@@ -3011,32 +2393,6 @@ ${indent}in ${name}`).join("")}
       fn.call(this, event2);
     }
   }
-  {
-    let throw_rune_error = function(rune) {
-      if (!(rune in globalThis)) {
-        let value;
-        Object.defineProperty(globalThis, rune, {
-          configurable: true,
-          // eslint-disable-next-line getter-return
-          get: () => {
-            if (value !== void 0) {
-              return value;
-            }
-            rune_outside_svelte(rune);
-          },
-          set: (v) => {
-            value = v;
-          }
-        });
-      }
-    };
-    throw_rune_error("$state");
-    throw_rune_error("$effect");
-    throw_rune_error("$derived");
-    throw_rune_error("$inspect");
-    throw_rune_error("$props");
-    throw_rune_error("$bindable");
-  }
   let is_store_binding = false;
   function capture_store_binding(fn) {
     var previous_is_store_binding = is_store_binding;
@@ -3090,7 +2446,7 @@ ${indent}in ${name}`).join("")}
     };
     if (prop_value === void 0 && fallback !== void 0) {
       if (setter && runes) {
-        props_invalid_value(key);
+        props_invalid_value();
       }
       prop_value = get_fallback();
       if (setter) setter(prop_value);
@@ -3169,12 +2525,8 @@ ${indent}in ${name}`).join("")}
   const PUBLIC_VERSION = "5";
   if (typeof window !== "undefined")
     (window.__svelte || (window.__svelte = { v: /* @__PURE__ */ new Set() })).v.add(PUBLIC_VERSION);
-  mark_module_start();
-  Header[FILENAME] = "src/template/Header.svelte";
-  var root$a = add_locations(/* @__PURE__ */ template2(`<div class="header svelte-1cps9pi"><h2 class="title svelte-1cps9pi"> </h2> <h3 class="subtitle svelte-1cps9pi"> </h3></div>`), Header[FILENAME], [[5, 0, [[6, 2], [7, 2]]]]);
+  var root$a = /* @__PURE__ */ template2(`<div class="header svelte-1cps9pi"><h2 class="title svelte-1cps9pi"> </h2> <h3 class="subtitle svelte-1cps9pi"> </h3></div>`);
   function Header($$anchor, $$props) {
-    check_target(new.target);
-    push($$props, true, Header);
     var div = root$a();
     var h2 = child(div);
     var text = child(h2);
@@ -3185,19 +2537,11 @@ ${indent}in ${name}`).join("")}
       set_text(text_1, $$props.subtitle);
     });
     append($$anchor, div);
-    return pop({ ...legacy_api() });
   }
-  mark_module_end(Header);
   const logo = "data:image/png;base64,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";
-  mark_module_start();
-  Footer[FILENAME] = "src/template/Footer.svelte";
-  var root_1$4 = add_locations(/* @__PURE__ */ template2(`<div class="logo svelte-g4y3d9"><img alt="World Bank logo" class="svelte-g4y3d9"></div>`), Footer[FILENAME], [[9, 4, [[9, 22]]]]);
-  var root$9 = add_locations(/* @__PURE__ */ template2(`<div class="footer svelte-g4y3d9"><div class="notes svelte-g4y3d9"><span class="notes-title svelte-g4y3d9"> </span> </div> <!></div>`), Footer[FILENAME], [
-    [6, 0, [[7, 4, [[7, 23]]]]]
-  ]);
+  var root_1$4 = /* @__PURE__ */ template2(`<div class="logo svelte-g4y3d9"><img alt="World Bank logo" class="svelte-g4y3d9"></div>`);
+  var root$9 = /* @__PURE__ */ template2(`<div class="footer svelte-g4y3d9"><div class="notes svelte-g4y3d9"><span class="notes-title svelte-g4y3d9"> </span> </div> <!></div>`);
   function Footer($$anchor, $$props) {
-    check_target(new.target);
-    push($$props, true, Footer);
     var div = root$9();
     var div_1 = child(div);
     var span = child(div_1);
@@ -3220,9 +2564,7 @@ ${indent}in ${name}`).join("")}
       set_text(text_1, $$props.notes);
     });
     append($$anchor, div);
-    return pop({ ...legacy_api() });
   }
-  mark_module_end(Footer);
   const hexGrid = [
     {
       "q": 0,
@@ -5814,8 +5156,6 @@ ${indent}in ${name}`).join("")}
     });
     return hexGrid2;
   };
-  mark_module_start();
-  WorldHexGrid[FILENAME] = "src/WorldHexGrid.svelte";
   var on_mouseover$1 = (_, currentCountry, hex2, searched, tooltipVisible) => {
     currentCountry(get(hex2).iso3c);
     searched(false);
@@ -5825,19 +5165,18 @@ ${indent}in ${name}`).join("")}
     currentCountry(null);
     tooltipVisible(false);
   };
-  var root_2$3 = add_locations(/* @__PURE__ */ ns_template(`<text class="country-label svelte-166i5y3" paint-order="stroke" stroke-linejoin="round"> </text>`), WorldHexGrid[FILENAME], [[80, 6]]);
-  var root_1$3 = add_locations(/* @__PURE__ */ ns_template(`<polygon></polygon><!>`, 1), WorldHexGrid[FILENAME], [[48, 4]]);
-  var root_3$3 = add_locations(/* @__PURE__ */ ns_template(`<polygon></polygon><polygon></polygon>`, 1), WorldHexGrid[FILENAME], [[95, 4], [102, 4]]);
-  var root$8 = add_locations(/* @__PURE__ */ ns_template(`<g><!><!></g>`), WorldHexGrid[FILENAME], [[45, 0]]);
+  var root_2$3 = /* @__PURE__ */ ns_template(`<text class="country-label svelte-166i5y3" paint-order="stroke" stroke-linejoin="round"> </text>`);
+  var root_1$3 = /* @__PURE__ */ ns_template(`<polygon></polygon><!>`, 1);
+  var root_3$3 = /* @__PURE__ */ ns_template(`<polygon></polygon><polygon></polygon>`, 1);
+  var root$8 = /* @__PURE__ */ ns_template(`<g><!><!></g>`);
   function WorldHexGrid($$anchor, $$props) {
-    check_target(new.target);
-    push($$props, true, WorldHexGrid);
+    push($$props, true);
     let currentCountry = prop($$props, "currentCountry", 15), currentTilePos = prop($$props, "currentTilePos", 15), searched = prop($$props, "searched", 15), tooltipVisible = prop($$props, "tooltipVisible", 15);
     let valueType = /* @__PURE__ */ derived(() => $$props.data.plotdata.metadata.color.type);
     const shift2 = Math.cos(Math.PI / 180 * 30);
     let size = /* @__PURE__ */ derived(() => Math.min($$props.width / (33 * 3 / 2), $$props.height / (22 * 2 * shift2)));
     let hexLayout = /* @__PURE__ */ derived(() => generateHexLayout(hexGrid, get(size), shift2));
-    let currentTile = /* @__PURE__ */ derived(() => get(hexLayout).find((d) => equals(d.iso3c, currentCountry())));
+    let currentTile = /* @__PURE__ */ derived(() => get(hexLayout).find((d) => d.iso3c == currentCountry()));
     let gridWidth = /* @__PURE__ */ derived(() => Math.round(max$1(get(hexLayout).map((d) => d.x))));
     let gridShift = /* @__PURE__ */ derived(() => ($$props.width - get(gridWidth)) / 2);
     user_effect(() => {
@@ -5890,7 +5229,7 @@ ${indent}in ${name}`).join("")}
           set_style(polygon, "stroke", $$props.stroke);
         },
         [
-          () => $$props.data.plotdata.find((d) => equals(d.iso3c, get(hex2).iso3c)) && equals($$props.data.plotdata.find((d) => equals(d.iso3c, get(hex2).iso3c)).color, null, false) ? equals(get(valueType), "string") ? $$props.categoricalColorScale($$props.data.plotdata.find((d) => equals(d.iso3c, get(hex2).iso3c)).color) : $$props.numericalColorScale($$props.data.plotdata.find((d) => equals(d.iso3c, get(hex2).iso3c)).color) : $$props.noDataColor
+          () => $$props.data.plotdata.find((d) => d.iso3c == get(hex2).iso3c) && $$props.data.plotdata.find((d) => d.iso3c == get(hex2).iso3c).color != null ? get(valueType) == "string" ? $$props.categoricalColorScale($$props.data.plotdata.find((d) => d.iso3c == get(hex2).iso3c).color) : $$props.numericalColorScale($$props.data.plotdata.find((d) => d.iso3c == get(hex2).iso3c).color) : $$props.noDataColor
         ]
       );
       event("focus", polygon, () => {
@@ -5930,13 +5269,10 @@ ${indent}in ${name}`).join("")}
     }
     template_effect(() => set_attribute(g, "transform", `translate(${get(gridShift)},0)`));
     append($$anchor, g);
-    return pop({ ...legacy_api() });
+    pop();
   }
-  mark_module_end(WorldHexGrid);
   delegate(["mouseover", "mouseout"]);
   const squareGrid = [{ "iso3c": "FIN", "x": 16, "y": 1, "country": "Finland", "region_iso3c": "ECS" }, { "iso3c": "GRL", "x": 8, "y": 1, "country": "Greenland", "region_iso3c": "ECS" }, { "iso3c": "ISL", "x": 10, "y": 1, "country": "Iceland", "region_iso3c": "ECS" }, { "iso3c": "NOR", "x": 14, "y": 1, "country": "Norway", "region_iso3c": "ECS" }, { "iso3c": "SWE", "x": 15, "y": 1, "country": "Sweden", "region_iso3c": "ECS" }, { "iso3c": "EST", "x": 16, "y": 2, "country": "Estonia", "region_iso3c": "ECS" }, { "iso3c": "LVA", "x": 16, "y": 3, "country": "Latvia", "region_iso3c": "ECS" }, { "iso3c": "FRO", "x": 11, "y": 3, "country": "Faroe Islands", "region_iso3c": "ECS" }, { "iso3c": "LTU", "x": 15, "y": 3, "country": "Lithuania", "region_iso3c": "ECS" }, { "iso3c": "IMN", "x": 10, "y": 4, "country": "Isle of Man", "region_iso3c": "ECS" }, { "iso3c": "MAF", "x": 8, "y": 4, "country": "Saint Martin", "region_iso3c": "LCN" }, { "iso3c": "BLR", "x": 16, "y": 4, "country": "Belarus", "region_iso3c": "ECS" }, { "iso3c": "POL", "x": 15, "y": 4, "country": "Poland", "region_iso3c": "ECS" }, { "iso3c": "GBR", "x": 11, "y": 4, "country": "Great Britain and Northern Ireland", "region_iso3c": "ECS" }, { "iso3c": "CAN", "x": 1, "y": 4, "country": "Canada", "region_iso3c": "NAC" }, { "iso3c": "DNK", "x": 13, "y": 4, "country": "Denmark", "region_iso3c": "ECS" }, { "iso3c": "BMU", "x": 4, "y": 5, "country": "Bermuda", "region_iso3c": "NAC" }, { "iso3c": "NLD", "x": 12, "y": 5, "country": "Netherlands", "region_iso3c": "ECS" }, { "iso3c": "IRL", "x": 10, "y": 5, "country": "Ireland", "region_iso3c": "ECS" }, { "iso3c": "VGB", "x": 7, "y": 5, "country": "Virgin Islands British", "region_iso3c": "LCN" }, { "iso3c": "SXM", "x": 8, "y": 5, "country": "St Maarten", "region_iso3c": "LCN" }, { "iso3c": "CZE", "x": 14, "y": 5, "country": "Czech Republic", "region_iso3c": "ECS" }, { "iso3c": "SVK", "x": 15, "y": 5, "country": "Slovakia", "region_iso3c": "ECS" }, { "iso3c": "UKR", "x": 16, "y": 5, "country": "Ukraine", "region_iso3c": "ECS" }, { "iso3c": "USA", "x": 1, "y": 5, "country": "United States of America", "region_iso3c": "NAC" }, { "iso3c": "DEU", "x": 13, "y": 5, "country": "Germany", "region_iso3c": "ECS" }, { "iso3c": "MDA", "x": 17, "y": 5, "country": "Moldova (Republic of)", "region_iso3c": "ECS" }, { "iso3c": "KAZ", "x": 21, "y": 5, "country": "Kazakhstan", "region_iso3c": "ECS" }, { "iso3c": "RUS", "x": 22, "y": 5, "country": "Russian Federation", "region_iso3c": "ECS" }, { "iso3c": "BHS", "x": 4, "y": 6, "country": "Bahamas", "region_iso3c": "LCN" }, { "iso3c": "LIE", "x": 14, "y": 6, "country": "Liechtenstein", "region_iso3c": "ECS" }, { "iso3c": "BEL", "x": 12, "y": 6, "country": "Belgium", "region_iso3c": "ECS" }, { "iso3c": "VIR", "x": 7, "y": 6, "country": "Virgin Islands US", "region_iso3c": "LCN" }, { "iso3c": "TCA", "x": 5, "y": 6, "country": "Turks and Caicos Islands", "region_iso3c": "LCN" }, { "iso3c": "ATG", "x": 8, "y": 6, "country": "Antigua & Barbuda", "region_iso3c": "LCN" }, { "iso3c": "AUT", "x": 15, "y": 6, "country": "Austria", "region_iso3c": "ECS" }, { "iso3c": "HUN", "x": 16, "y": 6, "country": "Hungary", "region_iso3c": "ECS" }, { "iso3c": "KGZ", "x": 21, "y": 6, "country": "Kyrgyzstan", "region_iso3c": "ECS" }, { "iso3c": "ROU", "x": 17, "y": 6, "country": "Romania", "region_iso3c": "ECS" }, { "iso3c": "UZB", "x": 20, "y": 6, "country": "Uzbekistan", "region_iso3c": "ECS" }, { "iso3c": "MEX", "x": 1, "y": 6, "country": "Mexico", "region_iso3c": "LCN" }, { "iso3c": "LUX", "x": 13, "y": 6, "country": "Luxembourg", "region_iso3c": "ECS" }, { "iso3c": "ARM", "x": 19, "y": 6, "country": "Armenia", "region_iso3c": "ECS" }, { "iso3c": "MNG", "x": 22, "y": 6, "country": "Mongolia", "region_iso3c": "EAS" }, { "iso3c": "PRK", "x": 23, "y": 6, "country": "North Korea", "region_iso3c": "EAS" }, { "iso3c": "KOR", "x": 24, "y": 6, "country": "South Korea", "region_iso3c": "EAS" }, { "iso3c": "JPN", "x": 27, "y": 6, "country": "Japan", "region_iso3c": "EAS" }, { "iso3c": "TWN", "x": 25, "y": 7, "country": "Taiwan", "region_iso3c": "EAS" }, { "iso3c": "HKG", "x": 24, "y": 7, "country": "Hong Kong", "region_iso3c": "EAS" }, { "iso3c": "CUB", "x": 4, "y": 7, "country": "Cuba", "region_iso3c": "LCN" }, { "iso3c": "FRA", "x": 12, "y": 7, "country": "France", "region_iso3c": "ECS" }, { "iso3c": "CHE", "x": 13, "y": 7, "country": "Switzerland", "region_iso3c": "ECS" }, { "iso3c": "AND", "x": 11, "y": 7, "country": "Andorra", "region_iso3c": "ECS" }, { "iso3c": "AZE", "x": 19, "y": 7, "country": "Azerbaijan", "region_iso3c": "ECS" }, { "iso3c": "GEO", "x": 18, "y": 7, "country": "Georgia", "region_iso3c": "ECS" }, { "iso3c": "PRI", "x": 7, "y": 7, "country": "Puerto Rico", "region_iso3c": "LCN" }, { "iso3c": "DOM", "x": 6, "y": 7, "country": "Dominican Republic", "region_iso3c": "LCN" }, { "iso3c": "BLZ", "x": 2, "y": 7, "country": "Belize", "region_iso3c": "LCN" }, { "iso3c": "CYM", "x": 3, "y": 7, "country": "Cayman Islands", "region_iso3c": "LCN" }, { "iso3c": "HTI", "x": 5, "y": 7, "country": "Haiti", "region_iso3c": "LCN" }, { "iso3c": "DMA", "x": 8, "y": 7, "country": "Dominica", "region_iso3c": "LCN" }, { "iso3c": "SVN", "x": 14, "y": 7, "country": "Slovenia", "region_iso3c": "ECS" }, { "iso3c": "BIH", "x": 15, "y": 7, "country": "Bosnia & Herzegovina", "region_iso3c": "ECS" }, { "iso3c": "BGR", "x": 17, "y": 7, "country": "Bulgaria", "region_iso3c": "ECS" }, { "iso3c": "SRB", "x": 16, "y": 7, "country": "Serbia", "region_iso3c": "ECS" }, { "iso3c": "TJK", "x": 21, "y": 7, "country": "Tajikistan", "region_iso3c": "ECS" }, { "iso3c": "TKM", "x": 20, "y": 7, "country": "Turkmenistan", "region_iso3c": "ECS" }, { "iso3c": "GTM", "x": 1, "y": 7, "country": "Guatemala", "region_iso3c": "LCN" }, { "iso3c": "NPL", "x": 22, "y": 7, "country": "Nepal", "region_iso3c": "SAS" }, { "iso3c": "CHN", "x": 23, "y": 7, "country": "China", "region_iso3c": "EAS" }, { "iso3c": "MAC", "x": 25, "y": 8, "country": "Macao SAR", "region_iso3c": "EAS" }, { "iso3c": "JAM", "x": 4, "y": 8, "country": "Jamaica", "region_iso3c": "LCN" }, { "iso3c": "PRT", "x": 10, "y": 8, "country": "Portugal", "region_iso3c": "ECS" }, { "iso3c": "ESP", "x": 11, "y": 8, "country": "Spain", "region_iso3c": "ECS" }, { "iso3c": "MCO", "x": 12, "y": 8, "country": "Monaco", "region_iso3c": "ECS" }, { "iso3c": "ITA", "x": 13, "y": 8, "country": "Italy", "region_iso3c": "ECS" }, { "iso3c": "TUR", "x": 18, "y": 8, "country": "Turkey", "region_iso3c": "ECS" }, { "iso3c": "KNA", "x": 7, "y": 8, "country": "St. Kitts & Nevis", "region_iso3c": "LCN" }, { "iso3c": "HND", "x": 2, "y": 8, "country": "Honduras", "region_iso3c": "LCN" }, { "iso3c": "LCA", "x": 8, "y": 8, "country": "St. Lucia", "region_iso3c": "LCN" }, { "iso3c": "HRV", "x": 14, "y": 8, "country": "Croatia", "region_iso3c": "ECS" }, { "iso3c": "AFG", "x": 20, "y": 8, "country": "Afghanistan", "region_iso3c": "SAS" }, { "iso3c": "IRN", "x": 19, "y": 8, "country": "Iran (Islamic Republic of)", "region_iso3c": "MEA" }, { "iso3c": "XKX", "x": 16, "y": 8, "country": "Kosovo", "region_iso3c": "ECS" }, { "iso3c": "MKD", "x": 17, "y": 8, "country": "Macedonia", "region_iso3c": "ECS" }, { "iso3c": "MNE", "x": 15, "y": 8, "country": "Montenegro", "region_iso3c": "ECS" }, { "iso3c": "PAK", "x": 21, "y": 8, "country": "Pakistan", "region_iso3c": "SAS" }, { "iso3c": "IND", "x": 22, "y": 8, "country": "India", "region_iso3c": "SAS" }, { "iso3c": "SLV", "x": 1, "y": 8, "country": "El Salvador", "region_iso3c": "LCN" }, { "iso3c": "BTN", "x": 23, "y": 8, "country": "Bhutan", "region_iso3c": "SAS" }, { "iso3c": "LAO", "x": 24, "y": 8, "country": "Lao People's Democratic Republic", "region_iso3c": "EAS" }, { "iso3c": "VNM", "x": 25, "y": 9, "country": "Viet Nam", "region_iso3c": "EAS" }, { "iso3c": "MMR", "x": 24, "y": 9, "country": "Myanmar", "region_iso3c": "EAS" }, { "iso3c": "SMR", "x": 13, "y": 9, "country": "San Marino", "region_iso3c": "ECS" }, { "iso3c": "IRQ", "x": 19, "y": 9, "country": "Iraq", "region_iso3c": "MEA" }, { "iso3c": "SYR", "x": 18, "y": 9, "country": "Syria", "region_iso3c": "MEA" }, { "iso3c": "NIC", "x": 2, "y": 9, "country": "Nicaragua", "region_iso3c": "LCN" }, { "iso3c": "VCT", "x": 7, "y": 9, "country": "St. Vincent & the Grenadines", "region_iso3c": "LCN" }, { "iso3c": "BRB", "x": 8, "y": 9, "country": "Barbados", "region_iso3c": "LCN" }, { "iso3c": "ALB", "x": 15, "y": 9, "country": "Albania", "region_iso3c": "ECS" }, { "iso3c": "GRC", "x": 16, "y": 9, "country": "Greece", "region_iso3c": "ECS" }, { "iso3c": "LKA", "x": 22, "y": 9, "country": "Sri Lanka", "region_iso3c": "SAS" }, { "iso3c": "GIB", "x": 11, "y": 9, "country": "Gibraltar", "region_iso3c": "ECS" }, { "iso3c": "MDV", "x": 21, "y": 9, "country": "Maldives", "region_iso3c": "SAS" }, { "iso3c": "BGD", "x": 23, "y": 9, "country": "Bangladesh", "region_iso3c": "SAS" }, { "iso3c": "MNP", "x": 29, "y": 10, "country": "Northern Mariana Islands", "region_iso3c": "EAS" }, { "iso3c": "KHM", "x": 25, "y": 10, "country": "Cambodia", "region_iso3c": "EAS" }, { "iso3c": "THA", "x": 24, "y": 10, "country": "Thailand", "region_iso3c": "EAS" }, { "iso3c": "PHL", "x": 27, "y": 10, "country": "Philippines", "region_iso3c": "EAS" }, { "iso3c": "MLT", "x": 14, "y": 10, "country": "Malta", "region_iso3c": "MEA" }, { "iso3c": "KWT", "x": 20, "y": 10, "country": "Kuwait", "region_iso3c": "MEA" }, { "iso3c": "LBN", "x": 18, "y": 10, "country": "Lebanon", "region_iso3c": "MEA" }, { "iso3c": "CUW", "x": 6, "y": 10, "country": "Curacao", "region_iso3c": "LCN" }, { "iso3c": "GRD", "x": 8, "y": 10, "country": "Grenada", "region_iso3c": "LCN" }, { "iso3c": "ABW", "x": 5, "y": 10, "country": "Aruba", "region_iso3c": "LCN" }, { "iso3c": "CRI", "x": 2, "y": 10, "country": "Costa Rica", "region_iso3c": "LCN" }, { "iso3c": "CYP", "x": 16, "y": 10, "country": "Cyprus", "region_iso3c": "ECS" }, { "iso3c": "JOR", "x": 19, "y": 10, "country": "Jordan", "region_iso3c": "MEA" }, { "iso3c": "GUM", "x": 29, "y": 11, "country": "Guam", "region_iso3c": "EAS" }, { "iso3c": "MYS", "x": 24, "y": 11, "country": "Malaysia", "region_iso3c": "EAS" }, { "iso3c": "BHR", "x": 20, "y": 11, "country": "Bahrain", "region_iso3c": "MEA" }, { "iso3c": "SAU", "x": 19, "y": 11, "country": "Saudi Arabia", "region_iso3c": "MEA" }, { "iso3c": "PSE", "x": 17, "y": 11, "country": "West Bank and Gaza", "region_iso3c": "MEA" }, { "iso3c": "ISR", "x": 18, "y": 11, "country": "Israel", "region_iso3c": "MEA" }, { "iso3c": "TTO", "x": 8, "y": 11, "country": "Trinidad & Tobago", "region_iso3c": "LCN" }, { "iso3c": "PAN", "x": 3, "y": 11, "country": "Panama", "region_iso3c": "LCN" }, { "iso3c": "DZA", "x": 13, "y": 11, "country": "Algeria", "region_iso3c": "MEA" }, { "iso3c": "MAR", "x": 12, "y": 11, "country": "Morocco", "region_iso3c": "MEA" }, { "iso3c": "TUN", "x": 14, "y": 11, "country": "Tunisia", "region_iso3c": "MEA" }, { "iso3c": "QAT", "x": 21, "y": 11, "country": "Qatar", "region_iso3c": "MEA" }, { "iso3c": "MHL", "x": 29, "y": 12, "country": "Marshall Islands", "region_iso3c": "EAS" }, { "iso3c": "SGP", "x": 24, "y": 12, "country": "Singapore", "region_iso3c": "EAS" }, { "iso3c": "EGY", "x": 16, "y": 12, "country": "Egypt", "region_iso3c": "MEA" }, { "iso3c": "LBY", "x": 15, "y": 12, "country": "Libya", "region_iso3c": "MEA" }, { "iso3c": "ARE", "x": 21, "y": 12, "country": "United Arab Emirates", "region_iso3c": "MEA" }, { "iso3c": "OMN", "x": 20, "y": 12, "country": "Oman", "region_iso3c": "MEA" }, { "iso3c": "YEM", "x": 19, "y": 12, "country": "Yemen", "region_iso3c": "MEA" }, { "iso3c": "VEN", "x": 5, "y": 12, "country": "Venezuela", "region_iso3c": "LCN" }, { "iso3c": "GUY", "x": 6, "y": 12, "country": "Guyana", "region_iso3c": "LCN" }, { "iso3c": "SUR", "x": 7, "y": 12, "country": "Suriname", "region_iso3c": "LCN" }, { "iso3c": "MLI", "x": 13, "y": 12, "country": "Mali", "region_iso3c": "SSF" }, { "iso3c": "MRT", "x": 12, "y": 12, "country": "Mauritania", "region_iso3c": "SSF" }, { "iso3c": "NER", "x": 14, "y": 12, "country": "Niger", "region_iso3c": "SSF" }, { "iso3c": "SEN", "x": 11, "y": 12, "country": "Senegal", "region_iso3c": "SSF" }, { "iso3c": "COL", "x": 4, "y": 12, "country": "Colombia", "region_iso3c": "LCN" }, { "iso3c": "PLW", "x": 28, "y": 13, "country": "Palau", "region_iso3c": "EAS" }, { "iso3c": "FSM", "x": 29, "y": 13, "country": "Micronesia (Federated States of)", "region_iso3c": "EAS" }, { "iso3c": "BRN", "x": 25, "y": 13, "country": "Brunei Darussalam", "region_iso3c": "EAS" }, { "iso3c": "CPV", "x": 10, "y": 13, "country": "Cabo Verde", "region_iso3c": "SSF" }, { "iso3c": "SDN", "x": 16, "y": 13, "country": "Sudan", "region_iso3c": "SSF" }, { "iso3c": "TCD", "x": 15, "y": 13, "country": "Chad", "region_iso3c": "SSF" }, { "iso3c": "GMB", "x": 12, "y": 13, "country": "Gambia", "region_iso3c": "SSF" }, { "iso3c": "ECU", "x": 4, "y": 13, "country": "Ecuador", "region_iso3c": "LCN" }, { "iso3c": "BFA", "x": 13, "y": 13, "country": "Burkina Faso", "region_iso3c": "SSF" }, { "iso3c": "DJI", "x": 18, "y": 13, "country": "Djibouti", "region_iso3c": "MEA" }, { "iso3c": "ERI", "x": 17, "y": 13, "country": "Eritrea", "region_iso3c": "SSF" }, { "iso3c": "GNB", "x": 11, "y": 13, "country": "Guinea-Bissau", "region_iso3c": "SSF" }, { "iso3c": "TGO", "x": 14, "y": 13, "country": "Togo", "region_iso3c": "SSF" }, { "iso3c": "BRA", "x": 5, "y": 13, "country": "Brazil", "region_iso3c": "LCN" }, { "iso3c": "KIR", "x": 29, "y": 14, "country": "Kiribati", "region_iso3c": "EAS" }, { "iso3c": "NRU", "x": 28, "y": 14, "country": "Nauru", "region_iso3c": "EAS" }, { "iso3c": "SLB", "x": 27, "y": 14, "country": "Solomon Islands", "region_iso3c": "EAS" }, { "iso3c": "PNG", "x": 26, "y": 14, "country": "Papua New Guinea", "region_iso3c": "EAS" }, { "iso3c": "IDN", "x": 25, "y": 14, "country": "Indonesia", "region_iso3c": "EAS" }, { "iso3c": "PER", "x": 4, "y": 14, "country": "Peru", "region_iso3c": "LCN" }, { "iso3c": "SSD", "x": 16, "y": 14, "country": "South Sudan", "region_iso3c": "SSF" }, { "iso3c": "CAF", "x": 15, "y": 14, "country": "Central African Republic", "region_iso3c": "SSF" }, { "iso3c": "WSM", "x": 1, "y": 14, "country": "Samoa", "region_iso3c": "EAS" }, { "iso3c": "BOL", "x": 5, "y": 14, "country": "Bolivia", "region_iso3c": "LCN" }, { "iso3c": "BEN", "x": 14, "y": 14, "country": "Benin", "region_iso3c": "SSF" }, { "iso3c": "ETH", "x": 17, "y": 14, "country": "Ethiopia", "region_iso3c": "SSF" }, { "iso3c": "GHA", "x": 13, "y": 14, "country": "Ghana", "region_iso3c": "SSF" }, { "iso3c": "LBR", "x": 12, "y": 14, "country": "Liberia", "region_iso3c": "SSF" }, { "iso3c": "SOM", "x": 18, "y": 14, "country": "Somalia", "region_iso3c": "SSF" }, { "iso3c": "GIN", "x": 11, "y": 14, "country": "Guinea", "region_iso3c": "SSF" }, { "iso3c": "URY", "x": 6, "y": 15, "country": "Uruguay", "region_iso3c": "LCN" }, { "iso3c": "PRY", "x": 5, "y": 15, "country": "Paraguay", "region_iso3c": "LCN" }, { "iso3c": "VUT", "x": 28, "y": 15, "country": "Vanuatu", "region_iso3c": "EAS" }, { "iso3c": "TUV", "x": 29, "y": 15, "country": "Tuvalu", "region_iso3c": "EAS" }, { "iso3c": "TLS", "x": 25, "y": 15, "country": "Timor-Leste", "region_iso3c": "EAS" }, { "iso3c": "CHL", "x": 4, "y": 15, "country": "Chile", "region_iso3c": "LCN" }, { "iso3c": "UGA", "x": 16, "y": 15, "country": "Uganda", "region_iso3c": "SSF" }, { "iso3c": "SLE", "x": 11, "y": 15, "country": "Sierra Leone", "region_iso3c": "SSF" }, { "iso3c": "ASM", "x": 1, "y": 15, "country": "American Samoa", "region_iso3c": "EAS" }, { "iso3c": "CMR", "x": 14, "y": 15, "country": "Cameroon", "region_iso3c": "SSF" }, { "iso3c": "CIV", "x": 12, "y": 15, "country": "Côte d'Ivoire", "region_iso3c": "SSF" }, { "iso3c": "NGA", "x": 13, "y": 15, "country": "Nigeria", "region_iso3c": "SSF" }, { "iso3c": "RWA", "x": 15, "y": 15, "country": "Rwanda", "region_iso3c": "SSF" }, { "iso3c": "KEN", "x": 17, "y": 15, "country": "Kenya", "region_iso3c": "SSF" }, { "iso3c": "ARG", "x": 5, "y": 16, "country": "Argentina", "region_iso3c": "LCN" }, { "iso3c": "FJI", "x": 29, "y": 16, "country": "Fiji", "region_iso3c": "EAS" }, { "iso3c": "NCL", "x": 28, "y": 16, "country": "New Caledonia", "region_iso3c": "EAS" }, { "iso3c": "AUS", "x": 26, "y": 16, "country": "Australia", "region_iso3c": "EAS" }, { "iso3c": "PYF", "x": 2, "y": 16, "country": "French Polynesia", "region_iso3c": "EAS" }, { "iso3c": "BDI", "x": 16, "y": 16, "country": "Burundi", "region_iso3c": "SSF" }, { "iso3c": "GNQ", "x": 14, "y": 16, "country": "Equatorial Guinea", "region_iso3c": "SSF" }, { "iso3c": "TZA", "x": 17, "y": 16, "country": "Tanzania", "region_iso3c": "SSF" }, { "iso3c": "SYC", "x": 19, "y": 16, "country": "Seychelles", "region_iso3c": "SSF" }, { "iso3c": "GAB", "x": 13, "y": 16, "country": "Gabon", "region_iso3c": "SSF" }, { "iso3c": "COD", "x": 15, "y": 16, "country": "Congo (Democratic Republic of the)", "region_iso3c": "SSF" }, { "iso3c": "COG", "x": 13, "y": 17, "country": "Congo", "region_iso3c": "SSF" }, { "iso3c": "NZL", "x": 27, "y": 17, "country": "New Zealand", "region_iso3c": "EAS" }, { "iso3c": "MOZ", "x": 16, "y": 17, "country": "Mozambique", "region_iso3c": "SSF" }, { "iso3c": "TON", "x": 1, "y": 17, "country": "Tonga", "region_iso3c": "EAS" }, { "iso3c": "MWI", "x": 15, "y": 17, "country": "Malawi", "region_iso3c": "SSF" }, { "iso3c": "COM", "x": 18, "y": 17, "country": "Comoros", "region_iso3c": "SSF" }, { "iso3c": "STP", "x": 11, "y": 17, "country": "Sao Tome and Principe", "region_iso3c": "SSF" }, { "iso3c": "ZMB", "x": 14, "y": 17, "country": "Zambia", "region_iso3c": "SSF" }, { "iso3c": "ZWE", "x": 15, "y": 18, "country": "Zimbabwe", "region_iso3c": "SSF" }, { "iso3c": "AGO", "x": 13, "y": 18, "country": "Angola", "region_iso3c": "SSF" }, { "iso3c": "MDG", "x": 19, "y": 18, "country": "Madagascar", "region_iso3c": "SSF" }, { "iso3c": "MUS", "x": 20, "y": 18, "country": "Mauritius", "region_iso3c": "SSF" }, { "iso3c": "BWA", "x": 14, "y": 18, "country": "Botswana", "region_iso3c": "SSF" }, { "iso3c": "NAM", "x": 13, "y": 19, "country": "Namibia", "region_iso3c": "SSF" }, { "iso3c": "SWZ", "x": 14, "y": 19, "country": "Swaziland", "region_iso3c": "SSF" }, { "iso3c": "LSO", "x": 15, "y": 19, "country": "Lesotho", "region_iso3c": "SSF" }, { "iso3c": "ZAF", "x": 14, "y": 20, "country": "South Africa", "region_iso3c": "SSF" }, { "iso3c": "ATA", "x": 14, "y": 22, "country": "Antarctica" }];
-  mark_module_start();
-  WorldSquareGrid[FILENAME] = "src/WorldSquareGrid.svelte";
   var on_mouseover = (_, currentCountry, cell, searched, tooltipVisible) => {
     currentCountry(get(cell).iso3c);
     searched(false);
@@ -5946,17 +5282,16 @@ ${indent}in ${name}`).join("")}
     currentCountry(null);
     tooltipVisible(false);
   };
-  var root_3$2 = add_locations(/* @__PURE__ */ ns_template(`<text class="country-label svelte-buoy2n" paint-order="stroke" stroke-linejoin="round"> </text>`), WorldSquareGrid[FILENAME], [[85, 8]]);
-  var root_2$2 = add_locations(/* @__PURE__ */ ns_template(`<g><rect></rect><!></g>`), WorldSquareGrid[FILENAME], [[47, 4, [[52, 6]]]]);
-  var root_4$1 = add_locations(/* @__PURE__ */ ns_template(`<rect class="highlight-outline svelte-buoy2n"></rect><rect class="highlight-outline svelte-buoy2n"></rect>`, 1), WorldSquareGrid[FILENAME], [[102, 2], [112, 2]]);
-  var root$7 = add_locations(/* @__PURE__ */ ns_template(`<!><!>`, 1), WorldSquareGrid[FILENAME], []);
+  var root_3$2 = /* @__PURE__ */ ns_template(`<text class="country-label svelte-buoy2n" paint-order="stroke" stroke-linejoin="round"> </text>`);
+  var root_2$2 = /* @__PURE__ */ ns_template(`<g><rect></rect><!></g>`);
+  var root_4$1 = /* @__PURE__ */ ns_template(`<rect class="highlight-outline svelte-buoy2n"></rect><rect class="highlight-outline svelte-buoy2n"></rect>`, 1);
+  var root$7 = /* @__PURE__ */ ns_template(`<!><!>`, 1);
   function WorldSquareGrid($$anchor, $$props) {
-    check_target(new.target);
-    push($$props, true, WorldSquareGrid);
+    push($$props, true);
     let currentCountry = prop($$props, "currentCountry", 15), currentTilePos = prop($$props, "currentTilePos", 15), searched = prop($$props, "searched", 15), tooltipVisible = prop($$props, "tooltipVisible", 15);
     let valueType = /* @__PURE__ */ derived(() => $$props.data.plotdata.metadata.color.type);
     let tileSize = /* @__PURE__ */ derived(() => Math.min(($$props.width - $$props.margins.left - $$props.margins.right) / 29, ($$props.height - $$props.margins.top - $$props.margins.bottom) / 22));
-    let currentTile = /* @__PURE__ */ derived(() => squareGrid.find((d) => equals(d.iso3c, currentCountry())));
+    let currentTile = /* @__PURE__ */ derived(() => squareGrid.find((d) => d.iso3c == currentCountry()));
     let gridWidth = /* @__PURE__ */ derived(() => get(tileSize) * 29);
     let shift2 = /* @__PURE__ */ derived(() => ($$props.width - get(gridWidth)) / 2);
     user_effect(() => {
@@ -6016,7 +5351,7 @@ ${indent}in ${name}`).join("")}
               set_attribute(rect, "stroke-width", $$props.strokeWidth);
             },
             [
-              () => $$props.data.plotdata.find((d) => equals(d.iso3c, get(cell).iso3c)) && equals($$props.data.plotdata.find((d) => equals(d.iso3c, get(cell).iso3c)).color, null, false) ? equals(get(valueType), "string") ? $$props.categoricalColorScale($$props.data.plotdata.find((d) => equals(d.iso3c, get(cell).iso3c)).color) : $$props.numericalColorScale($$props.data.plotdata.find((d) => equals(d.iso3c, get(cell).iso3c)).color) : $$props.noDataColor
+              () => $$props.data.plotdata.find((d) => d.iso3c == get(cell).iso3c) && $$props.data.plotdata.find((d) => d.iso3c == get(cell).iso3c).color != null ? get(valueType) == "string" ? $$props.categoricalColorScale($$props.data.plotdata.find((d) => d.iso3c == get(cell).iso3c).color) : $$props.numericalColorScale($$props.data.plotdata.find((d) => d.iso3c == get(cell).iso3c).color) : $$props.noDataColor
             ]
           );
           event("focus", rect, () => {
@@ -6065,55 +5400,20 @@ ${indent}in ${name}`).join("")}
       });
     }
     append($$anchor, fragment);
-    return pop({ ...legacy_api() });
+    pop();
   }
-  mark_module_end(WorldSquareGrid);
   delegate(["mouseover", "mouseout"]);
-  mark_module_start();
-  NumericalColorLegend[FILENAME] = "src/template/NumericalColorLegend.svelte";
-  var root_1$2 = add_locations(/* @__PURE__ */ template2(`<div class="no-data-label svelte-1af89zx"> </div>`), NumericalColorLegend[FILENAME], [[103, 6]]);
-  var root_2$1 = add_locations(/* @__PURE__ */ template2(`<div class="no-data"><div class="no-data-symbol svelte-1af89zx"><svg class="no-data-symbol svelte-1af89zx"><rect class="no-data-rect"></rect></svg></div></div>`), NumericalColorLegend[FILENAME], [
-    [
-      115,
-      6,
-      [
-        [
-          116,
-          8,
-          [[117, 10, [[118, 12]]]]
-        ]
-      ]
-    ]
-  ]);
-  var root_4 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), NumericalColorLegend[FILENAME], [[150, 14]]);
-  var root_6 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), NumericalColorLegend[FILENAME], [[156, 16]]);
-  var root_3$1 = add_locations(/* @__PURE__ */ ns_template(`<image class="gradient svelte-1af89zx" preserveAspectRatio="none"></image><rect class="gradient-border svelte-1af89zx"></rect><g class="ticks"><!><!></g>`, 1), NumericalColorLegend[FILENAME], [[132, 10], [141, 10], [148, 10]]);
-  var root_8$1 = add_locations(/* @__PURE__ */ ns_template(`<rect></rect>`), NumericalColorLegend[FILENAME], [[165, 12]]);
-  var root_9 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), NumericalColorLegend[FILENAME], [[176, 12]]);
-  var root_7 = add_locations(/* @__PURE__ */ ns_template(`<!><!>`, 1), NumericalColorLegend[FILENAME], []);
-  var root$6 = add_locations(/* @__PURE__ */ template2(`<div><div class="legend-text-container svelte-1af89zx"><!> <div class="legend-title svelte-1af89zx"><span> </span>&nbsp;<span class="label-unit svelte-1af89zx"> </span></div></div> <div class="gradient-container svelte-1af89zx"><!> <div class="gradient svelte-1af89zx"><svg class="svelte-1af89zx"><!><!></svg></div></div></div>`), NumericalColorLegend[FILENAME], [
-    [
-      100,
-      0,
-      [
-        [
-          101,
-          2,
-          [
-            [107, 4, [[108, 6], [108, 32]]]
-          ]
-        ],
-        [
-          113,
-          2,
-          [[129, 4, [[130, 6]]]]
-        ]
-      ]
-    ]
-  ]);
+  var root_1$2 = /* @__PURE__ */ template2(`<div class="no-data-label svelte-1af89zx"> </div>`);
+  var root_2$1 = /* @__PURE__ */ template2(`<div class="no-data"><div class="no-data-symbol svelte-1af89zx"><svg class="no-data-symbol svelte-1af89zx"><rect class="no-data-rect"></rect></svg></div></div>`);
+  var root_4 = /* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`);
+  var root_6 = /* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`);
+  var root_3$1 = /* @__PURE__ */ ns_template(`<image class="gradient svelte-1af89zx" preserveAspectRatio="none"></image><rect class="gradient-border svelte-1af89zx"></rect><g class="ticks"><!><!></g>`, 1);
+  var root_8$1 = /* @__PURE__ */ ns_template(`<rect></rect>`);
+  var root_9 = /* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`);
+  var root_7 = /* @__PURE__ */ ns_template(`<!><!>`, 1);
+  var root$6 = /* @__PURE__ */ template2(`<div><div class="legend-text-container svelte-1af89zx"><!> <div class="legend-title svelte-1af89zx"><span> </span>&nbsp;<span class="label-unit svelte-1af89zx"> </span></div></div> <div class="gradient-container svelte-1af89zx"><!> <div class="gradient svelte-1af89zx"><svg class="svelte-1af89zx"><!><!></svg></div></div></div>`);
   function NumericalColorLegend($$anchor, $$props) {
-    check_target(new.target);
-    push($$props, true, NumericalColorLegend);
+    push($$props, true);
     let tickLabels = prop($$props, "tickLabels", 19, () => []);
     let tickSize = 12;
     let height = 12 + tickSize;
@@ -6124,7 +5424,7 @@ ${indent}in ${name}`).join("")}
     };
     let domain = /* @__PURE__ */ derived(() => {
       const d = $$props.numericalColorScale.domain();
-      if (equals(d.length, 2)) {
+      if (d.length == 2) {
         return [d[0], d[0] + (d[1] - d[0]) / 2, d[1]];
       } else {
         return d;
@@ -6174,7 +5474,7 @@ ${indent}in ${name}`).join("")}
     });
     let noDataWidth = /* @__PURE__ */ derived(() => $$props.includeNoData ? 70 : 0);
     let gradientWidth = state$1(0);
-    let discreteTicks = /* @__PURE__ */ derived(() => equals($$props.linearOrBinned, "linear") ? [] : equals($$props.binningMode, "fixedWidth") ? $$props.numericalColorScale.thresholds() : $$props.numericalColorScale.quantiles());
+    let discreteTicks = /* @__PURE__ */ derived(() => $$props.linearOrBinned == "linear" ? [] : $$props.binningMode == "fixedWidth" ? $$props.numericalColorScale.thresholds() : $$props.numericalColorScale.quantiles());
     var div = root$6();
     set_class(div, 1, "legend svelte-1af89zx");
     var div_1 = child(div);
@@ -6270,7 +5570,7 @@ ${indent}in ${name}`).join("")}
             append($$anchor3, fragment_1);
           };
           if_block(node_4, ($$render) => {
-            if (strict_equals(tickLabels().length, 0)) $$render(consequent_2);
+            if (tickLabels().length === 0) $$render(consequent_2);
           });
         }
         template_effect(() => {
@@ -6285,7 +5585,7 @@ ${indent}in ${name}`).join("")}
         append($$anchor2, fragment);
       };
       if_block(node_2, ($$render) => {
-        if (equals($$props.linearOrBinned, "linear") && get(gradientWidth)) $$render(consequent_3);
+        if ($$props.linearOrBinned == "linear" && get(gradientWidth)) $$render(consequent_3);
       });
     }
     var node_6 = sibling(node_2);
@@ -6331,7 +5631,7 @@ ${indent}in ${name}`).join("")}
         append($$anchor2, fragment_2);
       };
       if_block(node_6, ($$render) => {
-        if (equals($$props.linearOrBinned, "binned")) $$render(consequent_4);
+        if ($$props.linearOrBinned == "binned") $$render(consequent_4);
       });
     }
     template_effect(() => {
@@ -6340,26 +5640,13 @@ ${indent}in ${name}`).join("")}
     });
     bind_element_size(div_7, "clientWidth", ($$value) => set(gradientWidth, $$value));
     append($$anchor, div);
-    return pop({ ...legacy_api() });
+    pop();
   }
-  mark_module_end(NumericalColorLegend);
-  mark_module_start();
-  CategoricalColorLegend[FILENAME] = "src/template/CategoricalColorLegend.svelte";
-  var root_1$1 = add_locations(/* @__PURE__ */ template2(`<div class="pill-container svelte-1ervix3"><div></div> <div> </div></div>`), CategoricalColorLegend[FILENAME], [[14, 8, [[15, 10], [19, 10]]]]);
-  var root_2 = add_locations(/* @__PURE__ */ template2(`<div class="pill-container svelte-1ervix3"><div></div> <div> </div></div>`), CategoricalColorLegend[FILENAME], [[23, 6, [[24, 8], [25, 8]]]]);
-  var root$5 = add_locations(/* @__PURE__ */ template2(`<div><div class="legend-text-container svelte-1ervix3"><div class="legend-title svelte-1ervix3"><span> </span></div></div> <div class="categorical-legend svelte-1ervix3" aria-hidden="true"><!> <!></div></div>`), CategoricalColorLegend[FILENAME], [
-    [
-      6,
-      0,
-      [
-        [7, 2, [[8, 4, [[9, 6]]]]],
-        [12, 2]
-      ]
-    ]
-  ]);
+  var root_1$1 = /* @__PURE__ */ template2(`<div class="pill-container svelte-1ervix3"><div></div> <div> </div></div>`);
+  var root_2 = /* @__PURE__ */ template2(`<div class="pill-container svelte-1ervix3"><div></div> <div> </div></div>`);
+  var root$5 = /* @__PURE__ */ template2(`<div><div class="legend-text-container svelte-1ervix3"><div class="legend-title svelte-1ervix3"><span> </span></div></div> <div class="categorical-legend svelte-1ervix3" aria-hidden="true"><!> <!></div></div>`);
   function CategoricalColorLegend($$anchor, $$props) {
-    check_target(new.target);
-    push($$props, true, CategoricalColorLegend);
+    push($$props, true);
     var div = root$5();
     set_class(div, 1, "legend svelte-1ervix3");
     var div_1 = child(div);
@@ -6407,9 +5694,8 @@ ${indent}in ${name}`).join("")}
     }
     template_effect(() => set_text(text, $$props.title));
     append($$anchor, div);
-    return pop({ ...legacy_api() });
+    pop();
   }
-  mark_module_end(CategoricalColorLegend);
   const min = Math.min;
   const max = Math.max;
   const round = Math.round;
@@ -7560,19 +6846,16 @@ ${indent}in ${name}`).join("")}
       platform: platformWithCache
     });
   };
-  mark_module_start();
-  Tooltip[FILENAME] = "src/template/Tooltip.svelte";
-  var root$4 = add_locations(/* @__PURE__ */ template2(`<div><!></div>`), Tooltip[FILENAME], [[46, 0]]);
+  var root$4 = /* @__PURE__ */ template2(`<div><!></div>`);
   function Tooltip($$anchor, $$props) {
-    check_target(new.target);
-    push($$props, true, Tooltip);
+    push($$props, true);
     let placement = prop($$props, "placement", 3, "right"), showBackground = prop($$props, "showBackground", 3, true);
     let component;
     let lastTargetPos = { x: 0, y: 0 };
     let x = /* @__PURE__ */ derived(() => $$props.targetPos.x);
     let y = /* @__PURE__ */ derived(() => $$props.targetPos.y);
     user_effect(() => {
-      if (component && $$props.targetPos && (strict_equals($$props.targetPos.x, lastTargetPos.x, false) || strict_equals($$props.targetPos.y, lastTargetPos.y, false))) {
+      if (component && $$props.targetPos && ($$props.targetPos.x !== lastTargetPos.x || $$props.targetPos.y !== lastTargetPos.y)) {
         lastTargetPos = { ...$$props.targetPos };
         const virtualTarget = {
           getBoundingClientRect() {
@@ -7608,18 +6891,13 @@ ${indent}in ${name}`).join("")}
     bind_this(div, ($$value) => component = $$value, () => component);
     template_effect(() => classes = set_class(div, 1, "tooltip svelte-1jlc8vz", null, classes, {
       visible: $$props.visible,
-      background: strict_equals(showBackground(), true)
+      background: showBackground() === true
     }));
     append($$anchor, div);
-    return pop({ ...legacy_api() });
+    pop();
   }
-  mark_module_end(Tooltip);
-  mark_module_start();
-  TooltipContent[FILENAME] = "src/template/TooltipContent.svelte";
-  var root$3 = add_locations(/* @__PURE__ */ template2(`<div class="tooltip-container svelte-7erzzb"><h3> </h3> <div> </div></div>`), TooltipContent[FILENAME], [[5, 0, [[6, 2], [7, 2]]]]);
+  var root$3 = /* @__PURE__ */ template2(`<div class="tooltip-container svelte-7erzzb"><h3> </h3> <div> </div></div>`);
   function TooltipContent($$anchor, $$props) {
-    check_target(new.target);
-    push($$props, true, TooltipContent);
     var div = root$3();
     var h3 = child(div);
     set_class(h3, 1, "tooltip-header svelte-7erzzb");
@@ -7632,16 +6910,11 @@ ${indent}in ${name}`).join("")}
       set_text(text_1, $$props.tooltipBody);
     });
     append($$anchor, div);
-    return pop({ ...legacy_api() });
   }
-  mark_module_end(TooltipContent);
   enable_legacy_mode_flag();
-  mark_module_start();
-  Objects[FILENAME] = "src/Objects.svelte";
-  var root$2 = add_locations(/* @__PURE__ */ template2(`<li class="typeahead-result svelte-s0cyhm"> </li>`), Objects[FILENAME], [[5, 0]]);
+  var root$2 = /* @__PURE__ */ template2(`<li class="typeahead-result svelte-s0cyhm"> </li>`);
   function Objects($$anchor, $$props) {
-    check_target(new.target);
-    push($$props, false, Objects);
+    push($$props, false);
     let object2 = prop($$props, "object", 8);
     init();
     var li = root$2();
@@ -7651,22 +6924,18 @@ ${indent}in ${name}`).join("")}
       bubble_event.call(this, $$props, $$arg);
     });
     append($$anchor, li);
-    return pop({ ...legacy_api() });
+    pop();
   }
-  mark_module_end(Objects);
-  mark_module_start();
-  SearchBox[FILENAME] = "src/SearchBox.svelte";
   const typeahead = (_, $$props, searchInput, results) => {
     let resultsIncludes = $$props.data.filter((d) => d.label.toLowerCase().includes(get(searchInput).toLowerCase()));
     let resultsStartWith = $$props.data.filter((d) => d.label.toLowerCase().startsWith(get(searchInput).toLowerCase()));
-    set(results, proxy(resultsStartWith.sort().concat(resultsIncludes.sort()), null, results));
-    set(results, proxy([...new Set(get(results))], null, results));
+    set(results, proxy(resultsStartWith.sort().concat(resultsIncludes.sort())));
+    set(results, proxy([...new Set(get(results))]));
   };
-  var root_1 = add_locations(/* @__PURE__ */ template2(`<ul class="typeahead-object-list svelte-6s1u2p"><!></ul>`), SearchBox[FILENAME], [[33, 3]]);
-  var root$1 = add_locations(/* @__PURE__ */ template2(`<div class="typeahead svelte-6s1u2p"><input id="searchfield" type="text" name="searchfield" placeholder="Search country" class="svelte-6s1u2p"></div> <!>`, 1), SearchBox[FILENAME], [[29, 3, [[30, 5]]]]);
+  var root_1 = /* @__PURE__ */ template2(`<ul class="typeahead-object-list svelte-6s1u2p"><!></ul>`);
+  var root$1 = /* @__PURE__ */ template2(`<div class="typeahead svelte-6s1u2p"><input id="searchfield" type="text" name="searchfield" placeholder="Search country" class="svelte-6s1u2p"></div> <!>`, 1);
   function SearchBox($$anchor, $$props) {
-    check_target(new.target);
-    push($$props, true, SearchBox);
+    push($$props, true);
     let currentCountry = prop($$props, "currentCountry", 15), searched = prop($$props, "searched", 15), tooltipVisible = prop($$props, "tooltipVisible", 15);
     let results = state$1(proxy([]));
     let searchInput = state$1("");
@@ -7674,7 +6943,7 @@ ${indent}in ${name}`).join("")}
     const onFocus = () => set(isFocused, true);
     const onBlur = () => set(isFocused, false);
     const newSearchInput = (oneResult) => {
-      set(searchInput, proxy(oneResult.label, null, searchInput));
+      set(searchInput, proxy(oneResult.label));
       currentCountry(oneResult.iso3c);
       searched(true);
       tooltipVisible(true);
@@ -7724,14 +6993,14 @@ ${indent}in ${name}`).join("")}
                 append($$anchor4, fragment_4);
               };
               if_block(node_2, ($$render) => {
-                if (strict_equals(get(searchInput).length, 0)) $$render(consequent);
+                if (get(searchInput).length === 0) $$render(consequent);
                 else $$render(alternate, false);
               });
             }
             append($$anchor3, fragment_1);
           };
           if_block(node_1, ($$render) => {
-            if (strict_equals(get(isFocused), true)) $$render(consequent_1);
+            if (get(isFocused) === true) $$render(consequent_1);
           });
         }
         append($$anchor2, ul);
@@ -7744,49 +7013,34 @@ ${indent}in ${name}`).join("")}
     event("blur", input, onBlur);
     bind_value(input, () => get(searchInput), ($$value) => set(searchInput, $$value));
     append($$anchor, fragment);
-    return pop({ ...legacy_api() });
+    pop();
   }
-  mark_module_end(SearchBox);
   delegate(["input"]);
-  mark_module_start();
-  Viz[FILENAME] = "src/Viz.svelte";
   function updateMouse(evt, mousePos) {
-    set(mousePos, proxy({ x: evt.clientX, y: evt.clientY }, null, mousePos));
+    set(mousePos, proxy({ x: evt.clientX, y: evt.clientY }));
   }
-  var root_3 = add_locations(/* @__PURE__ */ ns_template(`<svg><g><!><!></g></svg>`), Viz[FILENAME], [[85, 4, [[86, 6]]]]);
-  var root_8 = add_locations(/* @__PURE__ */ template2(`<!> <!>`, 1), Viz[FILENAME], []);
-  var root = add_locations(/* @__PURE__ */ template2(`<div class="chart-container svelte-1i5cyi5"><div class="header-container"><!></div> <div class="viz-container svelte-1i5cyi5"><!> <!> <!></div> <div class="legend-container svelte-1i5cyi5"><!></div> <div class="footer-container"><!></div></div>`), Viz[FILENAME], [
-    [
-      67,
-      0,
-      [
-        [68, 2],
-        [74, 2],
-        [142, 2],
-        [165, 2]
-      ]
-    ]
-  ]);
+  var root_3 = /* @__PURE__ */ ns_template(`<svg><g><!><!></g></svg>`);
+  var root_8 = /* @__PURE__ */ template2(`<!> <!>`, 1);
+  var root = /* @__PURE__ */ template2(`<div class="chart-container svelte-1i5cyi5"><div class="header-container"><!></div> <div class="viz-container svelte-1i5cyi5"><!> <!> <!></div> <div class="legend-container svelte-1i5cyi5"><!></div> <div class="footer-container"><!></div></div>`);
   function Viz($$anchor, $$props) {
-    check_target(new.target);
-    push($$props, true, Viz);
+    push($$props, true);
     let width = state$1(500);
     let height = state$1(500);
     let margins = { top: 0, right: 0, bottom: 0, left: 0 };
     let valueType = /* @__PURE__ */ derived(() => $$props.data.plotdata.metadata.color.type);
     const noDataColor = wbColors.noData;
-    let domainMinimum = /* @__PURE__ */ derived(() => strict_equals(typeof $$props.domainMin, "undefined") ? Math.floor(min$1($$props.data.plotdata.map((d) => d.color))) : $$props.domainMin);
-    let domainMaximum = /* @__PURE__ */ derived(() => strict_equals(typeof $$props.domainMax, "undefined") ? Math.ceil(max$1($$props.data.plotdata.map((d) => d.color))) : $$props.domainMax);
+    let domainMinimum = /* @__PURE__ */ derived(() => typeof $$props.domainMin === "undefined" ? Math.floor(min$1($$props.data.plotdata.map((d) => d.color))) : $$props.domainMin);
+    let domainMaximum = /* @__PURE__ */ derived(() => typeof $$props.domainMax === "undefined" ? Math.ceil(max$1($$props.data.plotdata.map((d) => d.color))) : $$props.domainMax);
     let dataDomain = /* @__PURE__ */ derived(() => extent($$props.data.plotdata, (d) => d.color));
     let customDomain = /* @__PURE__ */ derived(() => [
       get(domainMinimum),
       get(domainMaximum)
     ]);
-    let domain = /* @__PURE__ */ derived(() => equals($$props.domainAutoCustom, "auto") ? get(dataDomain) : get(customDomain));
+    let domain = /* @__PURE__ */ derived(() => $$props.domainAutoCustom == "auto" ? get(dataDomain) : get(customDomain));
     let numericalColorScale = /* @__PURE__ */ derived(() => getNumericalColorScale($$props.data, get(domain), $$props.linearOrBinned, $$props.scaleType, $$props.colorScale, $$props.colorScaleDiverging, $$props.binningMode, $$props.numberOfBins));
     let categoricalColorScale = /* @__PURE__ */ derived(() => getCategoricalColorScale($$props.data));
     let currentCountry = state$1(void 0);
-    let currentCountryData = /* @__PURE__ */ derived(() => $$props.data.plotdata.find((d) => equals(d.iso3c, get(currentCountry))));
+    let currentCountryData = /* @__PURE__ */ derived(() => $$props.data.plotdata.find((d) => d.iso3c == get(currentCountry)));
     let mousePos = state$1(void 0);
     let tooltipVisible = state$1(false);
     let headerHeight = state$1(void 0);
@@ -7818,34 +7072,29 @@ ${indent}in ${name}`).join("")}
     var node_1 = child(div_2);
     {
       var consequent_1 = ($$anchor2) => {
-        {
-          add_owner_effect(() => get(currentCountry), SearchBox);
-          add_owner_effect(() => get(searched), SearchBox);
-          add_owner_effect(() => get(tooltipVisible), SearchBox);
-          SearchBox($$anchor2, {
-            get data() {
-              return $$props.data.plotdata;
-            },
-            get currentCountry() {
-              return get(currentCountry);
-            },
-            set currentCountry($$value) {
-              set(currentCountry, proxy($$value, null, currentCountry));
-            },
-            get searched() {
-              return get(searched);
-            },
-            set searched($$value) {
-              set(searched, proxy($$value, null, searched));
-            },
-            get tooltipVisible() {
-              return get(tooltipVisible);
-            },
-            set tooltipVisible($$value) {
-              set(tooltipVisible, proxy($$value, null, tooltipVisible));
-            }
-          });
-        }
+        SearchBox($$anchor2, {
+          get data() {
+            return $$props.data.plotdata;
+          },
+          get currentCountry() {
+            return get(currentCountry);
+          },
+          set currentCountry($$value) {
+            set(currentCountry, proxy($$value));
+          },
+          get searched() {
+            return get(searched);
+          },
+          set searched($$value) {
+            set(searched, proxy($$value));
+          },
+          get tooltipVisible() {
+            return get(tooltipVisible);
+          },
+          set tooltipVisible($$value) {
+            set(tooltipVisible, proxy($$value));
+          }
+        });
       };
       if_block(node_1, ($$render) => {
         if ($$props.showSearchBox) $$render(consequent_1);
@@ -7860,132 +7109,120 @@ ${indent}in ${name}`).join("")}
         var node_3 = child(g);
         {
           var consequent_2 = ($$anchor3) => {
-            {
-              add_owner_effect(() => get(currentCountry), WorldSquareGrid);
-              add_owner_effect(() => get(searched), WorldSquareGrid);
-              add_owner_effect(() => get(currentTilePos), WorldSquareGrid);
-              add_owner_effect(() => get(tooltipVisible), WorldSquareGrid);
-              WorldSquareGrid($$anchor3, {
-                get width() {
-                  return get(vizWidth);
-                },
-                get height() {
-                  return get(vizHeight);
-                },
-                get strokeWidth() {
-                  return $$props.strokeWidth;
-                },
-                get stroke() {
-                  return $$props.stroke;
-                },
-                get countryCodes() {
-                  return $$props.countryCodes;
-                },
-                margins,
-                noDataColor,
-                get data() {
-                  return $$props.data;
-                },
-                get numericalColorScale() {
-                  return get(numericalColorScale);
-                },
-                get categoricalColorScale() {
-                  return get(categoricalColorScale);
-                },
-                get currentCountry() {
-                  return get(currentCountry);
-                },
-                set currentCountry($$value) {
-                  set(currentCountry, proxy($$value, null, currentCountry));
-                },
-                get searched() {
-                  return get(searched);
-                },
-                set searched($$value) {
-                  set(searched, proxy($$value, null, searched));
-                },
-                get currentTilePos() {
-                  return get(currentTilePos);
-                },
-                set currentTilePos($$value) {
-                  set(currentTilePos, proxy($$value, null, currentTilePos));
-                },
-                get tooltipVisible() {
-                  return get(tooltipVisible);
-                },
-                set tooltipVisible($$value) {
-                  set(tooltipVisible, proxy($$value, null, tooltipVisible));
-                }
-              });
-            }
+            WorldSquareGrid($$anchor3, {
+              get width() {
+                return get(vizWidth);
+              },
+              get height() {
+                return get(vizHeight);
+              },
+              get strokeWidth() {
+                return $$props.strokeWidth;
+              },
+              get stroke() {
+                return $$props.stroke;
+              },
+              get countryCodes() {
+                return $$props.countryCodes;
+              },
+              margins,
+              noDataColor,
+              get data() {
+                return $$props.data;
+              },
+              get numericalColorScale() {
+                return get(numericalColorScale);
+              },
+              get categoricalColorScale() {
+                return get(categoricalColorScale);
+              },
+              get currentCountry() {
+                return get(currentCountry);
+              },
+              set currentCountry($$value) {
+                set(currentCountry, proxy($$value));
+              },
+              get searched() {
+                return get(searched);
+              },
+              set searched($$value) {
+                set(searched, proxy($$value));
+              },
+              get currentTilePos() {
+                return get(currentTilePos);
+              },
+              set currentTilePos($$value) {
+                set(currentTilePos, proxy($$value));
+              },
+              get tooltipVisible() {
+                return get(tooltipVisible);
+              },
+              set tooltipVisible($$value) {
+                set(tooltipVisible, proxy($$value));
+              }
+            });
           };
           if_block(node_3, ($$render) => {
-            if (equals($$props.gridType, "squares")) $$render(consequent_2);
+            if ($$props.gridType == "squares") $$render(consequent_2);
           });
         }
         var node_4 = sibling(node_3);
         {
           var consequent_3 = ($$anchor3) => {
-            {
-              add_owner_effect(() => get(currentCountry), WorldHexGrid);
-              add_owner_effect(() => get(searched), WorldHexGrid);
-              add_owner_effect(() => get(currentTilePos), WorldHexGrid);
-              add_owner_effect(() => get(tooltipVisible), WorldHexGrid);
-              WorldHexGrid($$anchor3, {
-                get width() {
-                  return get(vizWidth);
-                },
-                get height() {
-                  return get(vizHeight);
-                },
-                get strokeWidth() {
-                  return $$props.strokeWidth;
-                },
-                get stroke() {
-                  return $$props.stroke;
-                },
-                get countryCodes() {
-                  return $$props.countryCodes;
-                },
-                noDataColor,
-                get data() {
-                  return $$props.data;
-                },
-                get numericalColorScale() {
-                  return get(numericalColorScale);
-                },
-                get categoricalColorScale() {
-                  return get(categoricalColorScale);
-                },
-                get currentCountry() {
-                  return get(currentCountry);
-                },
-                set currentCountry($$value) {
-                  set(currentCountry, proxy($$value, null, currentCountry));
-                },
-                get searched() {
-                  return get(searched);
-                },
-                set searched($$value) {
-                  set(searched, proxy($$value, null, searched));
-                },
-                get currentTilePos() {
-                  return get(currentTilePos);
-                },
-                set currentTilePos($$value) {
-                  set(currentTilePos, proxy($$value, null, currentTilePos));
-                },
-                get tooltipVisible() {
-                  return get(tooltipVisible);
-                },
-                set tooltipVisible($$value) {
-                  set(tooltipVisible, proxy($$value, null, tooltipVisible));
-                }
-              });
-            }
+            WorldHexGrid($$anchor3, {
+              get width() {
+                return get(vizWidth);
+              },
+              get height() {
+                return get(vizHeight);
+              },
+              get strokeWidth() {
+                return $$props.strokeWidth;
+              },
+              get stroke() {
+                return $$props.stroke;
+              },
+              get countryCodes() {
+                return $$props.countryCodes;
+              },
+              noDataColor,
+              get data() {
+                return $$props.data;
+              },
+              get numericalColorScale() {
+                return get(numericalColorScale);
+              },
+              get categoricalColorScale() {
+                return get(categoricalColorScale);
+              },
+              get currentCountry() {
+                return get(currentCountry);
+              },
+              set currentCountry($$value) {
+                set(currentCountry, proxy($$value));
+              },
+              get searched() {
+                return get(searched);
+              },
+              set searched($$value) {
+                set(searched, proxy($$value));
+              },
+              get currentTilePos() {
+                return get(currentTilePos);
+              },
+              set currentTilePos($$value) {
+                set(currentTilePos, proxy($$value));
+              },
+              get tooltipVisible() {
+                return get(tooltipVisible);
+              },
+              set tooltipVisible($$value) {
+                set(tooltipVisible, proxy($$value));
+              }
+            });
           };
           if_block(node_4, ($$render) => {
-            if (equals($$props.gridType, "hexagons")) $$render(consequent_3);
+            if ($$props.gridType == "hexagons") $$render(consequent_3);
           });
         }
         template_effect(() => {
@@ -8010,8 +7247,8 @@ ${indent}in ${name}`).join("")}
           get targetPos() {
             return get(expression);
           },
-          children: wrap_snippet(Viz, ($$anchor3, $$slotProps) => {
-            const expression_1 = /* @__PURE__ */ derived(() => equals(get(currentCountryData).color, null, false) && equals(get(currentCountryData).color, "", false) ? equals(get(valueType), "number") ? get(currentCountryData).color : get(currentCountryData).color : "No data");
+          children: ($$anchor3, $$slotProps) => {
+            const expression_1 = /* @__PURE__ */ derived(() => get(currentCountryData).color != null && get(currentCountryData).color != "" ? get(valueType) == "number" ? get(currentCountryData).color : get(currentCountryData).color : "No data");
             TooltipContent($$anchor3, {
               get tooltipHeader() {
                 return get(currentCountryData).label;
@@ -8020,7 +7257,7 @@ ${indent}in ${name}`).join("")}
                 return get(expression_1);
               }
             });
-          }),
+          },
           $$slots: { default: true }
         });
       };
@@ -8061,7 +7298,7 @@ ${indent}in ${name}`).join("")}
             });
           };
           if_block(node_7, ($$render) => {
-            if (equals(get(valueType), "number")) $$render(consequent_6);
+            if (get(valueType) == "number") $$render(consequent_6);
           });
         }
         var node_8 = sibling(node_7, 2);
@@ -8083,7 +7320,7 @@ ${indent}in ${name}`).join("")}
             });
           };
           if_block(node_8, ($$render) => {
-            if (equals(get(valueType), "string")) $$render(consequent_7);
+            if (get(valueType) == "string") $$render(consequent_7);
           });
         }
         append($$anchor2, fragment_6);
@@ -8112,16 +7349,15 @@ ${indent}in ${name}`).join("")}
         if ($$props.notesTitle || $$props.notes) $$render(consequent_9);
       });
     }
-    bind_window_size("innerWidth", ($$value) => set(width, proxy($$value, null, width)));
-    bind_window_size("innerHeight", ($$value) => set(height, proxy($$value, null, height)));
+    bind_window_size("innerWidth", ($$value) => set(width, proxy($$value)));
+    bind_window_size("innerHeight", ($$value) => set(height, proxy($$value)));
     bind_element_size(div_1, "clientHeight", ($$value) => set(headerHeight, $$value));
     bind_element_size(div_2, "clientWidth", ($$value) => set(vizWidth, $$value));
     bind_element_size(div_3, "clientHeight", ($$value) => set(legendHeight, $$value));
     bind_element_size(div_4, "clientHeight", ($$value) => set(footerHeight, $$value));
     append($$anchor, div);
-    return pop({ ...legacy_api() });
+    pop();
   }
-  mark_module_end(Viz);
   delegate(["mousemove"]);
   var font_link = document.createElement("link");
   font_link.setAttribute("rel", "stylesheet");
@@ -8165,7 +7401,7 @@ ${indent}in ${name}`).join("")}
   };
   let reactiveState = state$1(proxy({}));
   function draw() {
-    set(reactiveState, proxy({ ...state }, null, reactiveState));
+    set(reactiveState, proxy({ ...state }));
     get(reactiveState).data = data;
     mount(Viz, {
       target: document.body,
