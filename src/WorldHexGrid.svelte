@@ -1,6 +1,6 @@
 <script>
   import { hexGrid } from './layouts/worldhexgrid';
-  import { getFill } from './utils/utils';
+  import { getFill, generateHexLayout } from './utils/utils';
   import { max } from 'd3-array';
 
   let {
@@ -25,39 +25,8 @@
     Math.min(width / ((33 * 3) / 2), height / (22 * 2 * shift))
   );
 
-  function generateHexLayout(grid, size) {
-    let hexGrid = grid.map((d) => {
-      let hex = {};
-      let x = size + ((d.q * 3) / 2) * size;
-      let y =
-        d.q % 2 == 0
-          ? 2 * size + d.r * size * 2 * shift
-          : 2 * size + d.r * size * 2 * shift - (Math.sqrt(3) * size) / 2;
-      hex.q = d.q;
-      hex.r = d.r;
-      hex.iso3c = d.iso3c;
-      hex.x = x;
-      hex.y = y;
-      hex.size = size;
-
-      let vertices = [];
-      for (let i = 0; i < 6; i++) {
-        var angle_deg = 60 * i;
-        var angle_rad = (Math.PI / 180) * angle_deg;
-        vertices.push([
-          x + size * Math.cos(angle_rad),
-          y + size * Math.sin(angle_rad),
-        ]);
-      }
-      hex.vertices = vertices;
-      return hex;
-    });
-    return hexGrid.filter((d) => d.iso3c != '');
-  }
-  let hexLayout = $derived(generateHexLayout(hexGrid, size));
-
+  let hexLayout = $derived(generateHexLayout(hexGrid, size, shift));
   let currentTile = $derived(hexLayout.find((d) => d.iso3c == currentCountry));
-
   let gridWidth = $derived(Math.round(max(hexLayout.map((d) => d.x))));
   let gridShift = $derived((width - gridWidth) / 2);
 
