@@ -229,116 +229,6 @@ https://svelte.dev/e/state_unsafe_mutation`);
   function enable_legacy_mode_flag() {
     legacy_mode_flag = true;
   }
-  var bold$1 = "font-weight: bold";
-  var normal$1 = "font-weight: normal";
-  function state_snapshot_uncloneable(properties) {
-    {
-      console.warn(`%c[svelte] state_snapshot_uncloneable
-%c${properties ? `The following properties cannot be cloned with \`$state.snapshot\` — the return value contains the originals:
-
-${properties}` : "Value cannot be cloned with `$state.snapshot` — the original value was returned"}
-https://svelte.dev/e/state_snapshot_uncloneable`, bold$1, normal$1);
-    }
-  }
-  const empty = [];
-  function snapshot(value, skip_warning = false) {
-    if (!skip_warning) {
-      const paths = [];
-      const copy2 = clone(value, /* @__PURE__ */ new Map(), "", paths);
-      if (paths.length === 1 && paths[0] === "") {
-        state_snapshot_uncloneable();
-      } else if (paths.length > 0) {
-        const slice = paths.length > 10 ? paths.slice(0, 7) : paths.slice(0, 10);
-        const excess = paths.length - slice.length;
-        let uncloned = slice.map((path) => `- <value>${path}`).join("\n");
-        if (excess > 0) uncloned += `
-- ...and ${excess} more`;
-        state_snapshot_uncloneable(uncloned);
-      }
-      return copy2;
-    }
-    return clone(value, /* @__PURE__ */ new Map(), "", empty);
-  }
-  function clone(value, cloned, path, paths, original = null) {
-    if (typeof value === "object" && value !== null) {
-      var unwrapped = cloned.get(value);
-      if (unwrapped !== void 0) return unwrapped;
-      if (value instanceof Map) return (
-        /** @type {Snapshot<T>} */
-        new Map(value)
-      );
-      if (value instanceof Set) return (
-        /** @type {Snapshot<T>} */
-        new Set(value)
-      );
-      if (is_array(value)) {
-        var copy2 = (
-          /** @type {Snapshot<any>} */
-          Array(value.length)
-        );
-        cloned.set(value, copy2);
-        if (original !== null) {
-          cloned.set(original, copy2);
-        }
-        for (var i = 0; i < value.length; i += 1) {
-          var element = value[i];
-          if (i in value) {
-            copy2[i] = clone(element, cloned, `${path}[${i}]`, paths);
-          }
-        }
-        return copy2;
-      }
-      if (get_prototype_of(value) === object_prototype) {
-        copy2 = {};
-        cloned.set(value, copy2);
-        if (original !== null) {
-          cloned.set(original, copy2);
-        }
-        for (var key in value) {
-          copy2[key] = clone(value[key], cloned, `${path}.${key}`, paths);
-        }
-        return copy2;
-      }
-      if (value instanceof Date) {
-        return (
-          /** @type {Snapshot<T>} */
-          structuredClone(value)
-        );
-      }
-      if (typeof /** @type {T & { toJSON?: any } } */
-      value.toJSON === "function") {
-        return clone(
-          /** @type {T & { toJSON(): any } } */
-          value.toJSON(),
-          cloned,
-          `${path}.toJSON()`,
-          paths,
-          // Associate the instance with the toJSON clone
-          value
-        );
-      }
-    }
-    if (value instanceof EventTarget) {
-      return (
-        /** @type {Snapshot<T>} */
-        value
-      );
-    }
-    try {
-      return (
-        /** @type {Snapshot<T>} */
-        structuredClone(value)
-      );
-    } catch (e) {
-      {
-        paths.push(path);
-      }
-      return (
-        /** @type {Snapshot<T>} */
-        value
-      );
-    }
-  }
   let inspect_effects = /* @__PURE__ */ new Set();
   function set_inspect_effects(v) {
     inspect_effects = v;
@@ -543,13 +433,6 @@ https://svelte.dev/e/state_snapshot_uncloneable`, bold$1, normal$1);
   }
   var bold = "font-weight: bold";
   var normal = "font-weight: normal";
-  function console_log_state(method) {
-    {
-      console.warn(`%c[svelte] console_log_state
-%cYour \`console.${method}\` contained \`$state\` proxies. Consider using \`$inspect(...)\` or \`$state.snapshot(...)\` instead
-https://svelte.dev/e/console_log_state`, bold, normal);
-    }
-  }
   function ownership_invalid_binding(parent, child2, owner) {
     {
       console.warn(`%c[svelte] ownership_invalid_binding
@@ -2295,24 +2178,24 @@ ${indent}in ${name}`).join("")}
         if (!is_fragment) node = /** @type {Node} */
         /* @__PURE__ */ get_first_child(node);
       }
-      var clone2 = (
+      var clone = (
         /** @type {TemplateNode} */
         use_import_node || is_firefox ? document.importNode(node, true) : node.cloneNode(true)
       );
       if (is_fragment) {
         var start = (
           /** @type {TemplateNode} */
-          /* @__PURE__ */ get_first_child(clone2)
+          /* @__PURE__ */ get_first_child(clone)
         );
         var end = (
           /** @type {TemplateNode} */
-          clone2.lastChild
+          clone.lastChild
         );
         assign_nodes(start, end);
       } else {
-        assign_nodes(clone2, clone2);
+        assign_nodes(clone, clone);
       }
-      return clone2;
+      return clone;
     };
   }
   // @__NO_SIDE_EFFECTS__
@@ -2344,24 +2227,24 @@ ${indent}in ${name}`).join("")}
           /* @__PURE__ */ get_first_child(root2);
         }
       }
-      var clone2 = (
+      var clone = (
         /** @type {TemplateNode} */
         node.cloneNode(true)
       );
       if (is_fragment) {
         var start = (
           /** @type {TemplateNode} */
-          /* @__PURE__ */ get_first_child(clone2)
+          /* @__PURE__ */ get_first_child(clone)
         );
         var end = (
           /** @type {TemplateNode} */
-          clone2.lastChild
+          clone.lastChild
         );
         assign_nodes(start, end);
       } else {
-        assign_nodes(clone2, clone2);
+        assign_nodes(clone, clone);
       }
-      return clone2;
+      return clone;
     };
   }
   function comment() {
@@ -3282,28 +3165,6 @@ ${indent}in ${name}`).join("")}
       }
       return get(current_value);
     };
-  }
-  function log_if_contains_state(method, ...objects) {
-    untrack(() => {
-      try {
-        let has_state = false;
-        const transformed = [];
-        for (const obj of objects) {
-          if (obj && typeof obj === "object" && STATE_SYMBOL in obj) {
-            transformed.push(snapshot(obj, true));
-            has_state = true;
-          } else {
-            transformed.push(obj);
-          }
-        }
-        if (has_state) {
-          console_log_state(method);
-          console.log("%c[snapshot]", "color: grey", ...transformed);
-        }
-      } catch {
-      }
-    });
-    return objects;
   }
   const PUBLIC_VERSION = "5";
   if (typeof window !== "undefined")
@@ -6029,7 +5890,7 @@ ${indent}in ${name}`).join("")}
           set_style(polygon, "stroke", $$props.stroke);
         },
         [
-          () => $$props.data.plotdata.find((d) => equals(d.iso3c, get(hex2).iso3c)) ? equals(get(valueType), "string") ? $$props.categoricalColorScale($$props.data.plotdata.find((d) => equals(d.iso3c, get(hex2).iso3c)).color) : $$props.numericalColorScale($$props.data.plotdata.find((d) => equals(d.iso3c, get(hex2).iso3c)).color) : $$props.noDataColor
+          () => $$props.data.plotdata.find((d) => equals(d.iso3c, get(hex2).iso3c)) && equals($$props.data.plotdata.find((d) => equals(d.iso3c, get(hex2).iso3c)).color, null, false) ? equals(get(valueType), "string") ? $$props.categoricalColorScale($$props.data.plotdata.find((d) => equals(d.iso3c, get(hex2).iso3c)).color) : $$props.numericalColorScale($$props.data.plotdata.find((d) => equals(d.iso3c, get(hex2).iso3c)).color) : $$props.noDataColor
         ]
       );
       event("focus", polygon, () => {
@@ -6085,9 +5946,9 @@ ${indent}in ${name}`).join("")}
     currentCountry(null);
     tooltipVisible(false);
   };
-  var root_3$2 = add_locations(/* @__PURE__ */ ns_template(`<text class="country-label svelte-buoy2n" paint-order="stroke" stroke-linejoin="round"> </text>`), WorldSquareGrid[FILENAME], [[86, 8]]);
-  var root_2$2 = add_locations(/* @__PURE__ */ ns_template(` <g><rect></rect><!></g>`, 1), WorldSquareGrid[FILENAME], [[48, 4, [[53, 6]]]]);
-  var root_4$1 = add_locations(/* @__PURE__ */ ns_template(`<rect class="highlight-outline svelte-buoy2n"></rect><rect class="highlight-outline svelte-buoy2n"></rect>`, 1), WorldSquareGrid[FILENAME], [[103, 2], [113, 2]]);
+  var root_3$2 = add_locations(/* @__PURE__ */ ns_template(`<text class="country-label svelte-buoy2n" paint-order="stroke" stroke-linejoin="round"> </text>`), WorldSquareGrid[FILENAME], [[85, 8]]);
+  var root_2$2 = add_locations(/* @__PURE__ */ ns_template(`<g><rect></rect><!></g>`), WorldSquareGrid[FILENAME], [[47, 4, [[52, 6]]]]);
+  var root_4$1 = add_locations(/* @__PURE__ */ ns_template(`<rect class="highlight-outline svelte-buoy2n"></rect><rect class="highlight-outline svelte-buoy2n"></rect>`, 1), WorldSquareGrid[FILENAME], [[102, 2], [112, 2]]);
   var root$7 = add_locations(/* @__PURE__ */ ns_template(`<!><!>`, 1), WorldSquareGrid[FILENAME], []);
   function WorldSquareGrid($$anchor, $$props) {
     check_target(new.target);
@@ -6113,9 +5974,7 @@ ${indent}in ${name}`).join("")}
         var fragment_1 = comment();
         var node_1 = first_child(fragment_1);
         each(node_1, 17, () => squareGrid, index, ($$anchor3, cell) => {
-          var fragment_2 = root_2$2();
-          var text = first_child(fragment_2);
-          var g = sibling(text);
+          var g = root_2$2();
           var rect = child(g);
           set_attribute(rect, "x", 0);
           set_attribute(rect, "y", 0);
@@ -6130,36 +5989,34 @@ ${indent}in ${name}`).join("")}
           var node_2 = sibling(rect);
           {
             var consequent = ($$anchor4) => {
-              var text_1 = root_3$2();
-              set_attribute(text_1, "text-anchor", "middle");
-              set_attribute(text_1, "font-size", "0.6rem");
-              set_attribute(text_1, "stroke", "#ffffff");
-              set_attribute(text_1, "stroke-width", 2);
-              var text_2 = child(text_1);
+              var text = root_3$2();
+              set_attribute(text, "text-anchor", "middle");
+              set_attribute(text, "font-size", "0.6rem");
+              set_attribute(text, "stroke", "#ffffff");
+              set_attribute(text, "stroke-width", 2);
+              var text_1 = child(text);
               template_effect(() => {
-                set_attribute(text_1, "x", get(tileSize) / 2);
-                set_attribute(text_1, "y", get(tileSize) / 2 + 4);
-                set_text(text_2, get(cell).iso3c);
+                set_attribute(text, "x", get(tileSize) / 2);
+                set_attribute(text, "y", get(tileSize) / 2 + 4);
+                set_text(text_1, get(cell).iso3c);
               });
-              append($$anchor4, text_1);
+              append($$anchor4, text);
             };
             if_block(node_2, ($$render) => {
               if ($$props.countryCodes && get(tileSize)) $$render(consequent);
             });
           }
           template_effect(
-            ($0, $1) => {
-              set_text(text, $0);
+            ($0) => {
               set_attribute(g, "transform", `translate(${(get(cell).x - 1) * get(tileSize) + get(shift2)},${(get(cell).y - 1) * get(tileSize)})`);
               set_attribute(rect, "width", get(tileSize));
               set_attribute(rect, "height", get(tileSize));
-              set_attribute(rect, "fill", $1);
+              set_attribute(rect, "fill", $0);
               set_attribute(rect, "stroke", $$props.stroke);
               set_attribute(rect, "stroke-width", $$props.strokeWidth);
             },
             [
-              () => console.log(...log_if_contains_state("log", get(cell))),
-              () => $$props.data.plotdata.find((d) => equals(d.iso3c, get(cell).iso3c)) ? equals(get(valueType), "string") ? $$props.categoricalColorScale($$props.data.plotdata.find((d) => equals(d.iso3c, get(cell).iso3c)).color) : $$props.numericalColorScale($$props.data.plotdata.find((d) => equals(d.iso3c, get(cell).iso3c)).color) : $$props.noDataColor
+              () => $$props.data.plotdata.find((d) => equals(d.iso3c, get(cell).iso3c)) && equals($$props.data.plotdata.find((d) => equals(d.iso3c, get(cell).iso3c)).color, null, false) ? equals(get(valueType), "string") ? $$props.categoricalColorScale($$props.data.plotdata.find((d) => equals(d.iso3c, get(cell).iso3c)).color) : $$props.numericalColorScale($$props.data.plotdata.find((d) => equals(d.iso3c, get(cell).iso3c)).color) : $$props.noDataColor
             ]
           );
           event("focus", rect, () => {
@@ -6171,7 +6028,7 @@ ${indent}in ${name}`).join("")}
             currentCountry(null);
             tooltipVisible(false);
           });
-          append($$anchor3, fragment_2);
+          append($$anchor3, g);
         });
         append($$anchor2, fragment_1);
       };
@@ -6182,8 +6039,8 @@ ${indent}in ${name}`).join("")}
     var node_3 = sibling(node);
     {
       var consequent_2 = ($$anchor2) => {
-        var fragment_3 = root_4$1();
-        var rect_1 = first_child(fragment_3);
+        var fragment_2 = root_4$1();
+        var rect_1 = first_child(fragment_2);
         set_attribute(rect_1, "fill", "none");
         set_attribute(rect_1, "stroke", "#FFFFFF");
         var rect_2 = sibling(rect_1);
@@ -6201,7 +6058,7 @@ ${indent}in ${name}`).join("")}
           set_attribute(rect_2, "height", get(tileSize));
           set_attribute(rect_2, "stroke-width", $$props.strokeWidth);
         });
-        append($$anchor2, fragment_3);
+        append($$anchor2, fragment_2);
       };
       if_block(node_3, ($$render) => {
         if (currentCountry()) $$render(consequent_2);
@@ -6214,42 +6071,42 @@ ${indent}in ${name}`).join("")}
   delegate(["mouseover", "mouseout"]);
   mark_module_start();
   NumericalColorLegend[FILENAME] = "src/template/NumericalColorLegend.svelte";
-  var root_1$2 = add_locations(/* @__PURE__ */ template2(`<div class="no-data-label svelte-1af89zx"> </div>`), NumericalColorLegend[FILENAME], [[104, 6]]);
+  var root_1$2 = add_locations(/* @__PURE__ */ template2(`<div class="no-data-label svelte-1af89zx"> </div>`), NumericalColorLegend[FILENAME], [[103, 6]]);
   var root_2$1 = add_locations(/* @__PURE__ */ template2(`<div class="no-data"><div class="no-data-symbol svelte-1af89zx"><svg class="no-data-symbol svelte-1af89zx"><rect class="no-data-rect"></rect></svg></div></div>`), NumericalColorLegend[FILENAME], [
     [
-      116,
+      115,
       6,
       [
         [
-          117,
+          116,
           8,
-          [[118, 10, [[119, 12]]]]
+          [[117, 10, [[118, 12]]]]
         ]
       ]
     ]
   ]);
-  var root_4 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), NumericalColorLegend[FILENAME], [[151, 14]]);
-  var root_6 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), NumericalColorLegend[FILENAME], [[157, 16]]);
-  var root_3$1 = add_locations(/* @__PURE__ */ ns_template(`<image class="gradient svelte-1af89zx" preserveAspectRatio="none"></image><rect class="gradient-border svelte-1af89zx"></rect><g class="ticks"><!><!></g>`, 1), NumericalColorLegend[FILENAME], [[133, 10], [142, 10], [149, 10]]);
-  var root_8$1 = add_locations(/* @__PURE__ */ ns_template(`<rect></rect>`), NumericalColorLegend[FILENAME], [[166, 12]]);
-  var root_9 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), NumericalColorLegend[FILENAME], [[177, 12]]);
+  var root_4 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), NumericalColorLegend[FILENAME], [[150, 14]]);
+  var root_6 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), NumericalColorLegend[FILENAME], [[156, 16]]);
+  var root_3$1 = add_locations(/* @__PURE__ */ ns_template(`<image class="gradient svelte-1af89zx" preserveAspectRatio="none"></image><rect class="gradient-border svelte-1af89zx"></rect><g class="ticks"><!><!></g>`, 1), NumericalColorLegend[FILENAME], [[132, 10], [141, 10], [148, 10]]);
+  var root_8$1 = add_locations(/* @__PURE__ */ ns_template(`<rect></rect>`), NumericalColorLegend[FILENAME], [[165, 12]]);
+  var root_9 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), NumericalColorLegend[FILENAME], [[176, 12]]);
   var root_7 = add_locations(/* @__PURE__ */ ns_template(`<!><!>`, 1), NumericalColorLegend[FILENAME], []);
   var root$6 = add_locations(/* @__PURE__ */ template2(`<div><div class="legend-text-container svelte-1af89zx"><!> <div class="legend-title svelte-1af89zx"><span> </span>&nbsp;<span class="label-unit svelte-1af89zx"> </span></div></div> <div class="gradient-container svelte-1af89zx"><!> <div class="gradient svelte-1af89zx"><svg class="svelte-1af89zx"><!><!></svg></div></div></div>`), NumericalColorLegend[FILENAME], [
     [
-      101,
+      100,
       0,
       [
         [
-          102,
+          101,
           2,
           [
-            [108, 4, [[109, 6], [109, 32]]]
+            [107, 4, [[108, 6], [108, 32]]]
           ]
         ],
         [
-          114,
+          113,
           2,
-          [[130, 4, [[131, 6]]]]
+          [[129, 4, [[130, 6]]]]
         ]
       ]
     ]
@@ -6257,7 +6114,7 @@ ${indent}in ${name}`).join("")}
   function NumericalColorLegend($$anchor, $$props) {
     check_target(new.target);
     push($$props, true, NumericalColorLegend);
-    let units = prop($$props, "units", 3, ""), tickLabels = prop($$props, "tickLabels", 19, () => []);
+    let tickLabels = prop($$props, "tickLabels", 19, () => []);
     let tickSize = 12;
     let height = 12 + tickSize;
     const margin = {
@@ -6386,7 +6243,7 @@ ${indent}in ${name}`).join("")}
             ($0) => {
               set_attribute(text_3, "x", $0);
               set_attribute(text_3, "y", margin.top + 24);
-              set_text(text_4, get(tick).label + units());
+              set_text(text_4, get(tick).label);
             },
             [() => get(x)(get(tick).value)]
           );
@@ -6404,7 +6261,7 @@ ${indent}in ${name}`).join("")}
                 ($0) => {
                   set_attribute(text_5, "x", $0);
                   set_attribute(text_5, "y", margin.top + 24);
-                  set_text(text_6, get(tick) + units());
+                  set_text(text_6, get(tick));
                 },
                 [() => get(x)(get(tick))]
               );
@@ -6466,7 +6323,7 @@ ${indent}in ${name}`).join("")}
             },
             [
               () => margin.left + (i + 1) * get(gradientWidth) / $$props.numericalColorScale.range().length,
-              () => Math.round(get(tick) * 10) / 10 + units()
+              () => Math.round(get(tick) * 10) / 10
             ]
           );
           append($$anchor3, text_7);
@@ -7906,7 +7763,7 @@ ${indent}in ${name}`).join("")}
         [68, 2],
         [74, 2],
         [142, 2],
-        [166, 2]
+        [165, 2]
       ]
     ]
   ]);
@@ -8195,7 +8052,6 @@ ${indent}in ${name}`).join("")}
               get binningMode() {
                 return $$props.binningMode;
               },
-              units: "%",
               get includeNoData() {
                 return $$props.includeNoData;
               },

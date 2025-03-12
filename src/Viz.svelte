@@ -148,7 +148,6 @@
           {numericalColorScale}
           {linearOrBinned}
           {binningMode}
-          units={"%"}
           {includeNoData}
           {noDataLabel}
         ></NumericalColorLegend>

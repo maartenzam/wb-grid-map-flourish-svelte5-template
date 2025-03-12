@@ -48,7 +48,7 @@
     <polygon
       class={`hex q-${hex.q} r-${hex.r}`}
       points={hex.vertices}
-      fill={data.plotdata.find((d) => (d.iso3c == hex.iso3c))
+      fill={data.plotdata.find((d) => (d.iso3c == hex.iso3c)) && data.plotdata.find((d) => (d.iso3c == hex.iso3c)).color != null
         ? valueType == 'string'
           ? categoricalColorScale(data.plotdata.find((d) => d.iso3c == hex.iso3c).color)
           : numericalColorScale(

@@ -2,7 +2,6 @@
   import { interpolate, quantize, interpolateRound } from 'd3-interpolate';
 
   let {
-    units = '',
     title,
     unitLabel,
     numericalColorScale,
@@ -149,13 +148,13 @@
           <g class="ticks">
             {#each tickLabels as tick}
               <text class="tick-label" x={x(tick.value)} y={margin.top + 24}
-                >{tick.label + units}</text
+                >{tick.label}</text
               >
             {/each}
             {#if tickLabels.length === 0}
               {#each domain as tick}
                 <text class="tick-label" x={x(tick)} y={margin.top + 24}
-                  >{tick + units}</text
+                  >{tick}</text
                 >
               {/each}
             {/if}
@@ -178,7 +177,7 @@
               class="tick-label"
               x={margin.left +
                 ((i + 1) * gradientWidth) / numericalColorScale.range().length}
-              y={margin.top + 24}>{Math.round(tick * 10) / 10 + units}</text
+              y={margin.top + 24}>{Math.round(tick * 10) / 10}</text
             >
           {/each}
         {/if}

@@ -226,7 +226,7 @@ data:
     description: The values to use to color the country tiles
     dataset: plotdata
     type: column
-    column: "country_data::C"
+    column: "country_data::G"
     data_type:
       - number
       - string

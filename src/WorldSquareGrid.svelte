@@ -44,7 +44,6 @@
 
 {#if tileSize}
   {#each squareGrid as cell}
-    {console.log(cell)}
     <g
       transform={`translate(${(cell.x - 1) * tileSize + shift},${(cell.y - 1) * tileSize})`}
     >
@@ -55,7 +54,7 @@
         y={0}
         width={tileSize}
         height={tileSize}
-        fill={data.plotdata.find(d => d.iso3c == cell.iso3c)
+        fill={data.plotdata.find(d => d.iso3c == cell.iso3c) && data.plotdata.find((d) => (d.iso3c == cell.iso3c)).color != null
             ? valueType == 'string' 
               ? categoricalColorScale(data.plotdata.find(d => d.iso3c == cell.iso3c).color)
               : numericalColorScale(data.plotdata.find(d => d.iso3c == cell.iso3c).color)
