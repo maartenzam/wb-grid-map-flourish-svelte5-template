@@ -1527,41 +1527,6 @@ ${indent}in ${name}`).join("")}
   function effect(fn) {
     return create_effect(EFFECT, fn, false);
   }
-  function legacy_pre_effect(deps, fn) {
-    var context = (
-      /** @type {ComponentContextLegacy} */
-      component_context
-    );
-    var token = { effect: null, ran: false };
-    context.l.r1.push(token);
-    token.effect = render_effect(() => {
-      deps();
-      if (token.ran) return;
-      token.ran = true;
-      set(context.l.r2, true);
-      untrack(fn);
-    });
-  }
-  function legacy_pre_effect_reset() {
-    var context = (
-      /** @type {ComponentContextLegacy} */
-      component_context
-    );
-    render_effect(() => {
-      if (!get(context.l.r2)) return;
-      for (var token of context.l.r1) {
-        var effect2 = token.effect;
-        if ((effect2.f & CLEAN) !== 0) {
-          set_signal_status(effect2, MAYBE_DIRTY);
-        }
-        if (check_dirtiness(effect2)) {
-          update_effect(effect2);
-        }
-        token.ran = false;
-      }
-      context.l.r2.v = false;
-    });
-  }
   function render_effect(fn) {
     return create_effect(RENDER_EFFECT, fn, true);
   }
@@ -3313,7 +3278,6 @@ ${indent}in ${name}`).join("")}
     return pop({ ...legacy_api() });
   }
   mark_module_end(Footer);
-  enable_legacy_mode_flag();
   const hexGrid = [
     {
       "q": 0,
@@ -6680,16 +6644,9 @@ ${indent}in ${name}`).join("")}
   }
   function max$1(values, valueof) {
     let max2;
-    if (valueof === void 0) {
+    {
       for (const value of values) {
         if (value != null && (max2 < value || max2 === void 0 && value >= value)) {
-          max2 = value;
-        }
-      }
-    } else {
-      let index2 = -1;
-      for (let value of values) {
-        if ((value = valueof(value, ++index2, values)) != null && (max2 < value || max2 === void 0 && value >= value)) {
           max2 = value;
         }
       }
@@ -6716,32 +6673,25 @@ ${indent}in ${name}`).join("")}
   }
   mark_module_start();
   WorldHexGrid[FILENAME] = "src/WorldHexGrid.svelte";
-  var root_2$3 = add_locations(/* @__PURE__ */ ns_template(`<text class="country-label svelte-166i5y3" paint-order="stroke" stroke-linejoin="round"> </text>`), WorldHexGrid[FILENAME], [[81, 4]]);
-  var root_1$2 = add_locations(/* @__PURE__ */ ns_template(`<polygon></polygon><!>`, 1), WorldHexGrid[FILENAME], [[69, 2]]);
-  var root_3$3 = add_locations(/* @__PURE__ */ ns_template(`<polygon></polygon><polygon></polygon>`, 1), WorldHexGrid[FILENAME], [[96, 4], [103, 4]]);
-  var root$8 = add_locations(/* @__PURE__ */ ns_template(`<g><!><!></g>`), WorldHexGrid[FILENAME], [[66, 0]]);
+  var on_mouseover$1 = (_, currentCountry, hex2, searched, tooltipVisible) => {
+    currentCountry(get(hex2).iso3c);
+    searched(false);
+    tooltipVisible(true);
+  };
+  var on_mouseout$1 = (__1, currentCountry, tooltipVisible) => {
+    currentCountry(null);
+    tooltipVisible(false);
+  };
+  var root_2$3 = add_locations(/* @__PURE__ */ ns_template(`<text class="country-label svelte-166i5y3" paint-order="stroke" stroke-linejoin="round"> </text>`), WorldHexGrid[FILENAME], [[109, 6]]);
+  var root_1$2 = add_locations(/* @__PURE__ */ ns_template(`<polygon></polygon><!>`, 1), WorldHexGrid[FILENAME], [[77, 4]]);
+  var root_3$4 = add_locations(/* @__PURE__ */ ns_template(`<polygon></polygon><polygon></polygon>`, 1), WorldHexGrid[FILENAME], [[124, 4], [131, 4]]);
+  var root$8 = add_locations(/* @__PURE__ */ ns_template(`<g><!><!></g>`), WorldHexGrid[FILENAME], [[74, 0]]);
   function WorldHexGrid($$anchor, $$props) {
     check_target(new.target);
-    push($$props, false, WorldHexGrid);
-    const size = mutable_state();
-    const hexLayout = mutable_state();
-    const currentTile = mutable_state();
-    const gridWidth = mutable_state();
-    const gridShift = mutable_state();
-    let width = prop($$props, "width", 8);
-    let height = prop($$props, "height", 8);
-    let strokeWidth = prop($$props, "strokeWidth", 8);
-    let stroke = prop($$props, "stroke", 8);
-    let countryCodes = prop($$props, "countryCodes", 8);
-    let noDataColor = prop($$props, "noDataColor", 8);
-    let data2 = prop($$props, "data", 8);
-    let contColorScale = prop($$props, "contColorScale", 8);
-    let catColorScale = prop($$props, "catColorScale", 8);
-    let currentCountry = prop($$props, "currentCountry", 12);
-    let currentTilePos = prop($$props, "currentTilePos", 12);
-    let searched = prop($$props, "searched", 12);
-    let tooltipVisible = prop($$props, "tooltipVisible", 12);
+    push($$props, true, WorldHexGrid);
+    let currentCountry = prop($$props, "currentCountry", 15), currentTilePos = prop($$props, "currentTilePos", 15), searched = prop($$props, "searched", 15), tooltipVisible = prop($$props, "tooltipVisible", 15);
     const shift2 = Math.cos(Math.PI / 180 * 30);
+    let size = /* @__PURE__ */ derived(() => Math.min($$props.width / (33 * 3 / 2), $$props.height / (22 * 2 * shift2)));
     function generateHexLayout(grid, size2) {
       let hexGrid2 = grid.map((d) => {
         let hex2 = {};
@@ -6767,48 +6717,31 @@ ${indent}in ${name}`).join("")}
       });
       return hexGrid2.filter((d) => equals(d.iso3c, "", false));
     }
-    legacy_pre_effect(
-      () => (deep_read_state(width()), deep_read_state(height())),
-      () => {
-        set(size, Math.min(width() / (33 * 3 / 2), height() / (22 * 2 * shift2)));
+    let hexLayout = /* @__PURE__ */ derived(() => generateHexLayout(hexGrid, get(size)));
+    let currentTile = /* @__PURE__ */ derived(() => get(hexLayout).find((d) => equals(d.iso3c, currentCountry())));
+    let gridWidth = /* @__PURE__ */ derived(() => Math.round(max$1(get(hexLayout).map((d) => d.x))));
+    let gridShift = /* @__PURE__ */ derived(() => ($$props.width - get(gridWidth)) / 2);
+    user_effect(() => {
+      if (currentCountry()) {
+        currentTilePos({
+          x: get(currentTile).x,
+          y: get(currentTile).y + 2.5 * get(currentTile).size
+        });
       }
-    );
-    legacy_pre_effect(() => get(size), () => {
-      set(hexLayout, generateHexLayout(hexGrid, get(size)));
     });
-    legacy_pre_effect(
-      () => (get(hexLayout), deep_read_state(currentCountry())),
-      () => {
-        set(currentTile, get(hexLayout).find((d) => equals(d.iso3c, currentCountry())));
-      }
-    );
-    legacy_pre_effect(() => get(hexLayout), () => {
-      set(gridWidth, Math.round(max$1(get(hexLayout).map((d) => d.x))));
-    });
-    legacy_pre_effect(
-      () => (deep_read_state(width()), get(gridWidth)),
-      () => {
-        set(gridShift, (width() - get(gridWidth)) / 2);
-      }
-    );
-    legacy_pre_effect(
-      () => (deep_read_state(currentCountry()), get(currentTile)),
-      () => {
-        if (currentCountry()) {
-          currentTilePos({
-            x: get(currentTile).x,
-            y: get(currentTile).y + 2.5 * get(currentTile).size
-          });
-        }
-      }
-    );
-    legacy_pre_effect_reset();
-    init();
     var g = root$8();
     var node = child(g);
-    each(node, 1, () => get(hexLayout), index, ($$anchor2, hex2) => {
+    each(node, 17, () => get(hexLayout), index, ($$anchor2, hex2) => {
       var fragment = root_1$2();
       var polygon = first_child(fragment);
+      polygon.__mouseover = [
+        on_mouseover$1,
+        currentCountry,
+        hex2,
+        searched,
+        tooltipVisible
+      ];
+      polygon.__mouseout = [on_mouseout$1, currentCountry, tooltipVisible];
       var node_1 = sibling(polygon);
       {
         var consequent = ($$anchor3) => {
@@ -6826,7 +6759,7 @@ ${indent}in ${name}`).join("")}
           append($$anchor3, text);
         };
         if_block(node_1, ($$render) => {
-          if (countryCodes()) $$render(consequent);
+          if ($$props.countryCodes) $$render(consequent);
         });
       }
       template_effect(
@@ -6834,27 +6767,17 @@ ${indent}in ${name}`).join("")}
           set_class(polygon, 0, `hex q-${get(hex2).q} r-${get(hex2).r}`, "svelte-166i5y3");
           set_attribute(polygon, "points", get(hex2).vertices);
           set_attribute(polygon, "fill", $0);
-          set_style(polygon, "stroke-width", strokeWidth());
-          set_style(polygon, "stroke", stroke());
+          set_style(polygon, "stroke-width", $$props.strokeWidth);
+          set_style(polygon, "stroke", $$props.stroke);
         },
         [
-          () => getFill(data2(), get(hex2).iso3c, contColorScale(), catColorScale(), noDataColor())
-        ],
-        derived_safe_equal
+          () => getFill($$props.data, get(hex2).iso3c, $$props.contColorScale, $$props.catColorScale, $$props.noDataColor)
+        ]
       );
-      event("mouseover", polygon, () => {
-        currentCountry(get(hex2).iso3c);
-        searched(false);
-        tooltipVisible(true);
-      });
       event("focus", polygon, () => {
         currentCountry(get(hex2).iso3c);
         searched(false);
         tooltipVisible(true);
-      });
-      event("mouseout", polygon, () => {
-        currentCountry(null);
-        tooltipVisible(false);
       });
       event("blur", polygon, () => {
         currentCountry(null);
@@ -6865,7 +6788,7 @@ ${indent}in ${name}`).join("")}
     var node_2 = sibling(node);
     {
       var consequent_1 = ($$anchor2) => {
-        var fragment_1 = root_3$3();
+        var fragment_1 = root_3$4();
         var polygon_1 = first_child(fragment_1);
         set_class(polygon_1, 0, "highlight-outline svelte-166i5y3");
         set_attribute(polygon_1, "fill", "none");
@@ -6876,9 +6799,9 @@ ${indent}in ${name}`).join("")}
         set_attribute(polygon_2, "stroke", "#000000");
         template_effect(() => {
           set_attribute(polygon_1, "points", get(currentTile).vertices);
-          set_attribute(polygon_1, "stroke-width", strokeWidth() + 2);
+          set_attribute(polygon_1, "stroke-width", $$props.strokeWidth + 2);
           set_attribute(polygon_2, "points", get(currentTile).vertices);
-          set_attribute(polygon_2, "stroke-width", strokeWidth());
+          set_attribute(polygon_2, "stroke-width", $$props.strokeWidth);
         });
         append($$anchor2, fragment_1);
       };
@@ -6891,83 +6814,62 @@ ${indent}in ${name}`).join("")}
     return pop({ ...legacy_api() });
   }
   mark_module_end(WorldHexGrid);
+  delegate(["mouseover", "mouseout"]);
   const squareGrid = [{ "iso3c": "FIN", "x": 16, "y": 1, "country": "Finland", "region_iso3c": "ECS" }, { "iso3c": "GRL", "x": 8, "y": 1, "country": "Greenland", "region_iso3c": "ECS" }, { "iso3c": "ISL", "x": 10, "y": 1, "country": "Iceland", "region_iso3c": "ECS" }, { "iso3c": "NOR", "x": 14, "y": 1, "country": "Norway", "region_iso3c": "ECS" }, { "iso3c": "SWE", "x": 15, "y": 1, "country": "Sweden", "region_iso3c": "ECS" }, { "iso3c": "EST", "x": 16, "y": 2, "country": "Estonia", "region_iso3c": "ECS" }, { "iso3c": "LVA", "x": 16, "y": 3, "country": "Latvia", "region_iso3c": "ECS" }, { "iso3c": "FRO", "x": 11, "y": 3, "country": "Faroe Islands", "region_iso3c": "ECS" }, { "iso3c": "LTU", "x": 15, "y": 3, "country": "Lithuania", "region_iso3c": "ECS" }, { "iso3c": "IMN", "x": 10, "y": 4, "country": "Isle of Man", "region_iso3c": "ECS" }, { "iso3c": "MAF", "x": 8, "y": 4, "country": "Saint Martin", "region_iso3c": "LCN" }, { "iso3c": "BLR", "x": 16, "y": 4, "country": "Belarus", "region_iso3c": "ECS" }, { "iso3c": "POL", "x": 15, "y": 4, "country": "Poland", "region_iso3c": "ECS" }, { "iso3c": "GBR", "x": 11, "y": 4, "country": "Great Britain and Northern Ireland", "region_iso3c": "ECS" }, { "iso3c": "CAN", "x": 1, "y": 4, "country": "Canada", "region_iso3c": "NAC" }, { "iso3c": "DNK", "x": 13, "y": 4, "country": "Denmark", "region_iso3c": "ECS" }, { "iso3c": "BMU", "x": 4, "y": 5, "country": "Bermuda", "region_iso3c": "NAC" }, { "iso3c": "NLD", "x": 12, "y": 5, "country": "Netherlands", "region_iso3c": "ECS" }, { "iso3c": "IRL", "x": 10, "y": 5, "country": "Ireland", "region_iso3c": "ECS" }, { "iso3c": "VGB", "x": 7, "y": 5, "country": "Virgin Islands British", "region_iso3c": "LCN" }, { "iso3c": "SXM", "x": 8, "y": 5, "country": "St Maarten", "region_iso3c": "LCN" }, { "iso3c": "CZE", "x": 14, "y": 5, "country": "Czech Republic", "region_iso3c": "ECS" }, { "iso3c": "SVK", "x": 15, "y": 5, "country": "Slovakia", "region_iso3c": "ECS" }, { "iso3c": "UKR", "x": 16, "y": 5, "country": "Ukraine", "region_iso3c": "ECS" }, { "iso3c": "USA", "x": 1, "y": 5, "country": "United States of America", "region_iso3c": "NAC" }, { "iso3c": "DEU", "x": 13, "y": 5, "country": "Germany", "region_iso3c": "ECS" }, { "iso3c": "MDA", "x": 17, "y": 5, "country": "Moldova (Republic of)", "region_iso3c": "ECS" }, { "iso3c": "KAZ", "x": 21, "y": 5, "country": "Kazakhstan", "region_iso3c": "ECS" }, { "iso3c": "RUS", "x": 22, "y": 5, "country": "Russian Federation", "region_iso3c": "ECS" }, { "iso3c": "BHS", "x": 4, "y": 6, "country": "Bahamas", "region_iso3c": "LCN" }, { "iso3c": "LIE", "x": 14, "y": 6, "country": "Liechtenstein", "region_iso3c": "ECS" }, { "iso3c": "BEL", "x": 12, "y": 6, "country": "Belgium", "region_iso3c": "ECS" }, { "iso3c": "VIR", "x": 7, "y": 6, "country": "Virgin Islands US", "region_iso3c": "LCN" }, { "iso3c": "TCA", "x": 5, "y": 6, "country": "Turks and Caicos Islands", "region_iso3c": "LCN" }, { "iso3c": "ATG", "x": 8, "y": 6, "country": "Antigua & Barbuda", "region_iso3c": "LCN" }, { "iso3c": "AUT", "x": 15, "y": 6, "country": "Austria", "region_iso3c": "ECS" }, { "iso3c": "HUN", "x": 16, "y": 6, "country": "Hungary", "region_iso3c": "ECS" }, { "iso3c": "KGZ", "x": 21, "y": 6, "country": "Kyrgyzstan", "region_iso3c": "ECS" }, { "iso3c": "ROU", "x": 17, "y": 6, "country": "Romania", "region_iso3c": "ECS" }, { "iso3c": "UZB", "x": 20, "y": 6, "country": "Uzbekistan", "region_iso3c": "ECS" }, { "iso3c": "MEX", "x": 1, "y": 6, "country": "Mexico", "region_iso3c": "LCN" }, { "iso3c": "LUX", "x": 13, "y": 6, "country": "Luxembourg", "region_iso3c": "ECS" }, { "iso3c": "ARM", "x": 19, "y": 6, "country": "Armenia", "region_iso3c": "ECS" }, { "iso3c": "MNG", "x": 22, "y": 6, "country": "Mongolia", "region_iso3c": "EAS" }, { "iso3c": "PRK", "x": 23, "y": 6, "country": "North Korea", "region_iso3c": "EAS" }, { "iso3c": "KOR", "x": 24, "y": 6, "country": "South Korea", "region_iso3c": "EAS" }, { "iso3c": "JPN", "x": 27, "y": 6, "country": "Japan", "region_iso3c": "EAS" }, { "iso3c": "TWN", "x": 25, "y": 7, "country": "Taiwan", "region_iso3c": "EAS" }, { "iso3c": "HKG", "x": 24, "y": 7, "country": "Hong Kong", "region_iso3c": "EAS" }, { "iso3c": "CUB", "x": 4, "y": 7, "country": "Cuba", "region_iso3c": "LCN" }, { "iso3c": "FRA", "x": 12, "y": 7, "country": "France", "region_iso3c": "ECS" }, { "iso3c": "CHE", "x": 13, "y": 7, "country": "Switzerland", "region_iso3c": "ECS" }, { "iso3c": "AND", "x": 11, "y": 7, "country": "Andorra", "region_iso3c": "ECS" }, { "iso3c": "AZE", "x": 19, "y": 7, "country": "Azerbaijan", "region_iso3c": "ECS" }, { "iso3c": "GEO", "x": 18, "y": 7, "country": "Georgia", "region_iso3c": "ECS" }, { "iso3c": "PRI", "x": 7, "y": 7, "country": "Puerto Rico", "region_iso3c": "LCN" }, { "iso3c": "DOM", "x": 6, "y": 7, "country": "Dominican Republic", "region_iso3c": "LCN" }, { "iso3c": "BLZ", "x": 2, "y": 7, "country": "Belize", "region_iso3c": "LCN" }, { "iso3c": "CYM", "x": 3, "y": 7, "country": "Cayman Islands", "region_iso3c": "LCN" }, { "iso3c": "HTI", "x": 5, "y": 7, "country": "Haiti", "region_iso3c": "LCN" }, { "iso3c": "DMA", "x": 8, "y": 7, "country": "Dominica", "region_iso3c": "LCN" }, { "iso3c": "SVN", "x": 14, "y": 7, "country": "Slovenia", "region_iso3c": "ECS" }, { "iso3c": "BIH", "x": 15, "y": 7, "country": "Bosnia & Herzegovina", "region_iso3c": "ECS" }, { "iso3c": "BGR", "x": 17, "y": 7, "country": "Bulgaria", "region_iso3c": "ECS" }, { "iso3c": "SRB", "x": 16, "y": 7, "country": "Serbia", "region_iso3c": "ECS" }, { "iso3c": "TJK", "x": 21, "y": 7, "country": "Tajikistan", "region_iso3c": "ECS" }, { "iso3c": "TKM", "x": 20, "y": 7, "country": "Turkmenistan", "region_iso3c": "ECS" }, { "iso3c": "GTM", "x": 1, "y": 7, "country": "Guatemala", "region_iso3c": "LCN" }, { "iso3c": "NPL", "x": 22, "y": 7, "country": "Nepal", "region_iso3c": "SAS" }, { "iso3c": "CHN", "x": 23, "y": 7, "country": "China", "region_iso3c": "EAS" }, { "iso3c": "MAC", "x": 25, "y": 8, "country": "Macao SAR", "region_iso3c": "EAS" }, { "iso3c": "JAM", "x": 4, "y": 8, "country": "Jamaica", "region_iso3c": "LCN" }, { "iso3c": "PRT", "x": 10, "y": 8, "country": "Portugal", "region_iso3c": "ECS" }, { "iso3c": "ESP", "x": 11, "y": 8, "country": "Spain", "region_iso3c": "ECS" }, { "iso3c": "MCO", "x": 12, "y": 8, "country": "Monaco", "region_iso3c": "ECS" }, { "iso3c": "ITA", "x": 13, "y": 8, "country": "Italy", "region_iso3c": "ECS" }, { "iso3c": "TUR", "x": 18, "y": 8, "country": "Turkey", "region_iso3c": "ECS" }, { "iso3c": "KNA", "x": 7, "y": 8, "country": "St. Kitts & Nevis", "region_iso3c": "LCN" }, { "iso3c": "HND", "x": 2, "y": 8, "country": "Honduras", "region_iso3c": "LCN" }, { "iso3c": "LCA", "x": 8, "y": 8, "country": "St. Lucia", "region_iso3c": "LCN" }, { "iso3c": "HRV", "x": 14, "y": 8, "country": "Croatia", "region_iso3c": "ECS" }, { "iso3c": "AFG", "x": 20, "y": 8, "country": "Afghanistan", "region_iso3c": "SAS" }, { "iso3c": "IRN", "x": 19, "y": 8, "country": "Iran (Islamic Republic of)", "region_iso3c": "MEA" }, { "iso3c": "XKX", "x": 16, "y": 8, "country": "Kosovo", "region_iso3c": "ECS" }, { "iso3c": "MKD", "x": 17, "y": 8, "country": "Macedonia", "region_iso3c": "ECS" }, { "iso3c": "MNE", "x": 15, "y": 8, "country": "Montenegro", "region_iso3c": "ECS" }, { "iso3c": "PAK", "x": 21, "y": 8, "country": "Pakistan", "region_iso3c": "SAS" }, { "iso3c": "IND", "x": 22, "y": 8, "country": "India", "region_iso3c": "SAS" }, { "iso3c": "SLV", "x": 1, "y": 8, "country": "El Salvador", "region_iso3c": "LCN" }, { "iso3c": "BTN", "x": 23, "y": 8, "country": "Bhutan", "region_iso3c": "SAS" }, { "iso3c": "LAO", "x": 24, "y": 8, "country": "Lao People's Democratic Republic", "region_iso3c": "EAS" }, { "iso3c": "VNM", "x": 25, "y": 9, "country": "Viet Nam", "region_iso3c": "EAS" }, { "iso3c": "MMR", "x": 24, "y": 9, "country": "Myanmar", "region_iso3c": "EAS" }, { "iso3c": "SMR", "x": 13, "y": 9, "country": "San Marino", "region_iso3c": "ECS" }, { "iso3c": "IRQ", "x": 19, "y": 9, "country": "Iraq", "region_iso3c": "MEA" }, { "iso3c": "SYR", "x": 18, "y": 9, "country": "Syria", "region_iso3c": "MEA" }, { "iso3c": "NIC", "x": 2, "y": 9, "country": "Nicaragua", "region_iso3c": "LCN" }, { "iso3c": "VCT", "x": 7, "y": 9, "country": "St. Vincent & the Grenadines", "region_iso3c": "LCN" }, { "iso3c": "BRB", "x": 8, "y": 9, "country": "Barbados", "region_iso3c": "LCN" }, { "iso3c": "ALB", "x": 15, "y": 9, "country": "Albania", "region_iso3c": "ECS" }, { "iso3c": "GRC", "x": 16, "y": 9, "country": "Greece", "region_iso3c": "ECS" }, { "iso3c": "LKA", "x": 22, "y": 9, "country": "Sri Lanka", "region_iso3c": "SAS" }, { "iso3c": "GIB", "x": 11, "y": 9, "country": "Gibraltar", "region_iso3c": "ECS" }, { "iso3c": "MDV", "x": 21, "y": 9, "country": "Maldives", "region_iso3c": "SAS" }, { "iso3c": "BGD", "x": 23, "y": 9, "country": "Bangladesh", "region_iso3c": "SAS" }, { "iso3c": "MNP", "x": 29, "y": 10, "country": "Northern Mariana Islands", "region_iso3c": "EAS" }, { "iso3c": "KHM", "x": 25, "y": 10, "country": "Cambodia", "region_iso3c": "EAS" }, { "iso3c": "THA", "x": 24, "y": 10, "country": "Thailand", "region_iso3c": "EAS" }, { "iso3c": "PHL", "x": 27, "y": 10, "country": "Philippines", "region_iso3c": "EAS" }, { "iso3c": "MLT", "x": 14, "y": 10, "country": "Malta", "region_iso3c": "MEA" }, { "iso3c": "KWT", "x": 20, "y": 10, "country": "Kuwait", "region_iso3c": "MEA" }, { "iso3c": "LBN", "x": 18, "y": 10, "country": "Lebanon", "region_iso3c": "MEA" }, { "iso3c": "CUW", "x": 6, "y": 10, "country": "Curacao", "region_iso3c": "LCN" }, { "iso3c": "GRD", "x": 8, "y": 10, "country": "Grenada", "region_iso3c": "LCN" }, { "iso3c": "ABW", "x": 5, "y": 10, "country": "Aruba", "region_iso3c": "LCN" }, { "iso3c": "CRI", "x": 2, "y": 10, "country": "Costa Rica", "region_iso3c": "LCN" }, { "iso3c": "CYP", "x": 16, "y": 10, "country": "Cyprus", "region_iso3c": "ECS" }, { "iso3c": "JOR", "x": 19, "y": 10, "country": "Jordan", "region_iso3c": "MEA" }, { "iso3c": "GUM", "x": 29, "y": 11, "country": "Guam", "region_iso3c": "EAS" }, { "iso3c": "MYS", "x": 24, "y": 11, "country": "Malaysia", "region_iso3c": "EAS" }, { "iso3c": "BHR", "x": 20, "y": 11, "country": "Bahrain", "region_iso3c": "MEA" }, { "iso3c": "SAU", "x": 19, "y": 11, "country": "Saudi Arabia", "region_iso3c": "MEA" }, { "iso3c": "PSE", "x": 17, "y": 11, "country": "West Bank and Gaza", "region_iso3c": "MEA" }, { "iso3c": "ISR", "x": 18, "y": 11, "country": "Israel", "region_iso3c": "MEA" }, { "iso3c": "TTO", "x": 8, "y": 11, "country": "Trinidad & Tobago", "region_iso3c": "LCN" }, { "iso3c": "PAN", "x": 3, "y": 11, "country": "Panama", "region_iso3c": "LCN" }, { "iso3c": "DZA", "x": 13, "y": 11, "country": "Algeria", "region_iso3c": "MEA" }, { "iso3c": "MAR", "x": 12, "y": 11, "country": "Morocco", "region_iso3c": "MEA" }, { "iso3c": "TUN", "x": 14, "y": 11, "country": "Tunisia", "region_iso3c": "MEA" }, { "iso3c": "QAT", "x": 21, "y": 11, "country": "Qatar", "region_iso3c": "MEA" }, { "iso3c": "MHL", "x": 29, "y": 12, "country": "Marshall Islands", "region_iso3c": "EAS" }, { "iso3c": "SGP", "x": 24, "y": 12, "country": "Singapore", "region_iso3c": "EAS" }, { "iso3c": "EGY", "x": 16, "y": 12, "country": "Egypt", "region_iso3c": "MEA" }, { "iso3c": "LBY", "x": 15, "y": 12, "country": "Libya", "region_iso3c": "MEA" }, { "iso3c": "ARE", "x": 21, "y": 12, "country": "United Arab Emirates", "region_iso3c": "MEA" }, { "iso3c": "OMN", "x": 20, "y": 12, "country": "Oman", "region_iso3c": "MEA" }, { "iso3c": "YEM", "x": 19, "y": 12, "country": "Yemen", "region_iso3c": "MEA" }, { "iso3c": "VEN", "x": 5, "y": 12, "country": "Venezuela", "region_iso3c": "LCN" }, { "iso3c": "GUY", "x": 6, "y": 12, "country": "Guyana", "region_iso3c": "LCN" }, { "iso3c": "SUR", "x": 7, "y": 12, "country": "Suriname", "region_iso3c": "LCN" }, { "iso3c": "MLI", "x": 13, "y": 12, "country": "Mali", "region_iso3c": "SSF" }, { "iso3c": "MRT", "x": 12, "y": 12, "country": "Mauritania", "region_iso3c": "SSF" }, { "iso3c": "NER", "x": 14, "y": 12, "country": "Niger", "region_iso3c": "SSF" }, { "iso3c": "SEN", "x": 11, "y": 12, "country": "Senegal", "region_iso3c": "SSF" }, { "iso3c": "COL", "x": 4, "y": 12, "country": "Colombia", "region_iso3c": "LCN" }, { "iso3c": "PLW", "x": 28, "y": 13, "country": "Palau", "region_iso3c": "EAS" }, { "iso3c": "FSM", "x": 29, "y": 13, "country": "Micronesia (Federated States of)", "region_iso3c": "EAS" }, { "iso3c": "BRN", "x": 25, "y": 13, "country": "Brunei Darussalam", "region_iso3c": "EAS" }, { "iso3c": "CPV", "x": 10, "y": 13, "country": "Cabo Verde", "region_iso3c": "SSF" }, { "iso3c": "SDN", "x": 16, "y": 13, "country": "Sudan", "region_iso3c": "SSF" }, { "iso3c": "TCD", "x": 15, "y": 13, "country": "Chad", "region_iso3c": "SSF" }, { "iso3c": "GMB", "x": 12, "y": 13, "country": "Gambia", "region_iso3c": "SSF" }, { "iso3c": "ECU", "x": 4, "y": 13, "country": "Ecuador", "region_iso3c": "LCN" }, { "iso3c": "BFA", "x": 13, "y": 13, "country": "Burkina Faso", "region_iso3c": "SSF" }, { "iso3c": "DJI", "x": 18, "y": 13, "country": "Djibouti", "region_iso3c": "MEA" }, { "iso3c": "ERI", "x": 17, "y": 13, "country": "Eritrea", "region_iso3c": "SSF" }, { "iso3c": "GNB", "x": 11, "y": 13, "country": "Guinea-Bissau", "region_iso3c": "SSF" }, { "iso3c": "TGO", "x": 14, "y": 13, "country": "Togo", "region_iso3c": "SSF" }, { "iso3c": "BRA", "x": 5, "y": 13, "country": "Brazil", "region_iso3c": "LCN" }, { "iso3c": "KIR", "x": 29, "y": 14, "country": "Kiribati", "region_iso3c": "EAS" }, { "iso3c": "NRU", "x": 28, "y": 14, "country": "Nauru", "region_iso3c": "EAS" }, { "iso3c": "SLB", "x": 27, "y": 14, "country": "Solomon Islands", "region_iso3c": "EAS" }, { "iso3c": "PNG", "x": 26, "y": 14, "country": "Papua New Guinea", "region_iso3c": "EAS" }, { "iso3c": "IDN", "x": 25, "y": 14, "country": "Indonesia", "region_iso3c": "EAS" }, { "iso3c": "PER", "x": 4, "y": 14, "country": "Peru", "region_iso3c": "LCN" }, { "iso3c": "SSD", "x": 16, "y": 14, "country": "South Sudan", "region_iso3c": "SSF" }, { "iso3c": "CAF", "x": 15, "y": 14, "country": "Central African Republic", "region_iso3c": "SSF" }, { "iso3c": "WSM", "x": 1, "y": 14, "country": "Samoa", "region_iso3c": "EAS" }, { "iso3c": "BOL", "x": 5, "y": 14, "country": "Bolivia", "region_iso3c": "LCN" }, { "iso3c": "BEN", "x": 14, "y": 14, "country": "Benin", "region_iso3c": "SSF" }, { "iso3c": "ETH", "x": 17, "y": 14, "country": "Ethiopia", "region_iso3c": "SSF" }, { "iso3c": "GHA", "x": 13, "y": 14, "country": "Ghana", "region_iso3c": "SSF" }, { "iso3c": "LBR", "x": 12, "y": 14, "country": "Liberia", "region_iso3c": "SSF" }, { "iso3c": "SOM", "x": 18, "y": 14, "country": "Somalia", "region_iso3c": "SSF" }, { "iso3c": "GIN", "x": 11, "y": 14, "country": "Guinea", "region_iso3c": "SSF" }, { "iso3c": "URY", "x": 6, "y": 15, "country": "Uruguay", "region_iso3c": "LCN" }, { "iso3c": "PRY", "x": 5, "y": 15, "country": "Paraguay", "region_iso3c": "LCN" }, { "iso3c": "VUT", "x": 28, "y": 15, "country": "Vanuatu", "region_iso3c": "EAS" }, { "iso3c": "TUV", "x": 29, "y": 15, "country": "Tuvalu", "region_iso3c": "EAS" }, { "iso3c": "TLS", "x": 25, "y": 15, "country": "Timor-Leste", "region_iso3c": "EAS" }, { "iso3c": "CHL", "x": 4, "y": 15, "country": "Chile", "region_iso3c": "LCN" }, { "iso3c": "UGA", "x": 16, "y": 15, "country": "Uganda", "region_iso3c": "SSF" }, { "iso3c": "SLE", "x": 11, "y": 15, "country": "Sierra Leone", "region_iso3c": "SSF" }, { "iso3c": "ASM", "x": 1, "y": 15, "country": "American Samoa", "region_iso3c": "EAS" }, { "iso3c": "CMR", "x": 14, "y": 15, "country": "Cameroon", "region_iso3c": "SSF" }, { "iso3c": "CIV", "x": 12, "y": 15, "country": "Côte d'Ivoire", "region_iso3c": "SSF" }, { "iso3c": "NGA", "x": 13, "y": 15, "country": "Nigeria", "region_iso3c": "SSF" }, { "iso3c": "RWA", "x": 15, "y": 15, "country": "Rwanda", "region_iso3c": "SSF" }, { "iso3c": "KEN", "x": 17, "y": 15, "country": "Kenya", "region_iso3c": "SSF" }, { "iso3c": "ARG", "x": 5, "y": 16, "country": "Argentina", "region_iso3c": "LCN" }, { "iso3c": "FJI", "x": 29, "y": 16, "country": "Fiji", "region_iso3c": "EAS" }, { "iso3c": "NCL", "x": 28, "y": 16, "country": "New Caledonia", "region_iso3c": "EAS" }, { "iso3c": "AUS", "x": 26, "y": 16, "country": "Australia", "region_iso3c": "EAS" }, { "iso3c": "PYF", "x": 2, "y": 16, "country": "French Polynesia", "region_iso3c": "EAS" }, { "iso3c": "BDI", "x": 16, "y": 16, "country": "Burundi", "region_iso3c": "SSF" }, { "iso3c": "GNQ", "x": 14, "y": 16, "country": "Equatorial Guinea", "region_iso3c": "SSF" }, { "iso3c": "TZA", "x": 17, "y": 16, "country": "Tanzania", "region_iso3c": "SSF" }, { "iso3c": "SYC", "x": 19, "y": 16, "country": "Seychelles", "region_iso3c": "SSF" }, { "iso3c": "GAB", "x": 13, "y": 16, "country": "Gabon", "region_iso3c": "SSF" }, { "iso3c": "COD", "x": 15, "y": 16, "country": "Congo (Democratic Republic of the)", "region_iso3c": "SSF" }, { "iso3c": "COG", "x": 13, "y": 17, "country": "Congo", "region_iso3c": "SSF" }, { "iso3c": "NZL", "x": 27, "y": 17, "country": "New Zealand", "region_iso3c": "EAS" }, { "iso3c": "MOZ", "x": 16, "y": 17, "country": "Mozambique", "region_iso3c": "SSF" }, { "iso3c": "TON", "x": 1, "y": 17, "country": "Tonga", "region_iso3c": "EAS" }, { "iso3c": "MWI", "x": 15, "y": 17, "country": "Malawi", "region_iso3c": "SSF" }, { "iso3c": "COM", "x": 18, "y": 17, "country": "Comoros", "region_iso3c": "SSF" }, { "iso3c": "STP", "x": 11, "y": 17, "country": "Sao Tome and Principe", "region_iso3c": "SSF" }, { "iso3c": "ZMB", "x": 14, "y": 17, "country": "Zambia", "region_iso3c": "SSF" }, { "iso3c": "ZWE", "x": 15, "y": 18, "country": "Zimbabwe", "region_iso3c": "SSF" }, { "iso3c": "AGO", "x": 13, "y": 18, "country": "Angola", "region_iso3c": "SSF" }, { "iso3c": "MDG", "x": 19, "y": 18, "country": "Madagascar", "region_iso3c": "SSF" }, { "iso3c": "MUS", "x": 20, "y": 18, "country": "Mauritius", "region_iso3c": "SSF" }, { "iso3c": "BWA", "x": 14, "y": 18, "country": "Botswana", "region_iso3c": "SSF" }, { "iso3c": "NAM", "x": 13, "y": 19, "country": "Namibia", "region_iso3c": "SSF" }, { "iso3c": "SWZ", "x": 14, "y": 19, "country": "Swaziland", "region_iso3c": "SSF" }, { "iso3c": "LSO", "x": 15, "y": 19, "country": "Lesotho", "region_iso3c": "SSF" }, { "iso3c": "ZAF", "x": 14, "y": 20, "country": "South Africa", "region_iso3c": "SSF" }, { "iso3c": "ATA", "x": 14, "y": 22, "country": "Antarctica" }];
   mark_module_start();
   WorldSquareGrid[FILENAME] = "src/WorldSquareGrid.svelte";
-  var root_3$2 = add_locations(/* @__PURE__ */ ns_template(`<text class="country-label svelte-buoy2n" paint-order="stroke" stroke-linejoin="round"> </text>`), WorldSquareGrid[FILENAME], [[73, 8]]);
-  var root_2$2 = add_locations(/* @__PURE__ */ ns_template(`<g><rect></rect><!></g>`), WorldSquareGrid[FILENAME], [[40, 4, [[45, 6]]]]);
-  var root_4$1 = add_locations(/* @__PURE__ */ ns_template(`<rect class="highlight-outline svelte-buoy2n"></rect><rect class="highlight-outline svelte-buoy2n"></rect>`, 1), WorldSquareGrid[FILENAME], [[90, 2], [100, 2]]);
+  var on_mouseover = (_, currentCountry, cell, searched, tooltipVisible) => {
+    currentCountry(get(cell).iso3c);
+    searched(false);
+    tooltipVisible(true);
+  };
+  var on_mouseout = (__1, currentCountry, tooltipVisible) => {
+    currentCountry(null);
+    tooltipVisible(false);
+  };
+  var root_3$3 = add_locations(/* @__PURE__ */ ns_template(`<text class="country-label svelte-buoy2n" paint-order="stroke" stroke-linejoin="round"> </text>`), WorldSquareGrid[FILENAME], [[85, 8]]);
+  var root_2$2 = add_locations(/* @__PURE__ */ ns_template(`<g><rect></rect><!></g>`), WorldSquareGrid[FILENAME], [[46, 4, [[51, 6]]]]);
+  var root_4$1 = add_locations(/* @__PURE__ */ ns_template(`<rect class="highlight-outline svelte-buoy2n"></rect><rect class="highlight-outline svelte-buoy2n"></rect>`, 1), WorldSquareGrid[FILENAME], [[102, 2], [112, 2]]);
   var root$7 = add_locations(/* @__PURE__ */ ns_template(`<!><!>`, 1), WorldSquareGrid[FILENAME], []);
   function WorldSquareGrid($$anchor, $$props) {
     check_target(new.target);
-    push($$props, false, WorldSquareGrid);
-    const tileSize = mutable_state();
-    const currentTile = mutable_state();
-    const gridWidth = mutable_state();
-    const shift2 = mutable_state();
-    let width = prop($$props, "width", 8);
-    let height = prop($$props, "height", 8);
-    let strokeWidth = prop($$props, "strokeWidth", 8);
-    let stroke = prop($$props, "stroke", 8);
-    let countryCodes = prop($$props, "countryCodes", 8);
-    let margins = prop($$props, "margins", 8);
-    let noDataColor = prop($$props, "noDataColor", 8);
-    let data2 = prop($$props, "data", 8);
-    let contColorScale = prop($$props, "contColorScale", 8);
-    let catColorScale = prop($$props, "catColorScale", 8);
-    let currentCountry = prop($$props, "currentCountry", 12);
-    let currentTilePos = prop($$props, "currentTilePos", 12);
-    let searched = prop($$props, "searched", 12);
-    let tooltipVisible = prop($$props, "tooltipVisible", 12);
-    legacy_pre_effect(
-      () => (deep_read_state(width()), deep_read_state(margins()), deep_read_state(height())),
-      () => {
-        set(tileSize, Math.min((width() - margins().left - margins().right) / 29, (height() - margins().top - margins().bottom) / 22));
+    push($$props, true, WorldSquareGrid);
+    let currentCountry = prop($$props, "currentCountry", 15), currentTilePos = prop($$props, "currentTilePos", 15), searched = prop($$props, "searched", 15), tooltipVisible = prop($$props, "tooltipVisible", 15);
+    let tileSize = /* @__PURE__ */ derived(() => Math.min(($$props.width - $$props.margins.left - $$props.margins.right) / 29, ($$props.height - $$props.margins.top - $$props.margins.bottom) / 22));
+    let currentTile = /* @__PURE__ */ derived(() => squareGrid.find((d) => equals(d.iso3c, currentCountry())));
+    let gridWidth = /* @__PURE__ */ derived(() => get(tileSize) * 29);
+    let shift2 = /* @__PURE__ */ derived(() => ($$props.width - get(gridWidth)) / 2);
+    user_effect(() => {
+      if (currentCountry()) {
+        currentTilePos({
+          x: get(currentTile).x * get(tileSize) - get(tileSize),
+          y: get(currentTile).y * get(tileSize) + get(tileSize)
+        });
       }
-    );
-    legacy_pre_effect(
-      () => deep_read_state(currentCountry()),
-      () => {
-        set(currentTile, squareGrid.find((d) => equals(d.iso3c, currentCountry())));
-      }
-    );
-    legacy_pre_effect(() => get(tileSize), () => {
-      set(gridWidth, get(tileSize) * 29);
     });
-    legacy_pre_effect(
-      () => (deep_read_state(width()), get(gridWidth)),
-      () => {
-        set(shift2, (width() - get(gridWidth)) / 2);
-      }
-    );
-    legacy_pre_effect(
-      () => (deep_read_state(currentCountry()), get(currentTile), get(tileSize)),
-      () => {
-        if (currentCountry()) {
-          currentTilePos({
-            x: get(currentTile).x * get(tileSize) - get(tileSize),
-            y: get(currentTile).y * get(tileSize) + get(tileSize)
-          });
-        }
-      }
-    );
-    legacy_pre_effect_reset();
-    init();
     var fragment = root$7();
     var node = first_child(fragment);
     {
       var consequent_1 = ($$anchor2) => {
         var fragment_1 = comment();
         var node_1 = first_child(fragment_1);
-        each(node_1, 1, () => squareGrid, index, ($$anchor3, cell) => {
+        each(node_1, 17, () => squareGrid, index, ($$anchor3, cell) => {
           var g = root_2$2();
           var rect = child(g);
           set_attribute(rect, "x", 0);
           set_attribute(rect, "y", 0);
+          rect.__mouseover = [
+            on_mouseover,
+            currentCountry,
+            cell,
+            searched,
+            tooltipVisible
+          ];
+          rect.__mouseout = [on_mouseout, currentCountry, tooltipVisible];
           var node_2 = sibling(rect);
           {
             var consequent = ($$anchor4) => {
-              var text = root_3$2();
+              var text = root_3$3();
               set_attribute(text, "text-anchor", "middle");
               set_attribute(text, "font-size", "0.6rem");
               set_attribute(text, "stroke", "#ffffff");
@@ -6981,36 +6883,26 @@ ${indent}in ${name}`).join("")}
               append($$anchor4, text);
             };
             if_block(node_2, ($$render) => {
-              if (countryCodes()) $$render(consequent);
+              if ($$props.countryCodes && get(tileSize)) $$render(consequent);
             });
           }
           template_effect(
             ($0) => {
-              set_attribute(g, "transform", `translate(${get(cell).x * get(tileSize) - get(tileSize) + get(shift2)},${get(cell).y * get(tileSize) - get(tileSize)})`);
+              set_attribute(g, "transform", `translate(${(get(cell).x - 1) * get(tileSize) + get(shift2)},${(get(cell).y - 1) * get(tileSize)})`);
               set_attribute(rect, "width", get(tileSize));
               set_attribute(rect, "height", get(tileSize));
               set_attribute(rect, "fill", $0);
-              set_attribute(rect, "stroke", stroke());
-              set_attribute(rect, "stroke-width", strokeWidth());
+              set_attribute(rect, "stroke", $$props.stroke);
+              set_attribute(rect, "stroke-width", $$props.strokeWidth);
             },
             [
-              () => getFill(data2(), get(cell).iso3c, contColorScale(), catColorScale(), noDataColor())
-            ],
-            derived_safe_equal
+              () => getFill($$props.data, get(cell).iso3c, $$props.contColorScale, $$props.catColorScale, $$props.noDataColor)
+            ]
           );
-          event("mouseover", rect, () => {
-            currentCountry(get(cell).iso3c);
-            searched(false);
-            tooltipVisible(true);
-          });
           event("focus", rect, () => {
             currentCountry(get(cell).iso3c);
             searched(false);
             tooltipVisible(true);
-          });
-          event("mouseout", rect, () => {
-            currentCountry(null);
-            tooltipVisible(false);
           });
           event("blur", rect, () => {
             currentCountry(null);
@@ -7021,7 +6913,7 @@ ${indent}in ${name}`).join("")}
         append($$anchor2, fragment_1);
       };
       if_block(node, ($$render) => {
-        if (data2()) $$render(consequent_1);
+        if (get(tileSize)) $$render(consequent_1);
       });
     }
     var node_3 = sibling(node);
@@ -7039,12 +6931,12 @@ ${indent}in ${name}`).join("")}
           set_attribute(rect_1, "y", get(currentTile).y * get(tileSize) - get(tileSize));
           set_attribute(rect_1, "width", get(tileSize));
           set_attribute(rect_1, "height", get(tileSize));
-          set_attribute(rect_1, "stroke-width", strokeWidth() + 2);
+          set_attribute(rect_1, "stroke-width", $$props.strokeWidth + 2);
           set_attribute(rect_2, "x", get(currentTile).x * get(tileSize) - get(tileSize) + get(shift2));
           set_attribute(rect_2, "y", get(currentTile).y * get(tileSize) - get(tileSize));
           set_attribute(rect_2, "width", get(tileSize));
           set_attribute(rect_2, "height", get(tileSize));
-          set_attribute(rect_2, "stroke-width", strokeWidth());
+          set_attribute(rect_2, "stroke-width", $$props.strokeWidth);
         });
         append($$anchor2, fragment_2);
       };
@@ -7056,6 +6948,7 @@ ${indent}in ${name}`).join("")}
     return pop({ ...legacy_api() });
   }
   mark_module_end(WorldSquareGrid);
+  delegate(["mouseover", "mouseout"]);
   function define(constructor, factory, prototype) {
     constructor.prototype = factory.prototype = prototype;
     prototype.constructor = constructor;
@@ -7647,10 +7540,10 @@ ${indent}in ${name}`).join("")}
   ]);
   var root_4 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), ContinuousColorLegend[FILENAME], [[121, 14]]);
   var root_6 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), ContinuousColorLegend[FILENAME], [[127, 16]]);
-  var root_3$1 = add_locations(/* @__PURE__ */ ns_template(`<image class="gradient svelte-1af89zx" preserveAspectRatio="none"></image><rect class="gradient-border svelte-1af89zx"></rect><g class="ticks"><!><!></g>`, 1), ContinuousColorLegend[FILENAME], [[103, 10], [112, 10], [119, 10]]);
-  var root_8 = add_locations(/* @__PURE__ */ ns_template(`<rect></rect>`), ContinuousColorLegend[FILENAME], [[136, 12]]);
+  var root_3$2 = add_locations(/* @__PURE__ */ ns_template(`<image class="gradient svelte-1af89zx" preserveAspectRatio="none"></image><rect class="gradient-border svelte-1af89zx"></rect><g class="ticks"><!><!></g>`, 1), ContinuousColorLegend[FILENAME], [[103, 10], [112, 10], [119, 10]]);
+  var root_8$1 = add_locations(/* @__PURE__ */ ns_template(`<rect></rect>`), ContinuousColorLegend[FILENAME], [[136, 12]]);
   var root_9 = add_locations(/* @__PURE__ */ ns_template(`<text class="tick-label svelte-1af89zx"> </text>`), ContinuousColorLegend[FILENAME], [[146, 16]]);
-  var root_7$1 = add_locations(/* @__PURE__ */ ns_template(`<!><!>`, 1), ContinuousColorLegend[FILENAME], []);
+  var root_7 = add_locations(/* @__PURE__ */ ns_template(`<!><!>`, 1), ContinuousColorLegend[FILENAME], []);
   var root$6 = add_locations(/* @__PURE__ */ template2(`<div><div class="legend-text-container svelte-1af89zx"><!> <div class="legend-title svelte-1af89zx"><span> </span>&nbsp;<span class="label-unit svelte-1af89zx"> </span></div></div> <div class="gradient-container svelte-1af89zx"><!> <div class="gradient svelte-1af89zx"><svg class="svelte-1af89zx"><!><!></svg></div></div></div>`), ContinuousColorLegend[FILENAME], [
     [
       78,
@@ -7784,7 +7677,7 @@ ${indent}in ${name}`).join("")}
     var node_2 = child(svg_1);
     {
       var consequent_3 = ($$anchor2) => {
-        var fragment = root_3$1();
+        var fragment = root_3$2();
         var image = first_child(fragment);
         set_attribute(image, "height", 10);
         var rect_1 = sibling(image);
@@ -7846,10 +7739,10 @@ ${indent}in ${name}`).join("")}
     var node_6 = sibling(node_2);
     {
       var consequent_4 = ($$anchor2) => {
-        var fragment_2 = root_7$1();
+        var fragment_2 = root_7();
         var node_7 = first_child(fragment_2);
         each(node_7, 17, () => $$props.contColorScale.range(), index, ($$anchor3, bin, i) => {
-          var rect_2 = root_8();
+          var rect_2 = root_8$1();
           set_class(rect_2, 0, "bin-color svelte-1af89zx");
           set_attribute(rect_2, "height", 10);
           template_effect(
@@ -7997,7 +7890,7 @@ ${indent}in ${name}`).join("")}
   mark_module_start();
   CategoricalColorLegend[FILENAME] = "src/template/CategoricalColorLegend.svelte";
   var root_2 = add_locations(/* @__PURE__ */ template2(`<div class="pill-container svelte-hjs62s"><div></div> <div> </div></div>`), CategoricalColorLegend[FILENAME], [[15, 8, [[16, 10], [20, 10]]]]);
-  var root_3 = add_locations(/* @__PURE__ */ template2(`<div class="pill-container svelte-hjs62s"><div></div> <div> </div></div>`), CategoricalColorLegend[FILENAME], [[25, 6, [[26, 8], [27, 8]]]]);
+  var root_3$1 = add_locations(/* @__PURE__ */ template2(`<div class="pill-container svelte-hjs62s"><div></div> <div> </div></div>`), CategoricalColorLegend[FILENAME], [[25, 6, [[26, 8], [27, 8]]]]);
   var root$5 = add_locations(/* @__PURE__ */ template2(`<div><div class="legend-text-container svelte-hjs62s"><div class="legend-title svelte-hjs62s"><span> </span></div></div> <div class="categorical-legend svelte-hjs62s" aria-hidden="true"><!> <!></div></div>`), CategoricalColorLegend[FILENAME], [
     [
       6,
@@ -8050,7 +7943,7 @@ ${indent}in ${name}`).join("")}
     var node_2 = sibling(node, 2);
     {
       var consequent_1 = ($$anchor2) => {
-        var div_7 = root_3();
+        var div_7 = root_3$1();
         var div_8 = child(div_7);
         set_class(div_8, 1, `pill circle`, "svelte-hjs62s");
         var div_9 = sibling(div_8, 2);
@@ -9296,6 +9189,7 @@ ${indent}in ${name}`).join("")}
     return pop({ ...legacy_api() });
   }
   mark_module_end(TooltipContent);
+  enable_legacy_mode_flag();
   mark_module_start();
   Objects[FILENAME] = "src/Objects.svelte";
   var root$2 = add_locations(/* @__PURE__ */ template2(`<li class="typeahead-result svelte-s0cyhm"> </li>`), Objects[FILENAME], [[5, 0]]);
@@ -10016,20 +9910,13 @@ ${indent}in ${name}`).join("")}
   function updateMouse(evt, mousePos) {
     set(mousePos, proxy({ x: evt.clientX, y: evt.clientY }, null, mousePos));
   }
-  var root_7 = add_locations(/* @__PURE__ */ template2(`<div class="legend-container svelte-vkqg7t"><!> <!></div>`), Viz[FILENAME], [[178, 2]]);
-  var root = add_locations(/* @__PURE__ */ template2(`<div class="chart-container svelte-vkqg7t"><div class="header-container"><!></div> <div class="viz-container svelte-vkqg7t"><!> <svg><g><!><!></g></svg> <!></div> <!> <div class="footer-container"><!></div></div>`), Viz[FILENAME], [
+  var root_3 = add_locations(/* @__PURE__ */ ns_template(`<svg><g><!><!></g></svg>`), Viz[FILENAME], [[122, 4, [[123, 6]]]]);
+  var root_8 = add_locations(/* @__PURE__ */ template2(`<div class="legend-container svelte-vkqg7t"><!> <!></div>`), Viz[FILENAME], [[180, 2]]);
+  var root = add_locations(/* @__PURE__ */ template2(`<div class="chart-container svelte-vkqg7t"><div class="header-container"><!></div> <div class="viz-container svelte-vkqg7t"><!> <!> <!></div> <!> <div class="footer-container"><!></div></div>`), Viz[FILENAME], [
     [
       104,
       0,
-      [
-        [105, 2],
-        [
-          111,
-          2,
-          [[121, 4, [[122, 6]]]]
-        ],
-        [203, 2]
-      ]
+      [[105, 2], [111, 2], [205, 2]]
     ]
   ]);
   function Viz($$anchor, $$props) {
@@ -10123,143 +10010,157 @@ ${indent}in ${name}`).join("")}
         if ($$props.showSearchBox) $$render(consequent_1);
       });
     }
-    var svg = sibling(node_1, 2);
-    svg.__mousemove = [updateMouse, mousePos];
-    var g = child(svg);
-    var node_2 = child(g);
-    {
-      var consequent_2 = ($$anchor2) => {
-        {
-          add_owner_effect(() => get(currentCountry), WorldSquareGrid);
-          add_owner_effect(() => get(searched), WorldSquareGrid);
-          add_owner_effect(() => get(currentTilePos), WorldSquareGrid);
-          add_owner_effect(() => get(tooltipVisible), WorldSquareGrid);
-          WorldSquareGrid($$anchor2, {
-            get width() {
-              return get(vizWidth);
-            },
-            get height() {
-              return get(vizHeight);
-            },
-            get strokeWidth() {
-              return $$props.strokeWidth;
-            },
-            get stroke() {
-              return $$props.stroke;
-            },
-            get countryCodes() {
-              return $$props.countryCodes;
-            },
-            margins,
-            noDataColor,
-            get data() {
-              return $$props.data;
-            },
-            get contColorScale() {
-              return get(contColorScale);
-            },
-            get catColorScale() {
-              return get(catColorScale);
-            },
-            get currentCountry() {
-              return get(currentCountry);
-            },
-            set currentCountry($$value) {
-              set(currentCountry, proxy($$value, null, currentCountry));
-            },
-            get searched() {
-              return get(searched);
-            },
-            set searched($$value) {
-              set(searched, proxy($$value, null, searched));
-            },
-            get currentTilePos() {
-              return get(currentTilePos);
-            },
-            set currentTilePos($$value) {
-              set(currentTilePos, proxy($$value, null, currentTilePos));
-            },
-            get tooltipVisible() {
-              return get(tooltipVisible);
-            },
-            set tooltipVisible($$value) {
-              set(tooltipVisible, proxy($$value, null, tooltipVisible));
-            }
-          });
-        }
-      };
-      if_block(node_2, ($$render) => {
-        if (equals($$props.gridType, "squares")) $$render(consequent_2);
-      });
-    }
-    var node_3 = sibling(node_2);
-    {
-      var consequent_3 = ($$anchor2) => {
-        {
-          add_owner_effect(() => get(currentCountry), WorldHexGrid);
-          add_owner_effect(() => get(searched), WorldHexGrid);
-          add_owner_effect(() => get(currentTilePos), WorldHexGrid);
-          add_owner_effect(() => get(tooltipVisible), WorldHexGrid);
-          WorldHexGrid($$anchor2, {
-            get width() {
-              return get(vizWidth);
-            },
-            get height() {
-              return get(vizHeight);
-            },
-            get strokeWidth() {
-              return $$props.strokeWidth;
-            },
-            get stroke() {
-              return $$props.stroke;
-            },
-            get countryCodes() {
-              return $$props.countryCodes;
-            },
-            noDataColor,
-            get data() {
-              return $$props.data;
-            },
-            get contColorScale() {
-              return get(contColorScale);
-            },
-            get catColorScale() {
-              return get(catColorScale);
-            },
-            get currentCountry() {
-              return get(currentCountry);
-            },
-            set currentCountry($$value) {
-              set(currentCountry, proxy($$value, null, currentCountry));
-            },
-            get searched() {
-              return get(searched);
-            },
-            set searched($$value) {
-              set(searched, proxy($$value, null, searched));
-            },
-            get currentTilePos() {
-              return get(currentTilePos);
-            },
-            set currentTilePos($$value) {
-              set(currentTilePos, proxy($$value, null, currentTilePos));
-            },
-            get tooltipVisible() {
-              return get(tooltipVisible);
-            },
-            set tooltipVisible($$value) {
-              set(tooltipVisible, proxy($$value, null, tooltipVisible));
-            }
-          });
-        }
-      };
-      if_block(node_3, ($$render) => {
-        if (equals($$props.gridType, "hexagons")) $$render(consequent_3);
-      });
-    }
-    var node_4 = sibling(svg, 2);
+    var node_2 = sibling(node_1, 2);
     {
       var consequent_4 = ($$anchor2) => {
+        var svg = root_3();
+        svg.__mousemove = [updateMouse, mousePos];
+        var g = child(svg);
+        var node_3 = child(g);
+        {
+          var consequent_2 = ($$anchor3) => {
+            {
+              add_owner_effect(() => get(currentCountry), WorldSquareGrid);
+              add_owner_effect(() => get(searched), WorldSquareGrid);
+              add_owner_effect(() => get(currentTilePos), WorldSquareGrid);
+              add_owner_effect(() => get(tooltipVisible), WorldSquareGrid);
+              WorldSquareGrid($$anchor3, {
+                get width() {
+                  return get(vizWidth);
+                },
+                get height() {
+                  return get(vizHeight);
+                },
+                get strokeWidth() {
+                  return $$props.strokeWidth;
+                },
+                get stroke() {
+                  return $$props.stroke;
+                },
+                get countryCodes() {
+                  return $$props.countryCodes;
+                },
+                margins,
+                noDataColor,
+                get data() {
+                  return $$props.data;
+                },
+                get contColorScale() {
+                  return get(contColorScale);
+                },
+                get catColorScale() {
+                  return get(catColorScale);
+                },
+                get currentCountry() {
+                  return get(currentCountry);
+                },
+                set currentCountry($$value) {
+                  set(currentCountry, proxy($$value, null, currentCountry));
+                },
+                get searched() {
+                  return get(searched);
+                },
+                set searched($$value) {
+                  set(searched, proxy($$value, null, searched));
+                },
+                get currentTilePos() {
+                  return get(currentTilePos);
+                },
+                set currentTilePos($$value) {
+                  set(currentTilePos, proxy($$value, null, currentTilePos));
+                },
+                get tooltipVisible() {
+                  return get(tooltipVisible);
+                },
+                set tooltipVisible($$value) {
+                  set(tooltipVisible, proxy($$value, null, tooltipVisible));
+                }
+              });
+            }
+          };
+          if_block(node_3, ($$render) => {
+            if (equals($$props.gridType, "squares")) $$render(consequent_2);
+          });
+        }
+        var node_4 = sibling(node_3);
+        {
+          var consequent_3 = ($$anchor3) => {
+            {
+              add_owner_effect(() => get(currentCountry), WorldHexGrid);
+              add_owner_effect(() => get(searched), WorldHexGrid);
+              add_owner_effect(() => get(currentTilePos), WorldHexGrid);
+              add_owner_effect(() => get(tooltipVisible), WorldHexGrid);
+              WorldHexGrid($$anchor3, {
+                get width() {
+                  return get(vizWidth);
+                },
+                get height() {
+                  return get(vizHeight);
+                },
+                get strokeWidth() {
+                  return $$props.strokeWidth;
+                },
+                get stroke() {
+                  return $$props.stroke;
+                },
+                get countryCodes() {
+                  return $$props.countryCodes;
+                },
+                noDataColor,
+                get data() {
+                  return $$props.data;
+                },
+                get contColorScale() {
+                  return get(contColorScale);
+                },
+                get catColorScale() {
+                  return get(catColorScale);
+                },
+                get currentCountry() {
+                  return get(currentCountry);
+                },
+                set currentCountry($$value) {
+                  set(currentCountry, proxy($$value, null, currentCountry));
+                },
+                get searched() {
+                  return get(searched);
+                },
+                set searched($$value) {
+                  set(searched, proxy($$value, null, searched));
+                },
+                get currentTilePos() {
+                  return get(currentTilePos);
+                },
+                set currentTilePos($$value) {
+                  set(currentTilePos, proxy($$value, null, currentTilePos));
+                },
+                get tooltipVisible() {
+                  return get(tooltipVisible);
+                },
+                set tooltipVisible($$value) {
+                  set(tooltipVisible, proxy($$value, null, tooltipVisible));
+                }
+              });
+            }
+          };
+          if_block(node_4, ($$render) => {
+            if (equals($$props.gridType, "hexagons")) $$render(consequent_3);
+          });
+        }
+        template_effect(() => {
+          set_attribute(svg, "width", get(vizWidth));
+          set_attribute(svg, "height", get(vizHeight));
+          set_attribute(g, "transform", `translate(${margins.left},${margins.top})`);
+        });
+        append($$anchor2, svg);
+      };
+      if_block(node_2, ($$render) => {
+        if (get(vizHeight)) $$render(consequent_4);
+      });
+    }
+    var node_5 = sibling(node_2, 2);
+    {
+      var consequent_5 = ($$anchor2) => {
         const expression = /* @__PURE__ */ derived(() => get(searched) && get(currentTilePos) ? get(currentTilePos) : get(mousePos));
         Tooltip($$anchor2, {
           get visible() {
@@ -10282,17 +10183,17 @@ ${indent}in ${name}`).join("")}
           $$slots: { default: true }
         });
       };
-      if_block(node_4, ($$render) => {
-        if (get(currentCountryData) && get(mousePos)) $$render(consequent_4);
+      if_block(node_5, ($$render) => {
+        if (get(currentCountryData) && get(mousePos)) $$render(consequent_5);
       });
     }
-    var node_5 = sibling(div_2, 2);
+    var node_6 = sibling(div_2, 2);
     {
-      var consequent_7 = ($$anchor2) => {
-        var div_3 = root_7();
-        var node_6 = child(div_3);
+      var consequent_8 = ($$anchor2) => {
+        var div_3 = root_8();
+        var node_7 = child(div_3);
         {
-          var consequent_5 = ($$anchor3) => {
+          var consequent_6 = ($$anchor3) => {
             ContinuousColorLegend($$anchor3, {
               get width() {
                 return get(vizWidth);
@@ -10321,13 +10222,13 @@ ${indent}in ${name}`).join("")}
               }
             });
           };
-          if_block(node_6, ($$render) => {
-            if (equals(get(valueType), "number")) $$render(consequent_5);
+          if_block(node_7, ($$render) => {
+            if (equals(get(valueType), "number")) $$render(consequent_6);
           });
         }
-        var node_7 = sibling(node_6, 2);
+        var node_8 = sibling(node_7, 2);
         {
-          var consequent_6 = ($$anchor3) => {
+          var consequent_7 = ($$anchor3) => {
             CategoricalColorLegend($$anchor3, {
               get title() {
                 return $$props.legendTitle;
@@ -10346,21 +10247,21 @@ ${indent}in ${name}`).join("")}
               }
             });
           };
-          if_block(node_7, ($$render) => {
-            if (equals(get(valueType), "string")) $$render(consequent_6);
+          if_block(node_8, ($$render) => {
+            if (equals(get(valueType), "string")) $$render(consequent_7);
           });
         }
         bind_element_size(div_3, "clientHeight", ($$value) => set(legendHeight, $$value));
         append($$anchor2, div_3);
       };
-      if_block(node_5, ($$render) => {
-        if ($$props.showLegend) $$render(consequent_7);
+      if_block(node_6, ($$render) => {
+        if ($$props.showLegend) $$render(consequent_8);
       });
     }
-    var div_4 = sibling(node_5, 2);
-    var node_8 = child(div_4);
+    var div_4 = sibling(node_6, 2);
+    var node_9 = child(div_4);
     {
-      var consequent_8 = ($$anchor2) => {
+      var consequent_9 = ($$anchor2) => {
         Footer($$anchor2, {
           get notesTitle() {
             return $$props.notesTitle;
@@ -10373,15 +10274,10 @@ ${indent}in ${name}`).join("")}
           }
         });
       };
-      if_block(node_8, ($$render) => {
-        if ($$props.notesTitle || $$props.notes) $$render(consequent_8);
+      if_block(node_9, ($$render) => {
+        if ($$props.notesTitle || $$props.notes) $$render(consequent_9);
       });
     }
-    template_effect(() => {
-      set_attribute(svg, "width", get(vizWidth));
-      set_attribute(svg, "height", get(vizHeight));
-      set_attribute(g, "transform", `translate(${margins.left},${margins.top})`);
-    });
     bind_window_size("innerWidth", ($$value) => set(width, proxy($$value, null, width)));
     bind_window_size("innerHeight", ($$value) => set(height, proxy($$value, null, height)));
     bind_element_size(div_1, "clientHeight", ($$value) => set(headerHeight, $$value));

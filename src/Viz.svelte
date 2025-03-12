@@ -117,6 +117,7 @@
         bind:tooltipVisible
       ></SearchBox>
     {/if}
+    {#if vizHeight}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <svg width={vizWidth} height={vizHeight} onmousemove={updateMouse}>
       <g transform={`translate(${margins.left},${margins.top})`}>
@@ -158,6 +159,7 @@
         {/if}
       </g>
     </svg>
+    {/if}
     {#if currentCountryData && mousePos}
       <Tooltip
         visible={tooltipVisible}
